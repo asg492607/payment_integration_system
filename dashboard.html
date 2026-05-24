@@ -782,8 +782,8 @@
           <p style="font-size:0.82rem;color:var(--text-2);margin-bottom:10px;font-weight:600">JSON Body Template:</p>
           <div class="code-block" id="json-body-template">
 <button class="copy-btn" onclick="copyCodeBlock(this)">Copy</button>{
-  "rawText": "{{sms_body}}",
-  "sender":  "{{sender_number}}",
+  "rawText": "[content]",
+  "sender":  "[from]",
   "secret":  "YOUR_SECRET_KEY",
   "enterprise_id": "YOUR_ENTERPRISE_ID"
 }</div>
@@ -839,7 +839,7 @@
             <div class="guide-step">
               <div class="guide-step-content">
                 <div class="guide-step-title">Set JSON body with SMS variables</div>
-                <div class="guide-step-desc">Paste the JSON template above. The app will auto-replace <code>{{sms_body}}</code> and <code>{{sender_number}}</code> with the real SMS content.</div>
+                <div class="guide-step-desc">Paste the JSON template above. The app will auto-replace <code>[content]</code> and <code>[from]</code> with the real SMS text.</div>
               </div>
             </div>
             <div class="guide-step">

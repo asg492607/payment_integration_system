@@ -142,8 +142,8 @@ router.post('/sms', express.json({ type: ['application/json', 'text/plain'] }), 
       try { body = JSON.parse(body); } catch (e) { return res.status(400).json({ error: 'Invalid JSON' }); }
     }
 
-    const rawText = body.rawText || body.text || body.message || '';
-    const sender = body.sender || body.address || body.title || '';
+    const rawText = body.rawText || body.text || body.message || body.content || '';
+    const sender = body.sender || body.address || body.title || body.from || '';
     const secretHeader = req.headers['x-sms-webhook-secret'] || body.secret || '';
     const eId = body.enterprise_id || 'global';
 
