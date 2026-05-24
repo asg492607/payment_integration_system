@@ -1176,6 +1176,18 @@ function populateUserUI(user, stats) {
   const cfgEid = document.getElementById('cfg-enterprise-id');
   if (cfgEid) cfgEid.textContent = user.id;
 
+  const jsonTemplate = document.getElementById('json-body-template');
+  if (jsonTemplate) {
+    jsonTemplate.innerHTML = `<button class="copy-btn" onclick="copyCodeBlock(this)">Copy</button>{
+  "rawText": "[content]",
+  "sender":  "[from]",
+  "secret":  "${user.sms_webhook_secret || 'YOUR_SECRET_KEY'}",
+  "enterprise_id": "${user.id}"
+}`;
+  }
+  const cfgEid = document.getElementById('cfg-enterprise-id');
+  if (cfgEid) cfgEid.textContent = user.id;
+
   // Update JSON template
   const tpl = document.getElementById('json-body-template');
   if (tpl && user.sms_webhook_secret) {
@@ -1449,8 +1461,7 @@ async function testSmsWebhook() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${authToken}`,
-        'x-admin-token': 'dev_admin_token',
+        'x-sms-webhook-secret': currentUser?.sms_webhook_secret || ''
       },
       body: JSON.stringify({
         orderId: orderId || undefined,
