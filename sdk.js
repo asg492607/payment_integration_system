@@ -306,7 +306,7 @@
           </div>
 
           <div class="pf-btn-row">
-            <a class="pf-btn pf-btn-green" id="pf-upi-link" href="#" onclick="return false">📱 Open UPI App</a>
+            <a class="pf-btn pf-btn-green" id="pf-upi-link" href="#">📱 Open UPI App</a>
             <button class="pf-btn pf-btn-ghost" id="pf-copy-btn">📋 Copy Link</button>
           </div>
 
@@ -362,7 +362,6 @@
     document.addEventListener('keydown', onKey);
     document.getElementById('pf-btn-proceed').addEventListener('click', handleProceed);
     document.getElementById('pf-copy-btn').addEventListener('click', handleCopyLink);
-    document.getElementById('pf-upi-link').addEventListener('click', handleOpenUpi);
     document.getElementById('pf-done-btn').addEventListener('click', dismiss);
 
     // Enter key on form
@@ -431,10 +430,11 @@
       document.getElementById('pf-disp-order').textContent  = data.orderId;
       document.getElementById('pf-upi-link').href = data.upiLink;
       
-      // Render QR Code via QuickChart API
+      // Render QR Code via api.qrserver.com
       const qrImg = document.getElementById('pf-qr-code');
-      qrImg.src = `https://quickchart.io/qr?size=300&margin=1&text=${encodeURIComponent(data.upiLink)}`;
+      qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=${encodeURIComponent(data.upiLink)}`;
       qrImg.onload = () => qrImg.style.opacity = '1';
+      qrImg.onerror = () => qrImg.style.opacity = '1'; // Show broken image icon if it completely fails
 
       goToStep(2);
       startExpiryTimer();
@@ -513,11 +513,6 @@
   }
 
   // ── UPI Helpers ────────────────────────────────────────
-  function handleOpenUpi() {
-    if (!_state.upiLink) return;
-    window.location.href = _state.upiLink;
-  }
-
   async function handleCopyLink() {
     if (!_state.upiLink) return;
     try {
