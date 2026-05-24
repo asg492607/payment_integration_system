@@ -4,7 +4,7 @@
   "description": "Enterprise-grade self-verifying UPI Payment Engine with Firebase real-time updates",
   "main": "server/index.js",
   "engines": {
-    "node": ">=18.0.0"
+    "node": "20.x"
   },
   "scripts": {
     "start": "node server/index.js",
