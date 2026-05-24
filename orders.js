@@ -93,7 +93,13 @@ router.post('/create', async (req, res) => {
       paymentNote = `${enterprise.company || 'Enterprise'} - ${orderId}`;
     }
 
-    const upiLink = upiEngine.buildUpiLinkForEnterprise(upiVpa, enterprise?.upi_payee_name, payableAmount, paymentNote);
+    const upiLink = upiEngine.buildUpiLinkForEnterprise({
+      orderId,
+      amount: payableAmount,
+      note: paymentNote,
+      vpa: upiVpa,
+      payeeName: enterprise?.upi_payee_name
+    });
     const secret = enterprise ? enterprise.hmac_secret : process.env.HMAC_SECRET;
     const signature = upiEngine.signOrderId(orderId, secret);
 
