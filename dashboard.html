@@ -1185,19 +1185,6 @@ function populateUserUI(user, stats) {
   "enterprise_id": "${user.id}"
 }`;
   }
-  const cfgEid = document.getElementById('cfg-enterprise-id');
-  if (cfgEid) cfgEid.textContent = user.id;
-
-  // Update JSON template
-  const tpl = document.getElementById('json-body-template');
-  if (tpl && user.sms_webhook_secret) {
-    tpl.innerHTML = `<button class="copy-btn" onclick="copyCodeBlock(this)">Copy</button>{
-  "rawText": "{{sms_body}}",
-  "sender":  "{{sender_number}}",
-  "secret":  "${user.sms_webhook_secret}",
-  "enterprise_id": "${user.id}"
-}`;
-  }
 
   // Setup checklist
   updateSetupChecklist(user);
