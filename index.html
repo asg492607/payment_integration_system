@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PayForge — Self-Verifying UPI Payment Engine for Startups</title>
+  <meta name="description" content="Accept UPI payments with zero payment gateway fees. Auto-verify via bank SMS. Built for Indian startups." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<div class="bg-grid"></div>
+<div class="bg-orb orb-1"></div>
+<div class="bg-orb orb-2"></div>
+<div class="bg-orb orb-3"></div>
+
+<!-- ─── Navbar ─────────────────────────────────────────── -->
+<nav class="navbar">
+  <div class="nav-inner">
+    <div class="nav-logo">
+      <div class="logo-icon">⚡</div>
+      <span>PayForge</span>
+    </div>
+    <div class="nav-links">
+      <a href="#plans">Plans</a>
+      <a href="#how">How It Works</a>
+      <a href="#features">Features</a>
+      <a href="/login.html" class="nav-admin-btn" id="nav-auth-btn">Sign In →</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ─── Hero ───────────────────────────────────────────── -->
+<section class="hero">
+  <div class="hero-badge">🇮🇳 Built for Indian Startups · No Payment Gateway Required</div>
+  <h1 class="hero-title">
+    Collect UPI Payments.<br/>
+    <span class="gradient-text">Auto-verify. Instantly activate.</span>
+  </h1>
+  <p class="hero-sub">
+    Enterprise-grade UPI payment engine. Customer pays → your bank sends an SMS → service activates automatically. Zero gateway fees. Zero manual work.
+  </p>
+  <div class="hero-cta">
+    <a href="/login.html" class="btn-hero-primary">🚀 Start for Free</a>
+    <a href="#how" class="btn-hero-secondary">See How It Works ↓</a>
+  </div>
+  <div class="hero-stats">
+    <div class="stat-pill">⚡ &lt;3s verification</div>
+    <div class="stat-pill">🔒 Replay-proof</div>
+    <div class="stat-pill">📊 Real-time dashboard</div>
+    <div class="stat-pill">🔥 Firebase real-time</div>
+    <div class="stat-pill">🆓 0% gateway fee</div>
+  </div>
+</section>
+
+<!-- ─── Plans ──────────────────────────────────────────── -->
+<section class="plans-section" id="plans">
+  <h2 class="section-title">Transparent Pricing</h2>
+  <p class="section-sub" style="color: var(--emerald-lt); font-weight: 600; margin-bottom: 20px;">🚀 Currently in Beta: All tiers are 100% FREE while we scale!</p>
+  <p class="section-sub">Once we exit beta, here is our simple, zero-commission pricing model.</p>
+  <div class="plans-grid">
+    <div class="plan-card" id="plan-starter">
+      <div class="plan-badge">Starter (Freemium)</div>
+      <div class="plan-price">₹0</div>
+      <div class="plan-duration">Forever</div>
+      <ul class="plan-features">
+        <li>✓ 10 verified transactions/mo</li>
+        <li>✓ Zero gateway commission</li>
+        <li>✓ Basic dashboard</li>
+        <li>✓ Community support</li>
+      </ul>
+      <button class="plan-btn" onclick="window.location.href='/login.html'">Start for Free</button>
+    </div>
+    <div class="plan-card plan-featured" id="plan-pro">
+      <div class="plan-popular-badge">Growth Tier</div>
+      <div class="plan-badge">Growth</div>
+      <div class="plan-price">₹499</div>
+      <div class="plan-duration">per month</div>
+      <ul class="plan-features">
+        <li>✓ 100 verified transactions/mo</li>
+        <li>✓ Zero gateway commission</li>
+        <li>✓ Advanced analytics</li>
+        <li>✓ Priority email support</li>
+      </ul>
+      <button class="plan-btn plan-btn-primary" onclick="window.location.href='/login.html'">Start for Free (Beta)</button>
+    </div>
+    <div class="plan-card" id="plan-empire">
+      <div class="plan-badge">Pro (Pay-As-You-Go)</div>
+      <div class="plan-price">₹2</div>
+      <div class="plan-duration">per extra transaction</div>
+      <ul class="plan-features">
+        <li>✓ Everything in Growth</li>
+        <li>✓ Wallet-based auto deductions</li>
+        <li>✓ Unlimited scaling</li>
+        <li>✓ Dedicated Slack channel</li>
+      </ul>
+      <button class="plan-btn" onclick="window.location.href='/login.html'">Start for Free (Beta)</button>
+    </div>
+  </div>
+</section>
+
+<!-- ─── Features ──────────────────────────────────────── -->
+<section class="features-section" id="features">
+  <h2 class="section-title">Why PayForge?</h2>
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon">🤖</div>
+      <h3>Auto-Verification via SMS</h3>
+      <p>Your Android phone forwards bank credit SMS to our server. We parse the amount, match the order, and activate service — no customer input needed.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔥</div>
+      <h3>Firebase Real-time Updates</h3>
+      <p>Your dashboard and apps receive instant payment notifications via Firebase Realtime Database — the moment money hits your account.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🛡️</div>
+      <h3>Replay Attack Protection</h3>
+      <p>Each UPI reference number is stored and checked. The same SMS can never activate two orders — mathematically impossible to game.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🏢</div>
+      <h3>Multi-tenant Enterprise</h3>
+      <p>Each startup gets their own UPI config, webhook secrets, and isolated data. Host once, serve unlimited startup teams.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">💰</div>
+      <h3>Zero Platform Fees</h3>
+      <p>Unlike Razorpay (2%) or Stripe, PayForge charges ₹0 per transaction. You receive 100% of what the customer pays.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📱</div>
+      <h3>Android SMS Forwarder</h3>
+      <p>Install a free SMS Forwarder app on your phone, configure the webhook URL and secret — done in under 5 minutes.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ─── How It Works ───────────────────────────────────── -->
+<section class="how-section" id="how">
+  <h2 class="section-title">How The Engine Works</h2>
+  <div class="flow-diagram">
+    <div class="flow-step">
+      <div class="flow-icon">1️⃣</div>
+      <h3>Order Created</h3>
+      <p>Unique Order ID + paise-level amount generated. UPI link built for your VPA.</p>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">
+      <div class="flow-icon">2️⃣</div>
+      <h3>Customer Pays</h3>
+      <p>Customer taps UPI link → pays exact amount via PhonePe / GPay / Paytm.</p>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">
+      <div class="flow-icon">3️⃣</div>
+      <h3>SMS Forwarded</h3>
+      <p>Bank sends "credited" SMS to your phone. SMS Forwarder app POSTs it to our webhook.</p>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">
+      <div class="flow-icon">4️⃣</div>
+      <h3>Verified &amp; Activated</h3>
+      <p>Amount matched, replay checked, service unlocked. Firebase event fired instantly.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ─── Payment Modal ──────────────────────────────────── -->
+<div class="modal-overlay" id="paymentModal">
+  <div class="modal-card">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+
+    <!-- Step 1: User Details -->
+    <div class="modal-step active" id="step-details">
+      <div class="step-indicator">
+        <span class="step-dot active">1</span>
+        <span class="step-line"></span>
+        <span class="step-dot">2</span>
+        <span class="step-line"></span>
+        <span class="step-dot">3</span>
+      </div>
+      <h2 class="modal-title">Your Details</h2>
+      <p class="modal-sub">We need this to activate your service instantly after payment.</p>
+
+      <div class="form-group">
+        <label for="inp-name">Full Name</label>
+        <input type="text" id="inp-name" placeholder="Atharva Sharma" autocomplete="name" />
+      </div>
+      <div class="form-group">
+        <label for="inp-email">Email Address</label>
+        <input type="email" id="inp-email" placeholder="you@example.com" autocomplete="email" />
+      </div>
+      <div class="form-group">
+        <label for="inp-phone">Phone (optional)</label>
+        <input type="tel" id="inp-phone" placeholder="+91 9876543210" autocomplete="tel" />
+      </div>
+
+      <div class="selected-plan-summary" id="selected-plan-summary">
+        <span id="summary-plan-name">Pro Plan</span>
+        <span id="summary-plan-price">₹499</span>
+      </div>
+
+      <button class="btn-primary full-width" id="btn-proceed" onclick="proceedToPayment()">
+        Continue to Payment →
+      </button>
+    </div>
+
+    <!-- Step 2: UPI Payment -->
+    <div class="modal-step" id="step-payment">
+      <div class="step-indicator">
+        <span class="step-dot done">✓</span>
+        <span class="step-line active"></span>
+        <span class="step-dot active">2</span>
+        <span class="step-line"></span>
+        <span class="step-dot">3</span>
+      </div>
+      <h2 class="modal-title">Pay via UPI</h2>
+      <p class="modal-sub">Pay the exact amount shown. Service activates automatically after your bank SMS is received.</p>
+
+      <div class="payment-info">
+        <div class="payment-row"><span>Order ID</span><code id="display-order-id">—</code></div>
+        <div class="payment-row"><span>UPI ID</span><code id="display-upi-vpa">—</code></div>
+        <div class="payment-row"><span>Amount</span><strong id="display-amount" style="color:var(--emerald-lt);font-size:1.1rem">₹—</strong></div>
+        <div class="payment-row"><span>Payment Note</span><code id="display-payment-note">—</code></div>
+        <div class="payment-row"><span>Expires In</span><span id="display-expiry" class="expiry-timer">—</span></div>
+      </div>
+
+      <div class="upi-actions">
+        <a id="upi-deep-link" href="#" class="btn-upi" onclick="openUpiApp(event)">
+          📱 Open UPI App
+        </a>
+        <button class="btn-secondary" onclick="copyUpiLink()">📋 Copy Link</button>
+      </div>
+
+      <div class="divider">Pay exact amount — service activates automatically</div>
+
+      <p class="auto-poll-notice" id="auto-poll-notice">
+        <span class="pulse-dot"></span> Waiting for bank SMS confirmation...
+      </p>
+    </div>
+
+    <!-- Step 3: Success -->
+    <div class="modal-step" id="step-success">
+      <div class="success-animation">
+        <div class="success-ring"></div>
+        <div class="success-check">✓</div>
+      </div>
+      <h2 class="modal-title success-title">Activated! 🎉</h2>
+      <p class="modal-sub">Your service is live. A confirmation has been logged.</p>
+      <div class="activation-details" id="activation-details">
+        <div class="activation-row"><span>Plan</span><strong id="act-plan">—</strong></div>
+        <div class="activation-row"><span>Order ID</span><code id="act-order-id">—</code></div>
+        <div class="activation-row"><span>Transaction</span><code id="act-txn-id">—</code></div>
+        <div class="activation-row"><span>Status</span><span class="status-badge active">ACTIVE</span></div>
+      </div>
+      <button class="btn-primary full-width" onclick="closeModal(); resetFlow()">🏠 Back to Home</button>
+    </div>
+  </div>
+</div>
+
+<footer style="text-align:center; padding:40px 24px; border-top:1px solid var(--border); color:var(--text-3); font-size:0.85rem;">
+  <p style="font-weight: 600; color: var(--text-2); font-size: 1rem;">An initiative by Judiq AI, Solace, MySpace, and Aixynz</p>
+  <p style="margin-top:8px; opacity:0.6;">Empowering Indian Startups with zero-fee payments.</p>
+</footer>
+
+<div class="toast-container" id="toast-container"></div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics.js";
+  import { getDatabase, ref, onChildAdded } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+  const app = initializeApp({
+    apiKey: "AIzaSyCCoQaBHkp6XBIXATmn34-c89h8auPTe24",
+    authDomain: "payment-2e43c.firebaseapp.com",
+    databaseURL: "https://payment-2e43c-default-rtdb.firebaseio.com",
+    projectId: "payment-2e43c",
+    storageBucket: "payment-2e43c.firebasestorage.app",
+    messagingSenderId: "1013570384920",
+    appId: "1:1013570384920:web:8c547ffe53cc9cc8d1ff6d",
+    measurementId: "G-37TCSNCEKD"
+  });
+  getAnalytics(app);
+  window._rtdb = getDatabase(app);
+  window._fbRef = ref;
+  window._fbOnChildAdded = onChildAdded;
+  window._fbReady = true;
+  document.dispatchEvent(new Event('firebase-ready'));
+</script>
+<script src="app.js"></script>
+
+<script>
+  // Update nav auth button based on login state
+  document.addEventListener('DOMContentLoaded', () => {
+    const token = localStorage.getItem('pf_token');
+    const btn = document.getElementById('nav-auth-btn');
+    if (token && btn) {
+      btn.textContent = 'Dashboard →';
+      btn.href = '/dashboard.html';
+    }
+  });
+</script>
+
+<script>
+  const toggleBtn = document.getElementById('theme-toggle');
+  const currentTheme = localStorage.getItem('theme') || 'dark';
+  if (currentTheme === 'light') {
+    document.documentElement.setAttribute('data-theme', 'light');
+    if (toggleBtn) toggleBtn.textContent = '??';
+  }
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', () => {
+      const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+      const nextTheme = isLight ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', nextTheme);
+      localStorage.setItem('theme', nextTheme);
+      toggleBtn.textContent = isLight ? '??' : '??';
+    });
+  }
+</script>
+</body>
+</html>
+
+

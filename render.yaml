@@ -9,7 +9,7 @@ services:
     plan: free               # Upgrade to 'starter' ($7/mo) for always-on
 
     buildCommand: npm install
-    startCommand: node server/index.js
+    startCommand: node index.js
 
     healthCheckPath: /api/health
     autoDeploy: true
@@ -61,3 +61,4 @@ services:
 
       # - key: ALLOWED_ORIGIN
       #   value: https://payforge-enterprise.onrender.com
+

@@ -1,0 +1,106 @@
+/**
+ * Admin Panel & Enterprise Routing - Firebase RTDB
+ */
+const express = require('express');
+const router = express.Router();
+const { requireAuth } = require('./auth');
+const db = require('./database');
+const { v4: uuidv4 } = require('uuid');
+
+function setDb() {} // No longer needed
+
+router.use(requireAuth);
+
+router.get('/transactions', async (req, res) => {
+  try {
+    const transactions = await db.find('transactions', t => t.enterprise_id === req.enterpriseUserId);
+    const orders = await db.find('orders', o => o.enterprise_id === req.enterpriseUserId);
+    const users = await db.find('users', u => u.enterprise_id === req.enterpriseUserId);
+
+    const merged = transactions.map(t => {
+      const order = orders.find(o => o.id === t.order_id);
+      const user = user.find(u => u.id === order?.user_id);
+      return {
+        id: t.id, upi_ref: t.upi_ref, amount_verified: t.amount_verified,
+        status: t.status, verified_at: t.verified_at,
+        order_id: t.order_id, user_email: user?.email, plan: order?.plan
+      };
+    }).sort((a,b) => new Date(b.verified_at) - new Date(a.verified_at));
+
+    res.json(merged);
+  } catch (e) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+router.get('/orders', async (req, res) => {
+  try {
+    const orders = await db.find('orders', o => o.enterprise_id === req.enterpriseUserId);
+    const users = await db.find('users', u => u.enterprise_id === req.enterpriseUserId);
+    
+    const merged = orders.map(o => {
+      const user = users.find(u => u.id === o.user_id);
+      return {
+        id: o.id, amount: o.amount, plan: o.plan, status: o.status,
+        expires_at: o.expires_at, created_at: o.created_at,
+        user_email: user?.email, user_name: user?.name
+      };
+    }).sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
+
+    res.json(merged);
+  } catch (e) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+router.get('/customers', async (req, res) => {
+  try {
+    const users = await db.find('users', u => u.enterprise_id === req.enterpriseUserId);
+    const sorted = users.sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
+    res.json(sorted);
+  } catch (e) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+router.get('/plans', async (req, res) => {
+  try {
+    const plans = await db.find('enterprise_plans', p => p.enterprise_id === req.enterpriseUserId);
+    res.json(plans.sort((a,b) => new Date(b.created_at) - new Date(a.created_at)));
+  } catch (e) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+router.post('/plans', async (req, res) => {
+  try {
+    const { plan_code, label, amount, duration } = req.body;
+    if (!plan_code || !label || !amount) return res.status(400).json({ error: 'Missing fields' });
+
+    const existing = await db.findOne('enterprise_plans', p => p.enterprise_id === req.enterpriseUserId && p.plan_code === plan_code);
+    if (existing) return res.status(409).json({ error: 'Plan code already exists' });
+
+    const id = uuidv4();
+    const plan = {
+      id, enterprise_id: req.enterpriseUserId, plan_code, label, amount: parseFloat(amount),
+      duration: duration || '30 Days', created_at: new Date().toISOString()
+    };
+    await db.put(`enterprise_plans/${id}`, plan);
+    res.status(201).json({ success: true, plan });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed' });
+  }
+});
+
+router.delete('/plans/:id', async (req, res) => {
+  try {
+    const plan = await db.get(`enterprise_plans/${req.params.id}`);
+    if (!plan || plan.enterprise_id !== req.enterpriseUserId) return res.status(403).json({ error: 'Unauthorized' });
+    await db.remove(`enterprise_plans/${req.params.id}`);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed' });
+  }
+});
+
+module.exports = { router, setDb };
