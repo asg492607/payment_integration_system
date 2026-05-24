@@ -145,22 +145,6 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log(`❤️  Health:     /api/health\n`);
   
   smsQueue.startKeepAlive(process.env.ALLOWED_ORIGIN);
-
-  // TEMP: Force verify the user's stuck order
-  setTimeout(async () => {
-    try {
-      const db = require('./database');
-      const ver = require('./verificationEngine');
-      const o = await db.get('orders/ORD-JQXP13-9D04');
-      if (o && o.status === 'pending') {
-        await ver.verifyPayment({
-          orderId: o.id, upiRef: 'MANUAL-OVERRIDE-9901', amount: 99.01,
-          source: 'manual', rawText: 'force verified by admin', enterpriseId: o.enterprise_id
-        });
-        console.log('[Override] Force verified ORD-JQXP13-9D04');
-      }
-    } catch(e){}
-  }, 3000);
 });
 
 module.exports = app;
