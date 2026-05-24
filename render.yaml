@@ -1,0 +1,63 @@
+# render.yaml — PayForge Enterprise v2.0
+# Docs: https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: payforge-enterprise
+    runtime: node
+    region: singapore        # Closest to India
+    plan: free               # Upgrade to 'starter' ($7/mo) for always-on
+
+    buildCommand: npm install
+    startCommand: node server/index.js
+
+    healthCheckPath: /api/health
+    autoDeploy: true
+
+    # Persistent SQLite disk — $1/mo, needed so data survives deploys
+    disk:
+      name: payforge-db
+      mountPath: /data
+      sizeGB: 1
+
+    envVars:
+      - key: NODE_ENV
+        value: production
+
+      - key: PORT
+        value: 10000
+
+      - key: DB_PATH
+        value: /data/payments.db
+
+      # ── Auto-generated secure secrets ──────────────────────────────────
+      - key: HMAC_SECRET
+        generateValue: true
+
+      - key: JWT_SECRET
+        generateValue: true
+
+      - key: ADMIN_TOKEN
+        generateValue: true
+
+      # ── Set these manually in Render Dashboard → Environment ────────────
+      # - key: UPI_VPA
+      #   value: yourname@ybl            ← your fallback/global UPI ID
+
+      # - key: UPI_PAYEE_NAME
+      #   value: PayForge Payments
+
+      # - key: TRUSTED_SMS_SENDER
+      #   value: 9876543210              ← your phone number (10 digits)
+
+      # - key: SMS_WEBHOOK_SECRET
+      #   value: your_secret             ← random 32+ char string
+
+      # - key: FIREBASE_DB_URL
+      #   value: https://payment-2e43c-default-rtdb.firebaseio.com
+
+      # - key: FIREBASE_DB_SECRET
+      #   value:                         ← Firebase DB secret (optional)
+
+      # - key: ALLOWED_ORIGIN
+      #   value: https://payforge-enterprise.onrender.com

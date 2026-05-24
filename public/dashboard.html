@@ -1,0 +1,1550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PayForge — Enterprise Dashboard</title>
+  <meta name="description" content="Manage your UPI payment engine, configure SMS auto-verification, and track revenue in real-time."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg:#050810; --bg2:#080d1a; --bg3:#0c1222;
+      --surface:rgba(255,255,255,0.04); --surface2:rgba(255,255,255,0.07);
+      --border:rgba(255,255,255,0.08); --border-glow:rgba(99,102,241,0.4);
+      --indigo:#6366f1; --indigo-lt:#818cf8; --indigo-dk:#4f46e5;
+      --emerald:#10b981; --emerald-lt:#34d399;
+      --amber:#f59e0b; --rose:#f43f5e; --violet:#8b5cf6;
+      --text-1:#f1f5f9; --text-2:#94a3b8; --text-3:#475569;
+      --radius-sm:8px; --radius:14px; --radius-lg:20px; --radius-xl:28px;
+      --font:'Outfit',sans-serif; --mono:'JetBrains Mono',monospace;
+      --shadow:0 8px 32px rgba(0,0,0,0.4); --shadow-lg:0 20px 60px rgba(0,0,0,0.6);
+      --sidebar-w:260px;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html{scroll-behavior:smooth}
+    body{font-family:var(--font);background:var(--bg);color:var(--text-1);min-height:100vh;display:flex;overflow-x:hidden}
+
+    /* ── Background ── */
+    .bg-grid{position:fixed;inset:0;z-index:0;pointer-events:none;
+      background-image:linear-gradient(rgba(99,102,241,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(99,102,241,0.04) 1px,transparent 1px);
+      background-size:60px 60px}
+    .bg-orb{position:fixed;border-radius:50%;pointer-events:none;z-index:0;filter:blur(100px);opacity:0.1}
+    .orb-1{width:500px;height:500px;background:var(--indigo);top:-150px;left:-150px}
+    .orb-2{width:350px;height:350px;background:var(--emerald);bottom:-100px;right:-100px}
+
+    /* ── Sidebar ── */
+    .sidebar{
+      width:var(--sidebar-w);min-height:100vh;
+      background:rgba(5,8,16,0.95);border-right:1px solid var(--border);
+      display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:50;
+      backdrop-filter:blur(20px);
+    }
+    .sidebar-logo{
+      display:flex;align-items:center;gap:12px;padding:24px 20px 20px;
+      border-bottom:1px solid var(--border);text-decoration:none;color:var(--text-1);
+    }
+    .logo-icon{
+      width:40px;height:40px;border-radius:12px;flex-shrink:0;
+      background:linear-gradient(135deg,var(--indigo),var(--violet));
+      display:flex;align-items:center;justify-content:center;font-size:1.2rem;
+      box-shadow:0 4px 16px rgba(99,102,241,0.4);
+    }
+    .logo-text{font-size:1.2rem;font-weight:900;letter-spacing:-0.5px}
+    .logo-badge{font-size:0.65rem;color:var(--indigo-lt);background:rgba(99,102,241,0.15);
+      border:1px solid rgba(99,102,241,0.3);border-radius:100px;padding:2px 8px;font-weight:700;margin-top:2px}
+
+    .sidebar-nav{flex:1;padding:16px 12px;overflow-y:auto}
+    .nav-section-title{font-size:0.65rem;font-weight:700;color:var(--text-3);text-transform:uppercase;
+      letter-spacing:1px;padding:8px 10px 6px;margin-top:8px}
+    .nav-item{
+      display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:var(--radius-sm);
+      color:var(--text-2);text-decoration:none;font-size:0.875rem;font-weight:500;
+      cursor:pointer;transition:all 0.2s;border:none;background:none;width:100%;text-align:left;
+      margin-bottom:2px;
+    }
+    .nav-item:hover{background:var(--surface2);color:var(--text-1)}
+    .nav-item.active{background:rgba(99,102,241,0.15);color:var(--indigo-lt);
+      border:1px solid rgba(99,102,241,0.2)}
+    .nav-item .nav-icon{font-size:1rem;width:20px;text-align:center;flex-shrink:0}
+    .nav-badge{margin-left:auto;background:var(--rose);color:#fff;font-size:0.65rem;
+      font-weight:700;padding:2px 7px;border-radius:100px}
+
+    .sidebar-footer{padding:16px 12px;border-top:1px solid var(--border)}
+    .user-card{
+      display:flex;align-items:center;gap:10px;padding:10px 12px;
+      background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);
+    }
+    .user-avatar{
+      width:34px;height:34px;border-radius:10px;flex-shrink:0;
+      background:linear-gradient(135deg,var(--indigo),var(--violet));
+      display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;
+    }
+    .user-name{font-size:0.82rem;font-weight:600;color:var(--text-1)}
+    .user-email{font-size:0.72rem;color:var(--text-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:120px}
+    .logout-btn{margin-left:auto;background:none;border:none;cursor:pointer;color:var(--text-3);
+      font-size:1rem;padding:4px;transition:color 0.2s}
+    .logout-btn:hover{color:var(--rose)}
+
+    /* ── Main Content ── */
+    .main{margin-left:var(--sidebar-w);flex:1;min-height:100vh;position:relative;z-index:1}
+    .topbar{
+      position:sticky;top:0;z-index:40;
+      background:rgba(5,8,16,0.9);border-bottom:1px solid var(--border);
+      backdrop-filter:blur(20px);padding:0 32px;height:64px;
+      display:flex;align-items:center;justify-content:space-between;
+    }
+    .topbar-title{font-size:1.1rem;font-weight:700;letter-spacing:-0.3px}
+    .topbar-right{display:flex;align-items:center;gap:12px}
+    .live-indicator{
+      display:flex;align-items:center;gap:6px;
+      background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);
+      border-radius:100px;padding:5px 12px;font-size:0.75rem;color:var(--emerald-lt);font-weight:600;
+    }
+    .live-dot{width:6px;height:6px;border-radius:50%;background:var(--emerald-lt);
+      animation:pulse 1.5s ease-in-out infinite}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+
+    .content{padding:32px}
+
+    /* ── Page Sections ── */
+    .page{display:none}
+    .page.active{display:block;animation:fadeIn 0.25s ease}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+    /* ── Setup Banner ── */
+    .setup-banner{
+      background:linear-gradient(135deg,rgba(99,102,241,0.15),rgba(139,92,246,0.1));
+      border:1px solid rgba(99,102,241,0.3);border-radius:var(--radius-lg);
+      padding:24px 28px;margin-bottom:28px;display:flex;align-items:center;gap:20px;
+    }
+    .setup-banner .banner-icon{font-size:2.2rem;flex-shrink:0}
+    .setup-banner h3{font-size:1.1rem;font-weight:700;margin-bottom:4px}
+    .setup-banner p{color:var(--text-2);font-size:0.875rem}
+    .setup-banner .btn-setup{
+      margin-left:auto;flex-shrink:0;padding:10px 20px;border-radius:var(--radius-sm);
+      background:linear-gradient(135deg,var(--indigo),var(--violet));border:none;
+      color:#fff;font-family:var(--font);font-size:0.875rem;font-weight:700;
+      cursor:pointer;white-space:nowrap;box-shadow:0 4px 16px rgba(99,102,241,0.4);
+      transition:all 0.2s;
+    }
+    .setup-banner .btn-setup:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(99,102,241,0.5)}
+
+    /* ── Stats Grid ── */
+    .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:28px}
+    .stat-card{
+      background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);
+      padding:24px 20px;transition:all 0.2s;position:relative;overflow:hidden;
+    }
+    .stat-card::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity 0.2s;
+      background:linear-gradient(135deg,rgba(99,102,241,0.05),transparent)}
+    .stat-card:hover{border-color:var(--border-glow);transform:translateY(-2px)}
+    .stat-card:hover::before{opacity:1}
+    .stat-icon{font-size:1.5rem;margin-bottom:12px}
+    .stat-label{font-size:0.72rem;color:var(--text-3);text-transform:uppercase;letter-spacing:0.8px;font-weight:700;margin-bottom:6px}
+    .stat-value{font-size:2rem;font-weight:900;letter-spacing:-1px}
+    .stat-value.green{color:var(--emerald-lt)}
+    .stat-value.indigo{color:var(--indigo-lt)}
+    .stat-value.amber{color:var(--amber)}
+    .stat-value.rose{color:var(--rose)}
+    .stat-sub{font-size:0.72rem;color:var(--text-3);margin-top:4px}
+
+    /* ── Cards ── */
+    .card{
+      background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);
+      overflow:hidden;margin-bottom:24px;
+    }
+    .card-header{
+      display:flex;align-items:center;justify-content:space-between;
+      padding:18px 24px;border-bottom:1px solid var(--border);
+    }
+    .card-header h3{font-size:0.95rem;font-weight:700;display:flex;align-items:center;gap:8px}
+    .card-body{padding:24px}
+
+    /* ── Tables ── */
+    .table-wrap{overflow-x:auto}
+    table{width:100%;border-collapse:collapse;font-size:0.85rem}
+    thead th{
+      padding:11px 16px;text-align:left;font-size:0.7rem;font-weight:700;
+      color:var(--text-3);text-transform:uppercase;letter-spacing:0.5px;
+      border-bottom:1px solid var(--border);background:rgba(0,0,0,0.2);
+    }
+    tbody tr{border-bottom:1px solid var(--border);transition:background 0.15s}
+    tbody tr:last-child{border-bottom:none}
+    tbody tr:hover{background:var(--surface2)}
+    tbody td{padding:12px 16px;color:var(--text-2);vertical-align:middle}
+    tbody td:first-child{color:var(--text-1)}
+
+    /* ── Badges ── */
+    .badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:100px;
+      font-size:0.68rem;font-weight:700;letter-spacing:0.3px;text-transform:uppercase}
+    .badge-paid,.badge-verified,.badge-active{background:rgba(16,185,129,0.15);color:var(--emerald-lt);border:1px solid rgba(16,185,129,0.3)}
+    .badge-pending{background:rgba(245,158,11,0.15);color:var(--amber);border:1px solid rgba(245,158,11,0.3)}
+    .badge-expired,.badge-failed{background:rgba(71,85,105,0.2);color:var(--text-3);border:1px solid var(--border)}
+    .badge-inactive{background:rgba(244,63,94,0.1);color:var(--rose);border:1px solid rgba(244,63,94,0.3)}
+    .badge-sms{background:rgba(99,102,241,0.15);color:var(--indigo-lt);border:1px solid rgba(99,102,241,0.3)}
+
+    /* ── Setup Steps ── */
+    .setup-steps{display:flex;flex-direction:column;gap:16px}
+    .setup-step{
+      display:flex;gap:16px;padding:20px;border-radius:var(--radius);
+      border:1px solid var(--border);background:var(--surface);transition:all 0.2s;
+    }
+    .setup-step.completed{border-color:rgba(16,185,129,0.3);background:rgba(16,185,129,0.04)}
+    .setup-step.current{border-color:rgba(99,102,241,0.4);background:rgba(99,102,241,0.06)}
+    .step-num{
+      width:36px;height:36px;border-radius:10px;flex-shrink:0;
+      display:flex;align-items:center;justify-content:center;font-weight:800;font-size:0.9rem;
+      background:var(--surface2);border:1px solid var(--border);color:var(--text-3);
+    }
+    .setup-step.completed .step-num{background:var(--emerald);border-color:var(--emerald);color:#fff}
+    .setup-step.current .step-num{background:var(--indigo);border-color:var(--indigo);color:#fff}
+    .step-content{flex:1}
+    .step-title{font-size:0.9rem;font-weight:700;margin-bottom:4px}
+    .step-desc{font-size:0.82rem;color:var(--text-2);line-height:1.5}
+    .step-action{margin-top:10px}
+
+    /* ── Forms ── */
+    .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    .form-group{margin-bottom:18px}
+    .form-group label{display:block;font-size:0.78rem;font-weight:600;color:var(--text-2);
+      margin-bottom:7px;text-transform:uppercase;letter-spacing:0.3px}
+    .form-group input,.form-group select,.form-group textarea{
+      width:100%;padding:12px 14px;background:var(--bg2);border:1px solid var(--border);
+      border-radius:var(--radius-sm);color:var(--text-1);font-family:var(--font);font-size:0.875rem;
+      transition:all 0.2s;outline:none;
+    }
+    .form-group input:focus,.form-group select:focus,.form-group textarea:focus{
+      border-color:var(--indigo);box-shadow:0 0 0 3px rgba(99,102,241,0.12)}
+    .form-group input::placeholder,.form-group textarea::placeholder{color:var(--text-3)}
+    .form-group .hint{font-size:0.72rem;color:var(--text-3);margin-top:5px;line-height:1.4}
+    .form-full{grid-column:1/-1}
+
+    /* ── Buttons ── */
+    .btn{padding:11px 20px;border-radius:var(--radius-sm);border:none;font-family:var(--font);
+      font-size:0.875rem;font-weight:700;cursor:pointer;transition:all 0.2s;display:inline-flex;
+      align-items:center;gap:8px}
+    .btn-primary{background:linear-gradient(135deg,var(--indigo),var(--indigo-dk));color:#fff;
+      box-shadow:0 4px 16px rgba(99,102,241,0.35)}
+    .btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(99,102,241,0.5)}
+    .btn-primary:disabled{opacity:0.6;cursor:not-allowed;transform:none}
+    .btn-success{background:linear-gradient(135deg,var(--emerald),#059669);color:#fff;
+      box-shadow:0 4px 16px rgba(16,185,129,0.35)}
+    .btn-success:hover{transform:translateY(-1px)}
+    .btn-ghost{background:var(--surface2);border:1px solid var(--border);color:var(--text-2)}
+    .btn-ghost:hover{border-color:var(--border-glow);color:var(--text-1)}
+    .btn-danger{background:rgba(244,63,94,0.15);border:1px solid rgba(244,63,94,0.3);color:var(--rose)}
+    .btn-danger:hover{background:rgba(244,63,94,0.25)}
+    .btn-sm{padding:7px 14px;font-size:0.78rem}
+    .btn-loading{opacity:0.7;cursor:wait;pointer-events:none}
+
+    /* ── Code block ── */
+    .code-block{
+      background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);
+      padding:14px 16px;font-family:var(--mono);font-size:0.8rem;color:var(--indigo-lt);
+      overflow-x:auto;white-space:pre;line-height:1.7;position:relative;
+    }
+    .code-block .copy-btn{
+      position:absolute;top:10px;right:10px;background:var(--surface2);border:1px solid var(--border);
+      color:var(--text-2);border-radius:6px;padding:4px 10px;font-size:0.72rem;cursor:pointer;
+      font-family:var(--font);transition:all 0.2s;
+    }
+    .code-block .copy-btn:hover{color:var(--text-1);border-color:var(--border-glow)}
+
+    /* ── SMS Forwarder Guide ── */
+    .sms-app-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin-bottom:24px}
+    .sms-app-card{
+      background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+      padding:20px;transition:all 0.2s;cursor:pointer;
+    }
+    .sms-app-card:hover{border-color:var(--border-glow);transform:translateY(-2px)}
+    .sms-app-card.recommended{border-color:rgba(99,102,241,0.4);background:rgba(99,102,241,0.06)}
+    .sms-app-card .app-icon{font-size:2rem;margin-bottom:10px}
+    .sms-app-card .app-name{font-size:0.9rem;font-weight:700;margin-bottom:4px;
+      display:flex;align-items:center;gap:8px}
+    .app-rec-badge{font-size:0.65rem;background:var(--indigo);color:#fff;padding:2px 8px;
+      border-radius:100px;font-weight:700}
+    .sms-app-card p{font-size:0.8rem;color:var(--text-2);line-height:1.5}
+    .sms-app-card .app-link{font-size:0.78rem;color:var(--indigo-lt);margin-top:8px;display:block}
+
+    .guide-steps{counter-reset:guide-step;display:flex;flex-direction:column;gap:12px}
+    .guide-step{
+      display:flex;gap:14px;padding:16px;background:var(--surface);border:1px solid var(--border);
+      border-radius:var(--radius-sm);
+    }
+    .guide-step::before{
+      content:counter(guide-step);counter-increment:guide-step;
+      width:28px;height:28px;border-radius:8px;flex-shrink:0;
+      background:var(--indigo);color:#fff;font-size:0.8rem;font-weight:800;
+      display:flex;align-items:center;justify-content:center;
+    }
+    .guide-step-content{flex:1}
+    .guide-step-title{font-size:0.875rem;font-weight:700;margin-bottom:4px}
+    .guide-step-desc{font-size:0.8rem;color:var(--text-2);line-height:1.5}
+
+    /* ── Config box ── */
+    .config-box{
+      background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);
+      padding:20px;margin-bottom:16px;
+    }
+    .config-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;
+      border-bottom:1px solid var(--border)}
+    .config-row:last-child{border-bottom:none;padding-bottom:0}
+    .config-label{font-size:0.78rem;color:var(--text-2);font-weight:600}
+    .config-value{font-family:var(--mono);font-size:0.8rem;color:var(--indigo-lt);
+      display:flex;align-items:center;gap:8px;max-width:60%;word-break:break-all;text-align:right}
+    .mini-copy{background:none;border:none;cursor:pointer;color:var(--text-3);font-size:0.8rem;
+      padding:2px 6px;border-radius:4px;transition:all 0.15s;flex-shrink:0}
+    .mini-copy:hover{color:var(--text-1);background:var(--surface2)}
+
+    /* ── Alert boxes ── */
+    .alert{padding:14px 16px;border-radius:var(--radius-sm);margin-bottom:16px;font-size:0.85rem;line-height:1.5}
+    .alert-info{background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.25);color:var(--indigo-lt)}
+    .alert-success{background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.25);color:var(--emerald-lt)}
+    .alert-warn{background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.25);color:var(--amber)}
+    .alert-danger{background:rgba(244,63,94,0.1);border:1px solid rgba(244,63,94,0.25);color:var(--rose)}
+
+    /* ── Empty State ── */
+    .empty-state{text-align:center;padding:60px 20px;color:var(--text-3)}
+    .empty-state .ei{font-size:2.5rem;margin-bottom:12px}
+    .empty-state p{font-size:0.875rem}
+
+    /* ── Live Event feed ── */
+    .event-feed{max-height:300px;overflow-y:auto;display:flex;flex-direction:column;gap:8px}
+    .event-item{
+      display:flex;align-items:flex-start;gap:12px;padding:12px 14px;
+      background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);
+      animation:slideIn 0.3s ease;
+    }
+    @keyframes slideIn{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:translateX(0)}}
+    .event-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px}
+    .event-dot.success{background:var(--emerald)}
+    .event-dot.info{background:var(--indigo)}
+    .event-dot.warn{background:var(--amber)}
+    .event-text{font-size:0.8rem;color:var(--text-2);line-height:1.5}
+    .event-time{font-size:0.7rem;color:var(--text-3);margin-top:2px}
+
+    /* ── Toast ── */
+    .toast-container{position:fixed;bottom:24px;right:24px;z-index:300;display:flex;flex-direction:column;gap:10px}
+    .toast{display:flex;align-items:center;gap:12px;padding:14px 18px;border-radius:var(--radius);
+      background:var(--bg2);border:1px solid var(--border);color:var(--text-1);font-size:0.875rem;
+      font-weight:500;box-shadow:var(--shadow);max-width:360px;animation:slideInR 0.3s ease;backdrop-filter:blur(12px)}
+    .toast.success{border-color:rgba(16,185,129,0.5)}
+    .toast.error{border-color:rgba(244,63,94,0.5)}
+    .toast.info{border-color:rgba(99,102,241,0.5)}
+    @keyframes slideInR{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+
+    /* ── Tabs ── */
+    .tabs{display:flex;gap:4px;padding:4px;background:var(--surface);border:1px solid var(--border);
+      border-radius:var(--radius-sm);width:fit-content;margin-bottom:20px}
+    .tab-btn{padding:7px 18px;border-radius:calc(var(--radius-sm) - 4px);border:none;
+      background:transparent;color:var(--text-2);font-family:var(--font);font-size:0.83rem;font-weight:600;
+      cursor:pointer;transition:all 0.2s}
+    .tab-btn.active{background:var(--indigo);color:#fff;box-shadow:0 2px 8px rgba(99,102,241,0.4)}
+
+    /* ── Progress bar ── */
+    .progress-bar{height:4px;background:var(--border);border-radius:100px;overflow:hidden;margin-top:8px}
+    .progress-fill{height:100%;border-radius:100px;background:linear-gradient(90deg,var(--indigo),var(--emerald));
+      transition:width 0.5s ease}
+
+    /* ── Separator ── */
+    .sep{height:1px;background:var(--border);margin:24px 0}
+
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar{width:5px;height:5px}
+    ::-webkit-scrollbar-track{background:transparent}
+    ::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+
+    /* ── Mobile ── */
+    @media(max-width:768px){
+      .sidebar{transform:translateX(-100%);transition:transform 0.3s}
+      .sidebar.open{transform:translateX(0)}
+      .main{margin-left:0}
+      .form-grid{grid-template-columns:1fr}
+      .content{padding:20px}
+      .stats-grid{grid-template-columns:1fr 1fr}
+    }
+
+    code{font-family:var(--mono);font-size:0.8rem;color:var(--indigo-lt)}
+  </style>
+</head>
+<body>
+<div class="bg-grid"></div>
+<div class="bg-orb orb-1"></div>
+<div class="bg-orb orb-2"></div>
+
+<!-- ── Sidebar ─────────────────────────────────────────── -->
+<aside class="sidebar" id="sidebar">
+  <a class="sidebar-logo" href="/">
+    <div class="logo-icon">⚡</div>
+    <div>
+      <div class="logo-text">PayForge</div>
+      <div class="logo-badge">ENTERPRISE</div>
+    </div>
+  </a>
+
+  <nav class="sidebar-nav">
+    <div class="nav-section-title">Overview</div>
+    <button class="nav-item active" id="nav-overview" onclick="showPage('overview')">
+      <span class="nav-icon">📊</span> Dashboard
+    </button>
+    <button class="nav-item" id="nav-transactions" onclick="showPage('transactions')">
+      <span class="nav-icon">💳</span> Transactions
+    </button>
+    <button class="nav-item" id="nav-orders" onclick="showPage('orders')">
+      <span class="nav-icon">📦</span> Orders
+    </button>
+    <button class="nav-item" id="nav-customers" onclick="showPage('customers')">
+      <span class="nav-icon">👥</span> Customers
+    </button>
+
+    <div class="nav-section-title" style="margin-top:12px">Configuration</div>
+    <button class="nav-item" id="nav-setup" onclick="showPage('setup')">
+      <span class="nav-icon">⚡</span> UPI Setup
+    </button>
+    <button class="nav-item" id="nav-sms" onclick="showPage('sms')">
+      <span class="nav-icon">📱</span> SMS Forwarder
+    </button>
+    <button class="nav-item" id="nav-integrate" onclick="showPage('integrate')">
+      <span class="nav-icon">🔗</span> Integration Guide
+    </button>
+
+    <div class="nav-section-title" style="margin-top:12px">Account</div>
+    <button class="nav-item" id="nav-settings" onclick="showPage('settings')">
+      <span class="nav-icon">⚙️</span> Settings
+    </button>
+    <a class="nav-item" href="/admin.html" target="_blank">
+      <span class="nav-icon">🔐</span> Admin Panel ↗
+    </a>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="user-card">
+      <div class="user-avatar" id="user-avatar">?</div>
+      <div>
+        <div class="user-name" id="sidebar-name">Loading...</div>
+        <div class="user-email" id="sidebar-email">...</div>
+      </div>
+      <button class="logout-btn" onclick="logout()" title="Logout">↩</button>
+    </div>
+  </div>
+</aside>
+
+<!-- ── Main Content ─────────────────────────────────────── -->
+<main class="main">
+  <header class="topbar">
+    <div style="display:flex;align-items:center;gap:12px">
+      <button onclick="document.getElementById('sidebar').classList.toggle('open')"
+        style="display:none;background:none;border:none;cursor:pointer;color:var(--text-1);font-size:1.3rem" id="menu-btn">☰</button>
+      <div class="topbar-title" id="topbar-title">Dashboard</div>
+    </div>
+    <div class="topbar-right">
+      <div class="live-indicator" id="live-indicator" title="Firebase real-time connection">
+        <div class="live-dot"></div> Live
+      </div>
+      <a href="/" target="_blank" style="font-size:0.8rem;color:var(--text-3);text-decoration:none;
+        padding:6px 12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm)">
+        View Store ↗
+      </a>
+    </div>
+  </header>
+
+  <div class="content">
+
+    <!-- ══ OVERVIEW PAGE ══════════════════════════════════ -->
+    <div class="page active" id="page-overview">
+
+      <!-- Setup Banner (hidden after UPI configured) -->
+      <div class="setup-banner" id="setup-banner" style="display:none">
+        <div class="banner-icon">🚀</div>
+        <div>
+          <h3>Complete your setup to start accepting payments</h3>
+          <p>Add your UPI ID and connect your Android phone — takes 3 minutes.</p>
+        </div>
+        <button class="btn-setup" onclick="showPage('setup')">Start Setup →</button>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon">💰</div>
+          <div class="stat-label">Total Revenue</div>
+          <div class="stat-value green" id="s-revenue">₹—</div>
+          <div class="stat-sub" id="s-revenue-sub">All time</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">✅</div>
+          <div class="stat-label">Paid Orders</div>
+          <div class="stat-value indigo" id="s-paid">—</div>
+          <div class="stat-sub">Successfully verified</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">⏳</div>
+          <div class="stat-label">Pending</div>
+          <div class="stat-value amber" id="s-pending">—</div>
+          <div class="stat-sub">Awaiting payment</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">👤</div>
+          <div class="stat-label">Active Users</div>
+          <div class="stat-value green" id="s-users">—</div>
+          <div class="stat-sub">Service activated</div>
+        </div>
+      </div>
+
+      <!-- Live Events + Recent Transactions -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
+        <div class="card">
+          <div class="card-header">
+            <h3>⚡ Live Events <span style="font-size:0.7rem;color:var(--text-3);font-weight:400">(Firebase real-time)</span></h3>
+            <button class="btn btn-ghost btn-sm" onclick="clearEventFeed()">Clear</button>
+          </div>
+          <div class="card-body" style="padding:16px">
+            <div class="event-feed" id="event-feed">
+              <div class="empty-state" style="padding:30px">
+                <div class="ei">📡</div>
+                <p>Waiting for events...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h3>🧾 Recent Transactions</h3>
+            <button class="btn btn-ghost btn-sm" onclick="showPage('transactions')">See all</button>
+          </div>
+          <div id="recent-txn-wrap">
+            <div class="empty-state"><div class="ei">💳</div><p>No transactions yet</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ TRANSACTIONS PAGE ═══════════════════════════════ -->
+    <div class="page" id="page-transactions">
+      <div class="card">
+        <div class="card-header">
+          <h3>💳 All Transactions</h3>
+          <button class="btn btn-ghost btn-sm" onclick="loadTransactions()">↻ Refresh</button>
+        </div>
+        <div class="table-wrap" id="txn-wrap">
+          <div class="empty-state"><div class="ei">💳</div><p>Loading...</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ ORDERS PAGE ════════════════════════════════════ -->
+    <div class="page" id="page-orders">
+      <div style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;align-items:center">
+        <div class="tabs">
+          <button class="tab-btn active" onclick="filterOrders('all',this)">All</button>
+          <button class="tab-btn" onclick="filterOrders('pending',this)">Pending</button>
+          <button class="tab-btn" onclick="filterOrders('paid',this)">Paid</button>
+          <button class="tab-btn" onclick="filterOrders('expired',this)">Expired</button>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="loadOrders(currentOrderFilter)" style="margin-left:auto">↻ Refresh</button>
+      </div>
+      <div class="card">
+        <div class="table-wrap" id="orders-wrap">
+          <div class="empty-state"><div class="ei">📦</div><p>Loading orders...</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ CUSTOMERS PAGE ════════════════════════════════ -->
+    <div class="page" id="page-customers">
+      <div class="card">
+        <div class="card-header">
+          <h3>👥 Customers</h3>
+          <button class="btn btn-ghost btn-sm" onclick="loadCustomers()">↻ Refresh</button>
+        </div>
+        <div class="table-wrap" id="customers-wrap">
+          <div class="empty-state"><div class="ei">👥</div><p>Loading...</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ UPI SETUP PAGE ════════════════════════════════ -->
+    <div class="page" id="page-setup">
+      <div class="card">
+        <div class="card-header">
+          <h3>⚡ UPI Configuration</h3>
+          <div id="setup-status-badge"></div>
+        </div>
+        <div class="card-body">
+          <div class="alert alert-info" style="margin-bottom:24px">
+            💡 This is your <strong>merchant UPI ID</strong> — the account where customers will send money. Use your bank's UPI app to find it.
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label>UPI ID (VPA) *</label>
+              <input type="text" id="inp-upi-vpa" placeholder="yourname@ybl or 9876543210@paytm"/>
+              <div class="hint">Format: handle@bankcode — e.g. <code>business@ybl</code>, <code>9876543210@paytm</code>, <code>name@okicici</code></div>
+            </div>
+            <div class="form-group">
+              <label>Payee Display Name</label>
+              <input type="text" id="inp-upi-name" placeholder="My Startup Payments"/>
+              <div class="hint">Name shown to customer in their UPI app</div>
+            </div>
+            <div class="form-group">
+              <label>Company / Business Name</label>
+              <input type="text" id="inp-company" placeholder="My Startup Inc."/>
+            </div>
+            <div class="form-group">
+              <label>Trusted SMS Sender Number</label>
+              <input type="text" id="inp-sms-sender" placeholder="7972133643"/>
+              <div class="hint">Your phone number that receives bank credit SMS alerts (10 digits)</div>
+            </div>
+          </div>
+
+          <button class="btn btn-primary" id="btn-save-setup" onclick="saveSetup()">
+            💾 Save Configuration
+          </button>
+        </div>
+      </div>
+
+      <!-- Setup Progress -->
+      <div class="card">
+        <div class="card-header"><h3>📋 Setup Checklist</h3></div>
+        <div class="card-body">
+          <div class="setup-steps" id="setup-checklist">
+            <div class="setup-step completed" id="step-account">
+              <div class="step-num">✓</div>
+              <div class="step-content">
+                <div class="step-title">Create Enterprise Account</div>
+                <div class="step-desc">Your account is active and ready.</div>
+              </div>
+            </div>
+            <div class="setup-step" id="step-upi">
+              <div class="step-num">2</div>
+              <div class="step-content">
+                <div class="step-title">Configure UPI ID</div>
+                <div class="step-desc">Add your merchant UPI ID above so customers can pay you directly.</div>
+                <div class="step-action">
+                  <button class="btn btn-primary btn-sm" onclick="document.getElementById('inp-upi-vpa').focus()">Add UPI ID →</button>
+                </div>
+              </div>
+            </div>
+            <div class="setup-step" id="step-sms-fw">
+              <div class="step-num">3</div>
+              <div class="step-content">
+                <div class="step-title">Install SMS Forwarder on your Android</div>
+                <div class="step-desc">Install the free SMS Forwarder app and point it to your webhook URL.</div>
+                <div class="step-action">
+                  <button class="btn btn-ghost btn-sm" onclick="showPage('sms')">SMS Forwarder Guide →</button>
+                </div>
+              </div>
+            </div>
+            <div class="setup-step" id="step-test">
+              <div class="step-num">4</div>
+              <div class="step-content">
+                <div class="step-title">Integrate into your app</div>
+                <div class="step-desc">Use our API to create orders and embed the payment flow.</div>
+                <div class="step-action">
+                  <button class="btn btn-ghost btn-sm" onclick="showPage('integrate')">View Integration Guide →</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ SMS FORWARDER PAGE ════════════════════════════ -->
+    <div class="page" id="page-sms">
+      <div class="alert alert-success" style="margin-bottom:24px">
+        ✅ <strong>How it works:</strong> When a customer pays you on UPI, your bank sends an SMS like
+        "Your a/c credited Rs.499". Your Android phone forwards that SMS to our server, which auto-verifies
+        the payment and activates the customer's service — <strong>zero manual work</strong>.
+      </div>
+
+      <!-- App Recommendations -->
+      <div class="card" style="margin-bottom:24px">
+        <div class="card-header"><h3>📱 Choose Your SMS Forwarder App</h3></div>
+        <div class="card-body">
+          <div class="sms-app-grid">
+            <div class="sms-app-card recommended">
+              <div class="app-icon">📨</div>
+              <div class="app-name">SMS Forwarder <span class="app-rec-badge">Recommended</span></div>
+              <p>Simple, lightweight app. Forwards SMS to any HTTP URL. Free, no ads.</p>
+              <a class="app-link" href="https://play.google.com/store/apps/details?id=com.frzinapps.smsforwarder" target="_blank">
+                ↗ Download from Play Store
+              </a>
+            </div>
+            <div class="sms-app-card">
+              <div class="app-icon">🔁</div>
+              <div class="app-name">SMS to URL Forwarder</div>
+              <p>Filters SMS by regex and POSTs to your webhook. Works great for bank alerts.</p>
+              <a class="app-link" href="https://play.google.com/store/apps/details?id=com.contact.app.smsforwardtourl" target="_blank">
+                ↗ Download from Play Store
+              </a>
+            </div>
+            <div class="sms-app-card">
+              <div class="app-icon">🤖</div>
+              <div class="app-name">MacroDroid / Tasker</div>
+              <p>Advanced automation. Use if you want custom SMS filtering rules.</p>
+              <a class="app-link" href="https://play.google.com/store/apps/details?id=com.arlosoft.macrodroid" target="_blank">
+                ↗ Download MacroDroid
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Your Webhook Config -->
+      <div class="card" style="margin-bottom:24px">
+        <div class="card-header"><h3>🔧 Your Webhook Configuration</h3></div>
+        <div class="card-body">
+          <p style="color:var(--text-2);font-size:0.875rem;margin-bottom:16px">
+            Copy these values exactly into your SMS Forwarder app settings:
+          </p>
+          <div class="config-box">
+            <div class="config-row">
+              <span class="config-label">Webhook URL</span>
+              <span class="config-value" id="cfg-webhook-url">
+                <span id="webhook-url-val">Loading...</span>
+                <button class="mini-copy" onclick="copyText('webhook-url-val','URL')">📋</button>
+              </span>
+            </div>
+            <div class="config-row">
+              <span class="config-label">HTTP Method</span>
+              <span class="config-value">POST</span>
+            </div>
+            <div class="config-row">
+              <span class="config-label">Content-Type</span>
+              <span class="config-value">application/json</span>
+            </div>
+            <div class="config-row">
+              <span class="config-label">Webhook Secret Header</span>
+              <span class="config-value">
+                <code>x-sms-webhook-secret</code>
+              </span>
+            </div>
+            <div class="config-row">
+              <span class="config-label">Your Secret Key</span>
+              <span class="config-value">
+                <span id="cfg-secret">Loading...</span>
+                <button class="mini-copy" onclick="copyText('cfg-secret','Secret')">📋</button>
+              </span>
+            </div>
+            <div class="config-row">
+              <span class="config-label">Enterprise ID</span>
+              <span class="config-value">
+                <span id="cfg-enterprise-id">Loading...</span>
+                <button class="mini-copy" onclick="copyText('cfg-enterprise-id','Enterprise ID')">📋</button>
+              </span>
+            </div>
+          </div>
+
+          <!-- JSON Body Template -->
+          <p style="font-size:0.82rem;color:var(--text-2);margin-bottom:10px;font-weight:600">JSON Body Template:</p>
+          <div class="code-block" id="json-body-template">
+<button class="copy-btn" onclick="copyCodeBlock(this)">Copy</button>{
+  "rawText": "{{sms_body}}",
+  "sender":  "{{sender_number}}",
+  "secret":  "YOUR_SECRET_KEY",
+  "enterprise_id": "YOUR_ENTERPRISE_ID"
+}</div>
+        </div>
+      </div>
+
+      <!-- Step-by-step for SMS Forwarder app -->
+      <div class="card">
+        <div class="card-header"><h3>📋 Step-by-Step Setup (SMS Forwarder App)</h3></div>
+        <div class="card-body">
+          <div class="guide-steps">
+            <div class="guide-step">
+              <div class="guide-step-content">
+                <div class="guide-step-title">Download "SMS Forwarder" from Play Store</div>
+                <div class="guide-step-desc">Install on the Android phone that receives your bank SMS alerts (must be the same SIM as your UPI-linked number).</div>
+              </div>
+            </div>
+            <div class="guide-step">
+              <div class="guide-step-content">
+                <div class="guide-step-title">Open app → Tap "+" → Choose "HTTP POST"</div>
+                <div class="guide-step-desc">Create a new forwarder rule with HTTP POST method.</div>
+              </div>
+            </div>
+            <div class="guide-step">
+              <div class="guide-step-content">
+                <div class="guide-step-title">Paste your Webhook URL</div>
+                <div class="guide-step-desc">Copy the URL shown above and paste it into the "URL" field in the app.</div>
+              </div>
+            </div>
+            <div class="guide-step">
+              <div class="guide-step-content">
+                <div class="guide-step-title">Add Header: <code>x-sms-webhook-secret: YOUR_SECRET</code></div>
+                <div class="guide-step-desc">In "Headers" section add the key <code>x-sms-webhook-secret</code> with your secret value from above.</div>
+              </div>
+            </div>
+            <div class="guide-step">
+              <div class="guide-step-content">
+                <div class="guide-step-title">Set JSON body with SMS variables</div>
+                <div class="guide-step-desc">Paste the JSON template above. The app will auto-replace <code>{{sms_body}}</code> and <code>{{sender_number}}</code> with the real SMS content.</div>
+              </div>
+            </div>
+            <div class="guide-step">
+              <div class="guide-step-content">
+                <div class="guide-step-title">Add SMS filter: "credited" or bank name</div>
+                <div class="guide-step-desc">Optional but recommended: filter to only forward SMS containing "credited" or from your bank's sender ID (e.g. HDFCBK, ICICIB).</div>
+              </div>
+            </div>
+            <div class="guide-step">
+              <div class="guide-step-content">
+                <div class="guide-step-title">Enable and test</div>
+                <div class="guide-step-desc">Turn on the rule. Use the SMS Tester below or make a real test payment to verify it works. You'll see the event in your Live Events feed.</div>
+              </div>
+            </div>
+          </div>
+          <div class="sep"></div>
+
+          <!-- SMS Tester -->
+          <h4 style="margin-bottom:14px;font-size:0.9rem;font-weight:700">🧪 Test SMS Webhook</h4>
+          <div class="alert alert-warn" style="margin-bottom:14px;font-size:0.8rem">
+            ⚠️ For testing: create a real order first, then paste its Order ID below along with a sample SMS containing the order amount.
+          </div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Order ID</label>
+              <input type="text" id="test-order-id" placeholder="ORD-ABC123-XXXX"/>
+            </div>
+            <div class="form-group">
+              <label>Sender Number</label>
+              <input type="text" id="test-sender" placeholder="7972133643"/>
+            </div>
+            <div class="form-group form-full">
+              <label>Raw SMS Text</label>
+              <textarea id="test-sms-text" rows="3" placeholder="Your a/c XXXXXX is credited by Rs.499 on 24-05-26. Ref 421234567890. -HDFC Bank"></textarea>
+            </div>
+          </div>
+          <div style="display:flex;gap:10px">
+            <button class="btn btn-primary" onclick="testSmsWebhook()">🚀 Test &amp; Verify</button>
+            <button class="btn btn-ghost" onclick="fillSampleSms()">Fill Sample</button>
+          </div>
+          <div id="sms-test-result" style="margin-top:14px;display:none"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ INTEGRATION GUIDE PAGE ════════════════════════ -->
+    <div class="page" id="page-integrate">
+      <div class="card" style="margin-bottom:24px">
+        <div class="card-header"><h3>🔗 API Integration Guide</h3></div>
+        <div class="card-body">
+          <div class="alert alert-info" style="margin-bottom:20px">
+            Your Enterprise ID: <code id="int-enterprise-id" style="color:var(--emerald-lt)">Loading...</code> — use this in every API request.
+          </div>
+
+          <div class="tabs">
+            <button class="tab-btn active" onclick="switchIntegTab('create',this)">1. Create Order</button>
+            <button class="tab-btn" onclick="switchIntegTab('poll',this)">2. Poll Status</button>
+            <button class="tab-btn" onclick="switchIntegTab('embed',this)">3. Embed UI</button>
+            <button class="tab-btn" onclick="switchIntegTab('firebase',this)">4. Firebase RT</button>
+          </div>
+
+          <div id="integ-create">
+            <p style="color:var(--text-2);font-size:0.85rem;margin-bottom:12px">
+              Call this from your backend when a customer selects a plan:
+            </p>
+            <div class="code-block">
+<button class="copy-btn" onclick="copyCodeBlock(this)">Copy</button>POST /api/orders/create
+Content-Type: application/json
+
+{
+  "name":          "Customer Name",
+  "email":         "customer@email.com",
+  "phone":         "9876543210",
+  "plan":          "pro",
+  "enterprise_id": "YOUR_ENTERPRISE_ID"
+}</div>
+            <p style="color:var(--text-2);font-size:0.82rem;margin:12px 0 8px">Response:</p>
+            <div class="code-block">
+<button class="copy-btn" onclick="copyCodeBlock(this)">Copy</button>{
+  "success":   true,
+  "orderId":   "ORD-M3K2A1-AB12",
+  "amount":    499.01,
+  "upiLink":   "upi://pay?pa=you@ybl&am=499.01&...",
+  "upiVpa":    "you@ybl",
+  "expiresAt": "2026-05-24T05:30:00Z",
+  "expiresInMinutes": 15
+}</div>
+          </div>
+
+          <div id="integ-poll" style="display:none">
+            <p style="color:var(--text-2);font-size:0.85rem;margin-bottom:12px">Poll every 3 seconds to detect payment:</p>
+            <div class="code-block">
+<button class="copy-btn" onclick="copyCodeBlock(this)">Copy</button>GET /api/orders/{orderId}
+
+// Response when paid:
+{
+  "order":       { "id": "ORD-...", "status": "paid", "amount": 499.01 },
+  "transaction": { "upi_ref": "421234567890", "verified_at": "..." },
+  "user":        { "email": "...", "is_active": 1, "plan": "pro" }
+}</div>
+          </div>
+
+          <div id="integ-embed" style="display:none">
+            <p style="color:var(--text-2);font-size:0.85rem;margin-bottom:12px">
+              Include PayForge directly in your HTML — your branded checkout:
+            </p>
+            <div class="code-block">
+<button class="copy-btn" onclick="copyCodeBlock(this)">Copy</button>&lt;!-- Include in your HTML --&gt;
+&lt;script&gt;
+  // Set your enterprise ID before loading
+  window.PAYFORGE_ENTERPRISE_ID = 'YOUR_ENTERPRISE_ID';
+  window.PAYFORGE_SERVER = 'https://your-server.onrender.com';
+&lt;/script&gt;
+&lt;script src="https://your-server.onrender.com/sdk.js"&gt;&lt;/script&gt;
+
+&lt;!-- Trigger payment --&gt;
+&lt;button onclick="PayForge.pay({ plan:'pro', email:'user@x.com', name:'User' })"&gt;
+  Buy Pro Plan
+&lt;/button&gt;</div>
+          </div>
+
+          <div id="integ-firebase" style="display:none">
+            <p style="color:var(--text-2);font-size:0.85rem;margin-bottom:12px">
+              Listen for real-time payment events in your app using Firebase:
+            </p>
+            <div class="code-block">
+<button class="copy-btn" onclick="copyCodeBlock(this)">Copy</button">// Firebase Realtime Database — listen for payment events
+import { initializeApp } from "firebase/app";
+import { getDatabase, ref, onChildAdded } from "firebase/database";
+
+const app = initializeApp({
+  apiKey: "AIzaSyCCoQaBHkp6XBIXATmn34-c89h8auPTe24",
+  databaseURL: "https://payment-2e43c-default-rtdb.firebaseio.com",
+  projectId: "payment-2e43c"
+});
+
+const db  = getDatabase(app);
+const evt = ref(db, `events/YOUR_ENTERPRISE_ID`);
+
+onChildAdded(evt, (snapshot) => {
+  const event = snapshot.val();
+  if (event.type === 'PAYMENT_VERIFIED') {
+    console.log(`Payment received: ₹${event.amount} for ${event.plan}`);
+    // Activate user service in your app
+    activateUser(event.userEmail, event.plan);
+  }
+});</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Plans Reference -->
+      <div class="card">
+        <div class="card-header"><h3>💎 Available Plans</h3></div>
+        <div class="card-body">
+          <table>
+            <thead><tr><th>Plan Key</th><th>Amount</th><th>Duration</th><th>Label</th></tr></thead>
+            <tbody>
+              <tr><td><code>starter</code></td><td style="color:var(--emerald-lt);font-weight:700">₹199</td><td>30 days</td><td>Starter</td></tr>
+              <tr><td><code>pro</code></td><td style="color:var(--emerald-lt);font-weight:700">₹499</td><td>90 days</td><td>Pro</td></tr>
+              <tr><td><code>empire</code></td><td style="color:var(--emerald-lt);font-weight:700">₹999</td><td>365 days</td><td>Empire</td></tr>
+            </tbody>
+          </table>
+          <div class="alert alert-info" style="margin-top:16px;font-size:0.82rem">
+            💡 Each order gets a unique paise-level amount (e.g. ₹499.01, ₹499.02) to distinguish simultaneous payments — this is how the engine auto-matches bank SMS to the right order without any customer input.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ SETTINGS PAGE ════════════════════════════════ -->
+    <div class="page" id="page-settings">
+      <div class="card" style="margin-bottom:24px">
+        <div class="card-header"><h3>👤 Account Details</h3></div>
+        <div class="card-body">
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Full Name</label>
+              <input type="text" id="set-name" placeholder="Your Name"/>
+            </div>
+            <div class="form-group">
+              <label>Email</label>
+              <input type="email" id="set-email" disabled style="opacity:0.6;cursor:not-allowed"/>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:24px">
+        <div class="card-header"><h3>🔑 Change Password</h3></div>
+        <div class="card-body">
+          <div class="form-group" style="max-width:400px">
+            <label>Current Password</label>
+            <input type="password" id="set-curr-pass" placeholder="••••••••"/>
+          </div>
+          <div class="form-group" style="max-width:400px">
+            <label>New Password</label>
+            <input type="password" id="set-new-pass" placeholder="Min 8 characters"/>
+          </div>
+          <button class="btn btn-primary" onclick="changePassword()">Update Password</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3>🔐 API Credentials</h3></div>
+        <div class="card-body">
+          <div class="alert alert-warn" style="margin-bottom:16px">
+            ⚠️ Keep these secret. Never expose them in client-side code.
+          </div>
+          <div class="config-box">
+            <div class="config-row">
+              <span class="config-label">Enterprise ID</span>
+              <span class="config-value">
+                <span id="api-enterprise-id">—</span>
+                <button class="mini-copy" onclick="copyText('api-enterprise-id','Enterprise ID')">📋</button>
+              </span>
+            </div>
+            <div class="config-row">
+              <span class="config-label">SMS Webhook Secret</span>
+              <span class="config-value">
+                <span id="api-webhook-secret">—</span>
+                <button class="mini-copy" onclick="copyText('api-webhook-secret','Webhook Secret')">📋</button>
+              </span>
+            </div>
+            <div class="config-row">
+              <span class="config-label">SMS Webhook URL</span>
+              <span class="config-value">
+                <span id="api-webhook-url">—</span>
+                <button class="mini-copy" onclick="copyText('api-webhook-url','Webhook URL')">📋</button>
+              </span>
+            </div>
+          </div>
+          <div class="sep"></div>
+          <button class="btn btn-danger btn-sm" onclick="logout()">↩ Sign Out</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /.content -->
+</main>
+
+<div class="toast-container" id="toast-container"></div>
+
+<!-- ── Firebase SDK ─────────────────────────────────────── -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getDatabase, ref, onChildAdded, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCCoQaBHkp6XBIXATmn34-c89h8auPTe24",
+    authDomain: "payment-2e43c.firebaseapp.com",
+    databaseURL: "https://payment-2e43c-default-rtdb.firebaseio.com",
+    projectId: "payment-2e43c",
+    storageBucket: "payment-2e43c.firebasestorage.app",
+    messagingSenderId: "1013570384920",
+    appId: "1:1013570384920:web:8c547ffe53cc9cc8d1ff6d",
+    measurementId: "G-37TCSNCEKD"
+  };
+
+  const fbApp = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(fbApp);
+  const rtdb = getDatabase(fbApp);
+
+  window._fbRTDB = rtdb;
+  window._fbRef  = ref;
+  window._fbOnChildAdded = onChildAdded;
+  window._fbGet = get;
+  window._fbReady = true;
+
+  document.dispatchEvent(new Event('firebase-ready'));
+</script>
+
+<script>
+const API = '';
+let authToken = '';
+let currentUser = null;
+let currentOrderFilter = 'all';
+let fbListenerActive = false;
+
+// ── Auth Guard ──────────────────────────────────────────
+function init() {
+  authToken = localStorage.getItem('pf_token') || '';
+  if (!authToken) return window.location.href = '/login.html';
+
+  fetchMe();
+  setupMobileMenu();
+}
+
+async function fetchMe() {
+  try {
+    const res = await apiFetch('/api/auth/me');
+    if (!res.ok) { clearAuth(); return; }
+    const data = await res.json();
+    currentUser = data.user;
+    populateUserUI(data.user, data.stats);
+    loadSetupConfig();
+    setupFirebaseListener();
+    loadDashboardData();
+  } catch (e) {
+    toast('Connection error. Is the server running?', 'error');
+  }
+}
+
+function populateUserUI(user, stats) {
+  const name = user.name || 'User';
+  document.getElementById('sidebar-name').textContent = name;
+  document.getElementById('sidebar-email').textContent = user.email;
+  document.getElementById('user-avatar').textContent = name.charAt(0).toUpperCase();
+
+  // Settings page
+  if (document.getElementById('set-name')) document.getElementById('set-name').value = name;
+  if (document.getElementById('set-email')) document.getElementById('set-email').value = user.email;
+  if (document.getElementById('api-enterprise-id')) document.getElementById('api-enterprise-id').textContent = user.id;
+  if (document.getElementById('api-webhook-secret')) document.getElementById('api-webhook-secret').textContent = user.sms_webhook_secret || '—';
+  const wUrl = `${location.origin}/api/orders/sms`;
+  if (document.getElementById('api-webhook-url')) document.getElementById('api-webhook-url').textContent = wUrl;
+
+  // Integration page
+  if (document.getElementById('int-enterprise-id')) document.getElementById('int-enterprise-id').textContent = user.id;
+
+  // Setup page fields
+  if (document.getElementById('inp-upi-vpa')) document.getElementById('inp-upi-vpa').value = user.upi_vpa || '';
+  if (document.getElementById('inp-upi-name')) document.getElementById('inp-upi-name').value = user.upi_payee_name || '';
+  if (document.getElementById('inp-company')) document.getElementById('inp-company').value = user.company || '';
+  if (document.getElementById('inp-sms-sender')) document.getElementById('inp-sms-sender').value = user.trusted_sms_sender || '';
+
+  // SMS page config
+  const webhookUrl = `${location.origin}/api/orders/sms`;
+  const wuEl = document.getElementById('webhook-url-val');
+  if (wuEl) wuEl.textContent = webhookUrl;
+  const cfgSec = document.getElementById('cfg-secret');
+  if (cfgSec) cfgSec.textContent = user.sms_webhook_secret || '(save UPI config first)';
+  const cfgEid = document.getElementById('cfg-enterprise-id');
+  if (cfgEid) cfgEid.textContent = user.id;
+
+  // Update JSON template
+  const tpl = document.getElementById('json-body-template');
+  if (tpl && user.sms_webhook_secret) {
+    tpl.innerHTML = `<button class="copy-btn" onclick="copyCodeBlock(this)">Copy</button>{
+  "rawText": "{{sms_body}}",
+  "sender":  "{{sender_number}}",
+  "secret":  "${user.sms_webhook_secret}",
+  "enterprise_id": "${user.id}"
+}`;
+  }
+
+  // Setup checklist
+  updateSetupChecklist(user);
+
+  // Setup banner
+  const banner = document.getElementById('setup-banner');
+  if (banner) banner.style.display = user.setup_complete ? 'none' : 'flex';
+
+  // Stats
+  if (stats) populateStats(stats);
+}
+
+function updateSetupChecklist(user) {
+  const stepUpi = document.getElementById('step-upi');
+  const stepSms = document.getElementById('step-sms-fw');
+
+  if (user.setup_complete && user.upi_vpa) {
+    if (stepUpi) { stepUpi.className = 'setup-step completed'; stepUpi.querySelector('.step-num').textContent = '✓'; }
+    const badge = document.getElementById('setup-status-badge');
+    if (badge) badge.innerHTML = '<span class="badge badge-active">✓ Configured</span>';
+  } else {
+    if (stepUpi) stepUpi.className = 'setup-step current';
+  }
+}
+
+function populateStats(s) {
+  const el = (id, val) => { const e = document.getElementById(id); if(e) e.textContent = val; };
+  el('s-revenue', `₹${Number(s.totalRevenue||0).toLocaleString('en-IN')}`);
+  el('s-paid',    s.paidOrders ?? '0');
+  el('s-pending', s.pendingOrders ?? '0');
+  el('s-users',   s.activeUsers ?? '0');
+}
+
+async function loadSetupConfig() {
+  try {
+    const res = await apiFetch('/api/auth/setup');
+    if (!res.ok) return;
+    const data = await res.json();
+    populateUserUI(data.user, null);
+  } catch(e) {}
+}
+
+// ── Firebase Real-time Listener ─────────────────────────
+function setupFirebaseListener() {
+  if (!currentUser?.id) return;
+
+  function trySetup() {
+    if (!window._fbReady) return;
+    const rtdb  = window._fbRTDB;
+    const fbRef = window._fbRef;
+    const onChildAdded = window._fbOnChildAdded;
+
+    const eventsRef = fbRef(rtdb, `events/${currentUser.id}`);
+    onChildAdded(eventsRef, (snapshot) => {
+      const evt = snapshot.val();
+      if (!evt) return;
+      addEventToFeed(evt);
+      if (evt.type === 'PAYMENT_VERIFIED') {
+        toast(`💸 Payment verified! ₹${evt.amount} — ${evt.plan}`, 'success');
+        // Refresh stats
+        fetchMe();
+        if (document.getElementById('page-transactions').classList.contains('active')) {
+          loadTransactions();
+        }
+      }
+    });
+
+    // Also listen to stats
+    const statsRef = fbRef(rtdb, `stats/${currentUser.id}`);
+    window._fbOnChildAdded(statsRef, (snapshot) => {
+      const stats = snapshot.val();
+      if (stats) populateStats(stats);
+    });
+
+    fbListenerActive = true;
+    console.log('[Firebase] ✅ Real-time listener active for enterprise:', currentUser.id);
+  }
+
+  if (window._fbReady) {
+    trySetup();
+  } else {
+    document.addEventListener('firebase-ready', trySetup, { once: true });
+  }
+}
+
+function addEventToFeed(evt) {
+  const feed = document.getElementById('event-feed');
+  if (!feed) return;
+
+  // Remove empty state
+  const empty = feed.querySelector('.empty-state');
+  if (empty) empty.remove();
+
+  const typeColors = { PAYMENT_VERIFIED: 'success', SMS_RECEIVED: 'info', ORDER_CREATED: 'info' };
+  const typeLabels = { PAYMENT_VERIFIED: '💸 Payment Verified', SMS_RECEIVED: '📩 SMS Received', ORDER_CREATED: '📦 Order Created' };
+
+  const item = document.createElement('div');
+  item.className = 'event-item';
+  item.innerHTML = `
+    <div class="event-dot ${typeColors[evt.type] || 'info'}"></div>
+    <div>
+      <div class="event-text">${typeLabels[evt.type] || evt.type}
+        ${evt.amount ? `<strong style="color:var(--emerald-lt)">₹${evt.amount}</strong>` : ''}
+        ${evt.plan ? `· ${evt.plan}` : ''}
+        ${evt.userEmail ? `· ${evt.userEmail}` : ''}
+      </div>
+      <div class="event-time">${new Date().toLocaleTimeString('en-IN')}</div>
+    </div>`;
+  feed.insertBefore(item, feed.firstChild);
+
+  // Keep max 20 items
+  while (feed.children.length > 20) feed.removeChild(feed.lastChild);
+}
+
+function clearEventFeed() {
+  const feed = document.getElementById('event-feed');
+  if (feed) feed.innerHTML = '<div class="empty-state" style="padding:30px"><div class="ei">📡</div><p>Waiting for events...</p></div>';
+}
+
+// ── Dashboard Data ──────────────────────────────────────
+async function loadDashboardData() {
+  try {
+    const res = await apiFetch('/api/admin/stats');
+    if (res.ok) {
+      const s = await res.json();
+      populateStats(s);
+    }
+    await loadRecentTransactions();
+  } catch(e) {}
+}
+
+async function loadRecentTransactions() {
+  try {
+    const res = await apiFetch('/api/admin/transactions?limit=5');
+    if (!res.ok) return;
+    const data = await res.json();
+    const wrap = document.getElementById('recent-txn-wrap');
+    if (!wrap) return;
+    if (!data.length) {
+      wrap.innerHTML = '<div class="empty-state"><div class="ei">💳</div><p>No transactions yet</p></div>';
+      return;
+    }
+    wrap.innerHTML = `<table><thead><tr><th>Order</th><th>User</th><th>Amount</th><th>Date</th></tr></thead>
+      <tbody>${data.map(t => `<tr>
+        <td><code style="font-size:0.75rem">${esc(t.order_id?.slice(0,16))}…</code></td>
+        <td><div style="font-size:0.8rem">${esc(t.name||'—')}</div><div style="font-size:0.72rem;color:var(--text-3)">${esc(t.email||'')}</div></td>
+        <td style="color:var(--emerald-lt);font-weight:700">₹${t.order_amount}</td>
+        <td style="font-size:0.75rem;color:var(--text-3)">${fmt(t.verified_at)}</td>
+      </tr>`).join('')}</tbody></table>`;
+  } catch(e) {}
+}
+
+// ── Transactions ────────────────────────────────────────
+async function loadTransactions() {
+  try {
+    const res = await apiFetch('/api/admin/transactions?limit=100');
+    const wrap = document.getElementById('txn-wrap');
+    if (!res.ok) { wrap.innerHTML = '<div class="empty-state"><div class="ei">⚠️</div><p>Failed to load</p></div>'; return; }
+    const data = await res.json();
+    if (!data.length) { wrap.innerHTML = '<div class="empty-state"><div class="ei">💳</div><p>No transactions yet</p></div>'; return; }
+    wrap.innerHTML = `<table><thead><tr><th>Order ID</th><th>Customer</th><th>Plan</th><th>Amount</th><th>UPI Ref</th><th>Source</th><th>Date</th></tr></thead>
+      <tbody>${data.map(t=>`<tr>
+        <td><code>${esc(t.order_id)}</code></td>
+        <td><div>${esc(t.name||'—')}</div><div style="font-size:0.72rem;color:var(--text-3)">${esc(t.email||'')}</div></td>
+        <td>${esc((t.plan||'—').toUpperCase())}</td>
+        <td style="color:var(--emerald-lt);font-weight:700">₹${t.order_amount}</td>
+        <td><code>${esc(t.upi_ref||'—')}</code></td>
+        <td><span class="badge ${t.signal_source?.includes('sms')?'badge-sms':'badge-paid'}">${esc(t.signal_source||'manual')}</span></td>
+        <td style="font-size:0.75rem;color:var(--text-3)">${fmt(t.verified_at)}</td>
+      </tr>`).join('')}</tbody></table>`;
+  } catch(e) { toast('Failed to load transactions','error'); }
+}
+
+// ── Orders ──────────────────────────────────────────────
+async function loadOrders(status='all') {
+  currentOrderFilter = status;
+  try {
+    const q = status !== 'all' ? `?status=${status}&limit=100` : '?limit=100';
+    const res = await apiFetch(`/api/admin/orders${q}`);
+    const wrap = document.getElementById('orders-wrap');
+    if (!res.ok) { wrap.innerHTML = '<div class="empty-state"><div class="ei">⚠️</div><p>Failed</p></div>'; return; }
+    const data = await res.json();
+    if (!data.length) { wrap.innerHTML = `<div class="empty-state"><div class="ei">📦</div><p>No ${status !== 'all' ? status : ''} orders</p></div>`; return; }
+    wrap.innerHTML = `<table><thead><tr><th>Order ID</th><th>Customer</th><th>Plan</th><th>Amount</th><th>Status</th><th>Expires</th><th>Created</th></tr></thead>
+      <tbody>${data.map(o=>`<tr>
+        <td><code>${esc(o.id)}</code></td>
+        <td><div>${esc(o.name||'—')}</div><div style="font-size:0.72rem;color:var(--text-3)">${esc(o.email||'')}</div></td>
+        <td>${esc((o.plan||'—').toUpperCase())}</td>
+        <td style="font-weight:600">₹${o.amount}</td>
+        <td><span class="badge badge-${o.status}">${o.status.toUpperCase()}</span></td>
+        <td style="font-size:0.75rem;color:var(--text-3)">${fmt(o.expires_at)}</td>
+        <td style="font-size:0.75rem;color:var(--text-3)">${fmt(o.created_at)}</td>
+      </tr>`).join('')}</tbody></table>`;
+  } catch(e) { toast('Failed to load orders','error'); }
+}
+
+function filterOrders(status, btn) {
+  document.querySelectorAll('.tabs .tab-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  loadOrders(status);
+}
+
+// ── Customers ───────────────────────────────────────────
+async function loadCustomers() {
+  try {
+    const res = await apiFetch('/api/admin/users');
+    const wrap = document.getElementById('customers-wrap');
+    if (!res.ok) { wrap.innerHTML = '<div class="empty-state"><div class="ei">⚠️</div><p>Failed</p></div>'; return; }
+    const data = await res.json();
+    if (!data.length) { wrap.innerHTML = '<div class="empty-state"><div class="ei">👥</div><p>No customers yet. Share your payment link!</p></div>'; return; }
+    wrap.innerHTML = `<table><thead><tr><th>Name</th><th>Email</th><th>Plan</th><th>Status</th><th>Activated</th><th>Joined</th></tr></thead>
+      <tbody>${data.map(u=>`<tr>
+        <td>${esc(u.name)}</td>
+        <td style="color:var(--text-2)">${esc(u.email)}</td>
+        <td>${esc((u.plan||'free').toUpperCase())}</td>
+        <td><span class="badge ${u.is_active?'badge-active':'badge-inactive'}">${u.is_active?'Active':'Inactive'}</span></td>
+        <td style="font-size:0.75rem;color:var(--text-3)">${fmt(u.activated_at)}</td>
+        <td style="font-size:0.75rem;color:var(--text-3)">${fmt(u.created_at)}</td>
+      </tr>`).join('')}</tbody></table>`;
+  } catch(e) { toast('Failed to load customers','error'); }
+}
+
+// ── UPI Setup Save ──────────────────────────────────────
+async function saveSetup() {
+  const vpa    = document.getElementById('inp-upi-vpa').value.trim();
+  const name   = document.getElementById('inp-upi-name').value.trim();
+  const sender = document.getElementById('inp-sms-sender').value.trim();
+  const company= document.getElementById('inp-company').value.trim();
+
+  if (!vpa) { toast('UPI ID is required','error'); return; }
+
+  const btn = document.getElementById('btn-save-setup');
+  btn.textContent = 'Saving...'; btn.disabled = true;
+
+  try {
+    const res = await apiFetch('/api/auth/setup', {
+      method: 'PUT',
+      body: JSON.stringify({ upi_vpa: vpa, upi_payee_name: name, trusted_sms_sender: sender, company }),
+    });
+    const data = await res.json();
+    if (!res.ok) { toast(data.error || 'Save failed', 'error'); return; }
+
+    currentUser = data.user;
+    populateUserUI(data.user, null);
+    toast('✅ UPI configuration saved!', 'success');
+  } catch(e) { toast('Save failed. Is the server running?','error'); }
+  finally { btn.textContent = '💾 Save Configuration'; btn.disabled = false; }
+}
+
+// ── SMS Webhook Test ────────────────────────────────────
+async function testSmsWebhook() {
+  const orderId = document.getElementById('test-order-id').value.trim();
+  const sender  = document.getElementById('test-sender').value.trim();
+  const rawText = document.getElementById('test-sms-text').value.trim();
+  const result  = document.getElementById('sms-test-result');
+
+  if (!sender || !rawText) { toast('Sender and SMS text are required','error'); return; }
+
+  try {
+    const res = await fetch(`${API}/api/orders/sms`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`,
+        'x-admin-token': 'dev_admin_token',
+      },
+      body: JSON.stringify({
+        orderId: orderId || undefined,
+        sender,
+        rawText,
+        enterprise_id: currentUser?.id,
+      }),
+    });
+    const data = await res.json();
+    result.style.display = 'block';
+    const ok = data.success;
+    result.innerHTML = `<div class="alert ${ok?'alert-success':'alert-danger'}">
+      <strong>${ok ? '✅ Verified!' : '❌ Failed'}</strong> ${esc(data.message || data.error || '')}
+      ${data.parsed ? `<br/><br/><strong>Parsed:</strong> Amount=₹${data.parsed.amount}, Ref=${data.parsed.ref||'—'}` : ''}
+    </div>`;
+    if (ok) { toast('Payment verified & service activated!','success'); loadDashboardData(); }
+    else toast(data.message || data.error || 'Verification failed','error');
+  } catch(e) { toast('Network error','error'); }
+}
+
+function fillSampleSms() {
+  document.getElementById('test-sms-text').value =
+    'Your a/c XXXXXX is credited by Rs.499 on 24-05-26. Ref 421234567890. -HDFC Bank';
+  toast('Sample SMS filled. Add Order ID to test fully.','info');
+}
+
+// ── Settings ────────────────────────────────────────────
+async function changePassword() {
+  const curr = document.getElementById('set-curr-pass').value;
+  const nw   = document.getElementById('set-new-pass').value;
+  if (!curr || !nw) { toast('Both fields required','error'); return; }
+  if (nw.length < 8) { toast('New password must be 8+ chars','error'); return; }
+  try {
+    const res = await apiFetch('/api/auth/password', {
+      method:'PUT', body: JSON.stringify({ current_password: curr, new_password: nw })
+    });
+    const data = await res.json();
+    if (!res.ok) { toast(data.error||'Failed','error'); return; }
+    toast('Password updated successfully!','success');
+    document.getElementById('set-curr-pass').value = '';
+    document.getElementById('set-new-pass').value  = '';
+  } catch(e) { toast('Error updating password','error'); }
+}
+
+// ── Integration tabs ────────────────────────────────────
+function switchIntegTab(name, btn) {
+  ['create','poll','embed','firebase'].forEach(t => {
+    const el = document.getElementById(`integ-${t}`);
+    if (el) el.style.display = t === name ? 'block' : 'none';
+  });
+  document.querySelectorAll('#page-integrate .tab-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+}
+
+// ── Navigation ──────────────────────────────────────────
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+
+  const page = document.getElementById(`page-${name}`);
+  if (page) page.classList.add('active');
+  const nav = document.getElementById(`nav-${name}`);
+  if (nav) nav.classList.add('active');
+
+  const titles = {
+    overview:'Dashboard', transactions:'Transactions', orders:'Orders',
+    customers:'Customers', setup:'UPI Setup', sms:'SMS Forwarder',
+    integrate:'Integration Guide', settings:'Settings'
+  };
+  document.getElementById('topbar-title').textContent = titles[name] || name;
+
+  // Lazy load
+  if (name === 'transactions') loadTransactions();
+  else if (name === 'orders')  loadOrders(currentOrderFilter);
+  else if (name === 'customers') loadCustomers();
+
+  // Close mobile sidebar
+  document.getElementById('sidebar').classList.remove('open');
+}
+
+// ── Helpers ─────────────────────────────────────────────
+async function apiFetch(url, opts = {}) {
+  return fetch(`${API}${url}`, {
+    ...opts,
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${authToken}`,
+      ...(opts.headers || {}),
+    },
+    body: opts.body,
+  });
+}
+
+function clearAuth() {
+  localStorage.removeItem('pf_token');
+  localStorage.removeItem('pf_user');
+  window.location.href = '/login.html';
+}
+
+function logout() {
+  apiFetch('/api/auth/logout', { method:'POST' }).catch(()=>{});
+  clearAuth();
+}
+
+function esc(v) {
+  return String(v ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function fmt(dt) {
+  if (!dt) return '—';
+  const d = new Date(dt);
+  if (isNaN(d.getTime())) return '—';
+  return d.toLocaleString('en-IN', { dateStyle:'medium', timeStyle:'short' });
+}
+
+function copyText(id, label) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  navigator.clipboard.writeText(el.textContent.trim())
+    .then(() => toast(`${label} copied!`, 'success'))
+    .catch(() => toast('Copy failed', 'error'));
+}
+
+function copyCodeBlock(btn) {
+  const block = btn.parentElement;
+  const text = block.innerText.replace('Copy','').trim();
+  navigator.clipboard.writeText(text)
+    .then(() => { btn.textContent = '✓ Copied'; setTimeout(()=>btn.textContent='Copy',2000); })
+    .catch(() => toast('Copy failed','error'));
+}
+
+function toast(msg, type='info') {
+  const icons = { success:'✅', error:'❌', info:'ℹ️', warn:'⚠️' };
+  const c = document.getElementById('toast-container');
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.innerHTML = `<span>${icons[type]||'ℹ️'}</span><span>${msg}</span>`;
+  c.appendChild(el);
+  setTimeout(() => { el.style.opacity = '0'; el.style.transition = 'opacity 0.4s'; setTimeout(()=>el.remove(),400); }, 4000);
+}
+
+function setupMobileMenu() {
+  const btn = document.getElementById('menu-btn');
+  if (window.innerWidth <= 768 && btn) btn.style.display = 'block';
+  window.addEventListener('resize', () => {
+    if (btn) btn.style.display = window.innerWidth <= 768 ? 'block' : 'none';
+  });
+}
+
+// Start
+window.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
