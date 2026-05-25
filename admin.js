@@ -27,6 +27,15 @@ router.get('/dump-sms', async (req, res) => {
   }
 });
 
+router.get('/dump-ent', async (req, res) => {
+  try {
+    const ent = await db.getAll('enterprise_users');
+    res.json(ent);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 router.use(requireAuth);
 
 router.get('/transactions', async (req, res) => {
