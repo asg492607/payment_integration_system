@@ -543,7 +543,10 @@
           <button class="tab-btn" onclick="filterOrders('paid',this)">Paid</button>
           <button class="tab-btn" onclick="filterOrders('expired',this)">Expired</button>
         </div>
-        <button class="btn btn-ghost btn-sm" onclick="loadOrders(currentOrderFilter)" style="margin-left:auto">↻ Refresh</button>
+        <div style="margin-left:auto; display:flex; gap:8px;">
+          <button class="btn btn-ghost btn-sm" onclick="clearPendingOrders()" style="color:#ff4444; border: 1px solid #ff444455;">🗑 Clear Pending</button>
+          <button class="btn btn-ghost btn-sm" onclick="loadOrders(currentOrderFilter)">↻ Refresh</button>
+        </div>
       </div>
       <div class="card">
         <div class="table-wrap" id="orders-wrap">
@@ -1467,6 +1470,22 @@ async function testSmsWebhook() {
     if (ok) { toast('Payment verified & service activated!','success'); loadDashboardData(); }
     else toast(data.message || data.error || 'Verification failed','error');
   } catch(e) { toast('Network error','error'); }
+}
+
+async function clearPendingOrders() {
+  if (!confirm('Are you sure you want to permanently delete all Pending and Expired orders?')) return;
+  try {
+    const res = await apiFetch('/api/admin/orders/pending', { method: 'DELETE' });
+    const data = await res.json();
+    if (res.ok) {
+      toast(`Cleared ${data.deleted} orders!`, 'success');
+      loadOrders(currentOrderFilter);
+    } else {
+      toast(data.error || 'Failed to clear orders', 'error');
+    }
+  } catch(e) {
+    toast('Network error', 'error');
+  }
 }
 
 function fillSampleSms() {

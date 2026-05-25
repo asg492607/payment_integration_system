@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">PayForge SMS Forwarder</string>
+    <string name="status_active">Status: Active &amp; Listening</string>
+    <string name="status_not_configured">Status: Not Configured</string>
+    <string name="status_permission_denied">Status: Permission Denied</string>
+    <string name="sms_permission_granted">SMS Permission Granted</string>
+    <string name="sms_permission_denied">SMS Permission Denied. App will not work.</string>
+    <string name="saved_msg">Saved! Forwarding enabled in background.</string>
+    <string name="empty_fields_msg">Fields cannot be empty</string>
+</resources>

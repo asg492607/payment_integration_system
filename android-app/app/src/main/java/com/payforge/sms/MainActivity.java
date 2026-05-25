@@ -46,7 +46,7 @@ public class MainActivity extends AppCompatActivity {
             String secret = editSecret.getText().toString().trim();
 
             if (eId.isEmpty() || secret.isEmpty()) {
-                Toast.makeText(this, "Fields cannot be empty", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, R.string.empty_fields_msg, Toast.LENGTH_SHORT).show();
                 return;
             }
 
@@ -59,14 +59,24 @@ public class MainActivity extends AppCompatActivity {
             updateStatus();
             checkPermission();
         });
+
+        Button btnRefreshLogs = findViewById(R.id.btnRefreshLogs);
+        btnRefreshLogs.setOnClickListener(v -> refreshLogs());
+        refreshLogs();
+    }
+
+    private void refreshLogs() {
+        TextView textLogs = findViewById(R.id.textLogs);
+        String logs = prefs.getString("APP_LOGS", "Waiting for SMS...");
+        textLogs.setText(logs);
     }
 
     private void updateStatus() {
         if (!prefs.getString("ENTERPRISE_ID", "").isEmpty()) {
-            statusText.setText("Status: Active & Listening");
+            statusText.setText(R.string.status_active);
             statusText.setTextColor(0xFF009900); // Green
         } else {
-            statusText.setText("Status: Not Configured");
+            statusText.setText(R.string.status_not_configured);
             statusText.setTextColor(0xFFFF0000); // Red
         }
     }
@@ -82,10 +92,10 @@ public class MainActivity extends AppCompatActivity {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == SMS_PERMISSION_CODE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(this, "SMS Permission Granted", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, R.string.sms_permission_granted, Toast.LENGTH_SHORT).show();
             } else {
-                Toast.makeText(this, "SMS Permission Denied. App will not work.", Toast.LENGTH_LONG).show();
-                statusText.setText("Status: Permission Denied");
+                Toast.makeText(this, R.string.sms_permission_denied, Toast.LENGTH_LONG).show();
+                statusText.setText(R.string.status_permission_denied);
                 statusText.setTextColor(0xFFFF0000);
             }
         }

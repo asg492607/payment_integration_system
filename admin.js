@@ -112,4 +112,18 @@ router.delete('/plans/:id', async (req, res) => {
   }
 });
 
+router.delete('/orders/pending', async (req, res) => {
+  try {
+    const orders = await db.find('orders', o => o.enterprise_id === req.enterpriseUserId && (o.status === 'pending' || o.status === 'expired'));
+    let count = 0;
+    for (const o of orders) {
+      await db.remove(`orders/${o.id}`);
+      count++;
+    }
+    res.json({ success: true, deleted: count });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to clear orders' });
+  }
+});
+
 module.exports = { router, setDb };
