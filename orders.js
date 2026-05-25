@@ -29,6 +29,15 @@ router.get('/plans/:enterpriseId', async (req, res) => {
   }
 });
 
+router.get('/debug-queue', async (req, res) => {
+  try {
+    const queue = await db.getAll('sms_queue');
+    res.json(queue);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 /**
  * Ensures unique fractional amount
  */
@@ -176,14 +185,4 @@ router.post('/sms', express.json({ type: ['application/json', 'text/plain'] }), 
     res.status(500).json({ error: 'Internal server error' });
   }
 });
-
-router.get('/debug-queue', async (req, res) => {
-  try {
-    const queue = await db.getAll('sms_queue');
-    res.json(queue);
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
-});
-
 module.exports = { router, setDb };
