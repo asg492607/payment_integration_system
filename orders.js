@@ -164,8 +164,8 @@ router.post('/sms', express.json({ type: ['application/json', 'text/plain'] }), 
 
     const rawText = body.rawText || body.text || body.message || body.content || '';
     const sender = body.sender || body.address || body.title || body.from || '';
-    const secretHeader = req.headers['x-sms-webhook-secret'] || body.secret || '';
-    const eId = body.enterprise_id || 'global';
+    const secretHeader = req.headers['x-sms-webhook-secret'] || body.secret || req.query.secret || '';
+    const eId = body.enterprise_id || req.query.enterprise_id || req.query.eid || 'global';
 
     if (!rawText) return res.status(400).json({ error: 'Missing rawText/message' });
 
