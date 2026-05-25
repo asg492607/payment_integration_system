@@ -52,7 +52,9 @@ async function verifyPayment(signal) {
     return { success: false, code: 'ORDER_EXPIRED', message: 'Order expired.' };
   }
 
-  if (!upiRef) return { success: false, code: 'UPI_REF_REQUIRED', message: 'No UPI reference found in SMS.' };
+  if (!upiRef && source !== 'sms_queue') return { success: false, code: 'UPI_REF_REQUIRED', message: 'No UPI reference found in SMS.' };
+  
+  const finalRef = upiRef || `NO_REF_${crypto.randomUUID().slice(0,8)}`;
   if (numericAmount !== null && !Number.isFinite(numericAmount)) return { success: false, code: 'INVALID_AMOUNT' };
   
   if (numericAmount !== null && Math.abs(numericAmount - order.amount) > 0.009) {
@@ -66,12 +68,12 @@ async function verifyPayment(signal) {
   const now = new Date().toISOString();
 
   await db.put(`transactions/${txnId}`, {
-    id: txnId, enterprise_id: eId, order_id: orderId, upi_ref: upiRef,
+    id: txnId, enterprise_id: eId, order_id: orderId, upi_ref: finalRef,
     amount_verified: numericAmount ?? order.amount, signal_source: source,
     raw_signal: rawText.slice(0, 500), status: 'verified', verified_at: now, created_at: now
   });
 
-  await db.put(`used_refs/${upiRef}`, { upi_ref: upiRef, order_id: orderId, used_at: now });
+  await db.put(`used_refs/${finalRef}`, { upi_ref: finalRef, order_id: orderId, used_at: now });
   await db.patch(`orders/${orderId}`, { status: 'paid' });
   await db.patch(`users/${order.user_id}`, { is_active: 1, plan: order.plan, activated_at: now });
 
@@ -97,7 +99,7 @@ async function verifyPayment(signal) {
 
       emitPaymentEvent({
         enterpriseId: eId, type: 'PAYMENT_VERIFIED', orderId, amount: numericAmount ?? order.amount,
-        plan: order.plan, userEmail: user?.email, txnId, upiRef
+        plan: order.plan, userEmail: user?.email, txnId, upiRef: finalRef
       }).catch(()=>{});
 
       updateEnterpriseStats({

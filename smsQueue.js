@@ -50,10 +50,11 @@ async function processQueue() {
   for (const item of pending) {
     try {
       const parsed = parseSmsAlert(item.raw_text);
-      const { amount, ref } = parsed;
+      const amount = parsed.amount;
+      const ref = parsed.ref || null;
 
-      if (!amount || !ref) {
-        await db.patch(`sms_queue/${item.id}`, { status: 'failed', result: 'Could not parse amount or ref' });
+      if (!amount) {
+        await db.patch(`sms_queue/${item.id}`, { status: 'failed', result: 'Could not parse amount' });
         continue;
       }
 

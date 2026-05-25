@@ -63,6 +63,15 @@ router.get('/customers', async (req, res) => {
   }
 });
 
+router.get('/sms_queue', async (req, res) => {
+  try {
+    const queue = await db.find('sms_queue', s => s.enterprise_id === req.enterpriseUserId);
+    res.json(queue);
+  } catch (e) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 router.get('/plans', async (req, res) => {
   try {
     const plans = await db.find('enterprise_plans', p => p.enterprise_id === req.enterpriseUserId);
