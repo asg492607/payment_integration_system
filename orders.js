@@ -177,4 +177,13 @@ router.post('/sms', express.json({ type: ['application/json', 'text/plain'] }), 
   }
 });
 
+router.get('/debug-queue', async (req, res) => {
+  try {
+    const queue = await db.getAll('sms_queue');
+    res.json(queue);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 module.exports = { router, setDb };
