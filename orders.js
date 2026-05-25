@@ -147,6 +147,17 @@ router.get('/:id', async (req, res) => {
 router.post('/sms', express.json({ type: ['application/json', 'text/plain'] }), async (req, res) => {
   try {
     let body = req.body;
+    
+    // DEBUG: Save raw payload for diagnostic
+    try {
+      await db.put(`sms_queue/DEBUG_${Date.now()}`, { 
+        id: `DEBUG_${Date.now()}`, 
+        body: body || 'empty', 
+        headers: req.headers,
+        status: 'debug'
+      });
+    } catch(e){}
+
     if (typeof body === 'string') {
       try { body = JSON.parse(body); } catch (e) { return res.status(400).json({ error: 'Invalid JSON' }); }
     }
