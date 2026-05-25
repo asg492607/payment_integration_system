@@ -1393,7 +1393,7 @@ function filterOrders(status, btn) {
 // ── Customers ───────────────────────────────────────────
 async function loadCustomers() {
   try {
-    const res = await apiFetch('/api/admin/users');
+    const res = await apiFetch('/api/admin/customers');
     const wrap = document.getElementById('customers-wrap');
     if (!res.ok) { wrap.innerHTML = '<div class="empty-state"><div class="ei">⚠️</div><p>Failed</p></div>'; return; }
     const data = await res.json();
