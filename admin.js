@@ -126,4 +126,21 @@ router.delete('/orders/pending', async (req, res) => {
   }
 });
 
+router.post('/orders/test', async (req, res) => {
+  try {
+    const eId = req.enterpriseUserId;
+    const { v4: uuidv4 } = require('uuid');
+    const orderId = 'TEST-' + uuidv4().split('-')[0].toUpperCase();
+    const amount = '99.0' + Math.floor(Math.random() * 9 + 1); // e.g. 99.01 - 99.09
+    const order = {
+      id: orderId, enterprise_id: eId, plan: 'test', amount: amount, status: 'pending',
+      created_at: new Date().toISOString(), expires_at: new Date(Date.now() + 15 * 60000).toISOString()
+    };
+    await db.put(`orders/${orderId}`, order);
+    res.json({ success: true, order });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to create test order' });
+  }
+});
+
 module.exports = { router, setDb };

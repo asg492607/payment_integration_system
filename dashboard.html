@@ -544,6 +544,7 @@
           <button class="tab-btn" onclick="filterOrders('expired',this)">Expired</button>
         </div>
         <div style="margin-left:auto; display:flex; gap:8px;">
+          <button class="btn btn-ghost btn-sm" onclick="generateTestOrder()" style="color:var(--emerald-lt); border: 1px solid var(--emerald-lt);">✨ Create Test Order</button>
           <button class="btn btn-ghost btn-sm" onclick="clearPendingOrders()" style="color:#ff4444; border: 1px solid #ff444455;">🗑 Clear Pending</button>
           <button class="btn btn-ghost btn-sm" onclick="loadOrders(currentOrderFilter)">↻ Refresh</button>
         </div>
@@ -1488,10 +1489,36 @@ async function clearPendingOrders() {
   }
 }
 
-function fillSampleSms() {
-  document.getElementById('test-sms-text').value =
-    'Your a/c XXXXXX is credited by Rs.499 on 24-05-26. Ref 421234567890. -HDFC Bank';
-  toast('Sample SMS filled. Add Order ID to test fully.','info');
+async function generateTestOrder() {
+  try {
+    const res = await apiFetch('/api/admin/orders/test', { method: 'POST' });
+    if (res.ok) {
+      toast('Test order created!', 'success');
+      loadOrders(currentOrderFilter);
+    } else {
+      toast('Failed to create test order', 'error');
+    }
+  } catch(e) { toast('Network error', 'error'); }
+}
+
+async function fillSampleSms() {
+  try {
+    const res = await apiFetch('/api/admin/orders');
+    const orders = await res.json();
+    const pending = orders.find(o => o.status === 'pending');
+    if (pending) {
+      document.getElementById('test-sms-text').value =
+        `Your a/c XXXXXX is credited by Rs.${pending.amount} on 24-05-26. Ref 421234567890. -HDFC Bank`;
+      toast(`Filled sample for Order ${pending.id}`, 'success');
+    } else {
+      document.getElementById('test-sms-text').value =
+        'Your a/c XXXXXX is credited by Rs.99.01 on 24-05-26. Ref 421234567890. -HDFC Bank';
+      toast('No pending order found. Using default text.', 'warn');
+    }
+  } catch(e) {
+    document.getElementById('test-sms-text').value =
+      'Your a/c XXXXXX is credited by Rs.99.01 on 24-05-26. Ref 421234567890. -HDFC Bank';
+  }
 }
 
 // ── Settings ────────────────────────────────────────────
