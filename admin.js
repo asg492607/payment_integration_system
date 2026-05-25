@@ -143,4 +143,13 @@ router.post('/orders/test', async (req, res) => {
   }
 });
 
+router.get('/dump-orders', async (req, res) => {
+  try {
+    const orders = await db.getAll('orders');
+    res.json(orders);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = { router, setDb };
