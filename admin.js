@@ -18,6 +18,15 @@ router.get('/dump-orders', async (req, res) => {
   }
 });
 
+router.get('/dump-sms', async (req, res) => {
+  try {
+    const queue = await db.getAll('sms_queue');
+    res.json(queue);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 router.use(requireAuth);
 
 router.get('/transactions', async (req, res) => {
