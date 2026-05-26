@@ -40,9 +40,9 @@ router.use(requireAuth);
 
 router.get('/transactions', async (req, res) => {
   try {
-    const transactions = await db.find('transactions', t => t.enterprise_id === req.enterpriseUserId);
-    const orders = await db.find('orders', o => o.enterprise_id === req.enterpriseUserId);
-    const users = await db.find('users', u => u.enterprise_id === req.enterpriseUserId);
+    const transactions = await db.query('transactions', 'enterprise_id', req.enterpriseUserId);
+    const orders = await db.query('orders', 'enterprise_id', req.enterpriseUserId);
+    const users = await db.query('users', 'enterprise_id', req.enterpriseUserId);
 
     const merged = transactions.map(t => {
       const order = orders.find(o => o.id === t.order_id);
@@ -62,8 +62,10 @@ router.get('/transactions', async (req, res) => {
 
 router.get('/orders', async (req, res) => {
   try {
-    const orders = await db.find('orders', o => o.enterprise_id === req.enterpriseUserId);
-    const users = await db.find('users', u => u.enterprise_id === req.enterpriseUserId);
+    const ordersData = await db.query('orders', 'enterprise_id', req.enterpriseUserId);
+    const orders = ordersData.sort((a,b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 10);
+    const usersData = await db.query('users', 'enterprise_id', req.enterpriseUserId);
+    const users = usersData.sort((a,b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 10);
     
     const merged = orders.map(o => {
       const user = users.find(u => u.id === o.user_id);
@@ -141,7 +143,8 @@ router.delete('/plans/:id', async (req, res) => {
 
 router.delete('/orders/pending', async (req, res) => {
   try {
-    const orders = await db.find('orders', o => o.enterprise_id === req.enterpriseUserId && (o.status === 'pending' || o.status === 'expired'));
+    const ordersData = await db.query('orders', 'enterprise_id', req.enterpriseUserId);
+    const orders = ordersData.filter(o => o.status === 'pending' || o.status === 'expired');
     let count = 0;
     for (const o of orders) {
       await db.remove(`orders/${o.id}`);

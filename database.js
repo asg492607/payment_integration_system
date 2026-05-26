@@ -62,7 +62,20 @@ async function getAll(path) {
 }
 
 /**
- * Filter items in memory
+ * Query items efficiently via Firebase REST API
+ */
+async function query(path, field, value) {
+  // Ensure the value is JSON stringified for the URL (e.g., "ent_123" needs to be literally '"ent_123"')
+  const queryParams = `orderBy="${field}"&equalTo=${encodeURIComponent(JSON.stringify(value))}`;
+  const res = await fetch(getUrl(path, queryParams));
+  if (!res.ok) return [];
+  const data = await res.json();
+  if (!data) return [];
+  return Object.values(data);
+}
+
+/**
+ * Filter items in memory (Use query() instead for large collections)
  */
 async function find(path, predicate) {
   const arr = await getAll(path);
@@ -74,4 +87,4 @@ async function findOne(path, predicate) {
   return arr.find(predicate) || null;
 }
 
-module.exports = { get, put, patch, remove, getAll, find, findOne };
+module.exports = { get, put, patch, remove, getAll, find, findOne, query };

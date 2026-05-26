@@ -52,9 +52,9 @@ async function verifyPayment(signal) {
     return { success: false, code: 'ORDER_EXPIRED', message: 'Order expired.' };
   }
 
-  if (!upiRef && source !== 'sms_queue') return { success: false, code: 'UPI_REF_REQUIRED', message: 'No UPI reference found in SMS.' };
+  if (!upiRef) return { success: false, code: 'UPI_REF_REQUIRED', message: 'No valid UPI reference found in SMS.' };
   
-  const finalRef = upiRef || `NO_REF_${crypto.randomUUID().slice(0,8)}`;
+  const finalRef = upiRef;
   if (numericAmount !== null && !Number.isFinite(numericAmount)) return { success: false, code: 'INVALID_AMOUNT' };
   
   if (numericAmount !== null && Math.abs(numericAmount - order.amount) > 0.009) {
@@ -76,6 +76,9 @@ async function verifyPayment(signal) {
   await db.put(`used_refs/${finalRef}`, { upi_ref: finalRef, order_id: orderId, used_at: now });
   await db.patch(`orders/${orderId}`, { status: 'paid' });
   await db.patch(`users/${order.user_id}`, { is_active: 1, plan: order.plan, activated_at: now });
+
+  const amtKey = order.amount.toString().replace('.','_');
+  await db.remove(`active_amounts/${eId}_${amtKey}`);
 
   const user = await db.get(`users/${order.user_id}`);
   
@@ -115,6 +118,8 @@ async function expireStaleOrders() {
   const pendingOrders = await db.find('orders', o => o.status === 'pending' && new Date(o.expires_at) < new Date());
   for (const o of pendingOrders) {
     await db.patch(`orders/${o.id}`, { status: 'expired' });
+    const amtKey = o.amount.toString().replace('.','_');
+    await db.remove(`active_amounts/${o.enterprise_id}_${amtKey}`);
   }
   if (pendingOrders.length > 0) console.log(`[Cron] ⌛ Expired ${pendingOrders.length} order(s)`);
 }

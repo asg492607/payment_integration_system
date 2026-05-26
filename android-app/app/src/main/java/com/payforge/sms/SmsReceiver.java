@@ -4,7 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.os.Bundle;
+import android.provider.Telephony;
 import android.telephony.SmsMessage;
 import android.util.Log;
 
@@ -26,64 +26,76 @@ public class SmsReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         String action = intent.getAction();
-        if ("android.provider.Telephony.SMS_RECEIVED".equals(action)) {
-            SharedPreferences prefs = context.getSharedPreferences("PayForgePrefs", Context.MODE_PRIVATE);
-            String enterpriseId = prefs.getString("ENTERPRISE_ID", "");
-            String webhookSecret = prefs.getString("WEBHOOK_SECRET", "");
+        if (Telephony.Sms.Intents.SMS_RECEIVED_ACTION.equals(action)) {
+            final PendingResult pendingResult = goAsync();
+            executor.execute(() -> {
+                try {
+                    SharedPreferences prefs = context.getSharedPreferences("PayForgePrefs", Context.MODE_PRIVATE);
+                    String enterpriseId = prefs.getString("ENTERPRISE_ID", "");
+                    String webhookSecret = prefs.getString("WEBHOOK_SECRET", "");
 
-            // If not configured, ignore SMS
-            if (enterpriseId.isEmpty() || webhookSecret.isEmpty()) return;
+                    // If not configured, ignore SMS
+                    if (enterpriseId.isEmpty() || webhookSecret.isEmpty()) return;
 
-            Bundle bundle = intent.getExtras();
-            if (bundle != null) {
-                Object[] pdus = (Object[]) bundle.get("pdus");
-                if (pdus != null) {
-                    String format = bundle.getString("format");
-                    for (Object pdu : pdus) {
-                        SmsMessage smsMessage = SmsMessage.createFromPdu((byte[]) pdu, format);
-                        String sender = smsMessage.getDisplayOriginatingAddress();
-                        String messageBody = smsMessage.getMessageBody();
-
-                        Log.d(TAG, "SMS Received from: " + sender);
+                    SmsMessage[] messages = Telephony.Sms.Intents.getMessagesFromIntent(intent);
+                    if (messages != null && messages.length > 0) {
+                        StringBuilder fullMessage = new StringBuilder();
+                        String sender = messages[0].getDisplayOriginatingAddress();
                         
-                        // We forward the SMS in a background thread so we don't block the UI/receiver thread
-                        forwardSms(context, enterpriseId, webhookSecret, sender, messageBody);
+                        for (SmsMessage msg : messages) {
+                            if (msg != null) {
+                                fullMessage.append(msg.getDisplayMessageBody());
+                            }
+                        }
+
+                        String messageBody = fullMessage.toString();
+                        Log.d(TAG, "SMS Received from: " + sender);
+                        appendLog(context, "FETCHED", context.getString(R.string.log_fetched, sender));
+                        
+                        // Forward synchronously within this background thread
+                        forwardSmsSync(context, enterpriseId, webhookSecret, sender, messageBody);
                     }
+                } finally {
+                    pendingResult.finish();
                 }
-            }
+            });
         }
     }
 
-    private void forwardSms(Context context, String enterpriseId, String secret, String sender, String message) {
-        executor.execute(() -> {
-            try {
-                URL url = new URL(WEBHOOK_URL);
-                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-                conn.setRequestMethod("POST");
-                conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
-                conn.setRequestProperty("x-sms-webhook-secret", secret);
-                conn.setDoOutput(true);
+    private void forwardSmsSync(Context context, String enterpriseId, String secret, String sender, String message) {
+        try {
+            URL url = new URL(WEBHOOK_URL);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("POST");
+            conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
+            conn.setRequestProperty("x-sms-webhook-secret", secret);
+            conn.setConnectTimeout(15000);
+            conn.setReadTimeout(15000);
+            conn.setDoOutput(true);
 
-                // Build JSON payload
-                String jsonInputString = String.format(
-                    "{\"enterprise_id\": \"%s\", \"sender\": \"%s\", \"message\": \"%s\"}",
-                    escapeJson(enterpriseId), escapeJson(sender), escapeJson(message)
-                );
+            // Build JSON payload
+            String jsonInputString = String.format(
+                "{\"enterprise_id\": \"%s\", \"sender\": \"%s\", \"message\": \"%s\"}",
+                escapeJson(enterpriseId), escapeJson(sender), escapeJson(message)
+            );
 
-                try (OutputStream os = conn.getOutputStream()) {
-                    byte[] input = jsonInputString.getBytes(StandardCharsets.UTF_8);
-                    os.write(input, 0, input.length);
-                }
-
-                int responseCode = conn.getResponseCode();
-                Log.d(TAG, "Webhook Response Code: " + responseCode);
-                appendLog(context, "SUCCESS", "Code: " + responseCode);
-
-            } catch (Exception e) {
-                Log.e(TAG, "Failed to forward SMS", e);
-                appendLog(context, "ERROR", e.getMessage());
+            try (OutputStream os = conn.getOutputStream()) {
+                byte[] input = jsonInputString.getBytes(StandardCharsets.UTF_8);
+                os.write(input, 0, input.length);
             }
-        });
+
+            int responseCode = conn.getResponseCode();
+            Log.d(TAG, "Webhook Response Code: " + responseCode);
+            if (responseCode >= 200 && responseCode < 300) {
+                appendLog(context, "SUCCESS", context.getString(R.string.log_success, sender, responseCode));
+            } else {
+                appendLog(context, "FAILED", context.getString(R.string.log_failed_code, sender, responseCode));
+            }
+
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to forward SMS", e);
+            appendLog(context, "FAILED", context.getString(R.string.log_failed_error, sender, e.getMessage()));
+        }
     }
 
     private void appendLog(Context context, String status, String detail) {
@@ -95,6 +107,11 @@ public class SmsReceiver extends BroadcastReceiver {
     }
 
     private String escapeJson(String s) {
-        return s.replace("\"", "\\\"").replace("\n", "\\n").replace("\r", "");
+        if (s == null) return "";
+        return s.replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+                .replace("\n", "\\n")
+                .replace("\r", "\\r")
+                .replace("\t", "\\t");
     }
 }

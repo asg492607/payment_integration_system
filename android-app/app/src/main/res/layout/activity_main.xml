@@ -4,73 +4,109 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="24dp"
-    android:gravity="center_vertical">
+    android:background="#F8F9FA">
 
+    <!-- Header / Branding -->
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/app_name"
-        android:textSize="22sp"
+        android:textSize="28sp"
         android:textStyle="bold"
+        android:textColor="#2D3748"
+        android:textAlignment="center"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/sms_engine_label"
+        android:textSize="14sp"
+        android:textColor="#718096"
         android:textAlignment="center"
         android:layout_marginBottom="32dp"/>
 
-    <TextView
+    <!-- Settings Card -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Enterprise ID:"
-        android:textStyle="bold" />
+        android:orientation="vertical"
+        android:background="#FFFFFF"
+        android:padding="16dp"
+        android:elevation="4dp">
 
-    <EditText
-        android:id="@+id/editEnterpriseId"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="e.g. ent_123456"
-        android:layout_marginBottom="16dp"/>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/enterprise_id_label"
+            android:textColor="#4A5568"
+            android:textStyle="bold"
+            android:layout_marginBottom="4dp"/>
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Webhook Secret:"
-        android:textStyle="bold" />
+        <EditText
+            android:id="@+id/editEnterpriseId"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/enterprise_id_hint"
+            android:background="#EDF2F7"
+            android:padding="12dp"
+            android:layout_marginBottom="16dp"/>
 
-    <EditText
-        android:id="@+id/editSecret"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Your dashboard secret"
-        android:inputType="textPassword"
-        android:layout_marginBottom="16dp"/>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/webhook_secret_label"
+            android:textColor="#4A5568"
+            android:textStyle="bold"
+            android:layout_marginBottom="4dp"/>
 
-    <Button
-        android:id="@+id/btnSave"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Save &amp; Enable Forwarding"
-        android:layout_marginTop="16dp"
-        android:padding="16dp"/>
+        <EditText
+            android:id="@+id/editSecret"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/webhook_secret_hint"
+            android:inputType="textPassword"
+            android:background="#EDF2F7"
+            android:padding="12dp"
+            android:layout_marginBottom="16dp"/>
 
+        <Button
+            android:id="@+id/btnSave"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/btn_save_text"
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#3182CE"
+            android:textStyle="bold"
+            android:padding="14dp"/>
+
+    </LinearLayout>
+
+    <!-- Status Indicator -->
     <TextView
         android:id="@+id/statusText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Status: Not Configured"
+        android:text="@string/status_not_configured"
         android:textAlignment="center"
-        android:textColor="#FF0000"
-        android:layout_marginTop="24dp"
+        android:textColor="#E53E3E"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="16dp"
+        android:textSize="16sp"
         android:textStyle="bold"/>
 
+    <!-- Logs Section -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
 
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Recent Logs"
+            android:text="@string/system_logs_label"
+            android:textColor="#2D3748"
             android:textStyle="bold"
             android:textSize="18sp"/>
 
@@ -78,7 +114,9 @@
             android:id="@+id/btnRefreshLogs"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Refresh"
+            android:text="@string/btn_refresh_text"
+            android:textColor="#3182CE"
+            android:textSize="12sp"
             style="?android:attr/borderlessButtonStyle"/>
     </LinearLayout>
 
@@ -86,16 +124,16 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:background="#11000000"
-        android:layout_marginTop="8dp"
-        android:padding="8dp">
+        android:background="#2D3748"
+        android:padding="12dp">
 
         <TextView
             android:id="@+id/textLogs"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Waiting for SMS..."
-            android:textSize="12sp"
+            android:text="@string/waiting_logs"
+            android:textColor="#A0AEC0"
+            android:textSize="13sp"
             android:fontFamily="monospace"/>
     </ScrollView>
 

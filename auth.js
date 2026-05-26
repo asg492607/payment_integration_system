@@ -159,8 +159,8 @@ router.get('/me', requireAuth, async (req, res) => {
     const user = await db.get(`enterprise_users/${req.enterpriseUserId}`);
     if (!user) return res.status(404).json({ error: 'User not found' });
 
-    const orders = await db.find('orders', o => o.enterprise_id === req.enterpriseUserId);
-    const endUsers = await db.find('users', u => u.enterprise_id === req.enterpriseUserId);
+    const orders = await db.query('orders', 'enterprise_id', req.enterpriseUserId);
+    const endUsers = await db.query('users', 'enterprise_id', req.enterpriseUserId);
     
     let totalRevenue = 0, paidOrders = 0, pendingOrders = 0, activeUsers = 0;
     orders.forEach(o => {

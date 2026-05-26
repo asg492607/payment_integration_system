@@ -43,20 +43,21 @@ router.get('/debug-queue', async (req, res) => {
  */
 async function reserveAmount(baseAmount, enterpriseId) {
   const min = Math.floor(baseAmount);
-  const max = min + 0.99;
   
-  const recentOrders = await db.find('orders', o => 
-    o.enterprise_id === enterpriseId &&
-    o.status === 'pending' &&
-    o.amount >= min && o.amount <= max
-  );
-  const used = recentOrders.map(o => o.amount);
-
   for (let paise = 1; paise <= 99; paise++) {
     const amt = parseFloat((min + (paise / 100)).toFixed(2));
-    if (!used.includes(amt)) return amt;
+    const resKey = `active_amounts/${enterpriseId}_${amt.toString().replace('.','_')}`;
+    const existing = await db.get(resKey);
+    
+    if (!existing || new Date(existing.expires_at) < new Date()) {
+      await db.put(resKey, {
+        amount: amt,
+        expires_at: new Date(Date.now() + 16 * 60000).toISOString()
+      });
+      return amt;
+    }
   }
-  throw new Error('Too many concurrent payments for this price. Please try again in 5 minutes.');
+  throw new Error('Too many concurrent payments for this price. Please try again in 15 minutes.');
 }
 
 // ── POST /api/orders/create ───────────────────────────────────────────────────
@@ -135,9 +136,14 @@ router.get('/:id', async (req, res) => {
     if (!order) return res.status(404).json({ error: 'Order not found' });
 
     const txn = await db.findOne('transactions', t => t.order_id === req.params.id && t.status === 'verified');
-    const user = order.status === 'paid' ? await db.get(`users/${order.user_id}`) : null;
+    
+    let safeUser = null;
+    if (order.status === 'paid') {
+      const u = await db.get(`users/${order.user_id}`);
+      if (u) safeUser = { is_active: u.is_active, plan: u.plan, name: u.name };
+    }
 
-    res.json({ order, transaction: txn || null, user });
+    res.json({ order, transaction: txn || null, user: safeUser });
   } catch (e) {
     res.status(500).json({ error: 'Server error' });
   }
@@ -179,10 +185,9 @@ router.post('/sms', express.json({ type: ['application/json', 'text/plain'] }), 
       trustedSender = enterprise.trusted_sms_sender;
     }
 
-    // Temporarily disabled for testing
-    // if (secretHeader !== webhookSecret && !secretHeader.includes('/api/orders/sms') && !secretHeader.includes('http')) {
-    //   return res.status(401).json({ error: 'Unauthorized: Invalid secret' });
-    // }
+    if (secretHeader !== webhookSecret) {
+      return res.status(401).json({ error: 'Unauthorized: Invalid secret' });
+    }
     if (trustedSender && !sender.includes(trustedSender)) {
       return res.status(403).json({ error: `Untrusted sender: ${sender}` });
     }

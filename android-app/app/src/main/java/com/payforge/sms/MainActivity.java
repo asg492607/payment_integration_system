@@ -55,7 +55,7 @@ public class MainActivity extends AppCompatActivity {
                 .putString("WEBHOOK_SECRET", secret)
                 .apply();
 
-            Toast.makeText(this, "Saved! Forwarding enabled in background.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, R.string.saved_msg, Toast.LENGTH_SHORT).show();
             updateStatus();
             checkPermission();
         });
@@ -67,7 +67,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void refreshLogs() {
         TextView textLogs = findViewById(R.id.textLogs);
-        String logs = prefs.getString("APP_LOGS", "Waiting for SMS...");
+        String logs = prefs.getString("APP_LOGS", getString(R.string.waiting_logs));
         textLogs.setText(logs);
     }
 
