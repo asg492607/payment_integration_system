@@ -9,32 +9,7 @@ const { v4: uuidv4 } = require('uuid');
 
 function setDb() {} // No longer needed
 
-router.get('/dump-orders', async (req, res) => {
-  try {
-    const orders = await db.getAll('orders');
-    res.json(orders);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
 
-router.get('/dump-sms', async (req, res) => {
-  try {
-    const queue = await db.getAll('sms_queue');
-    res.json(queue);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-router.get('/dump-ent', async (req, res) => {
-  try {
-    const ent = await db.getAll('enterprise_users');
-    res.json(ent);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
 
 router.use(requireAuth);
 
@@ -46,7 +21,7 @@ router.get('/transactions', async (req, res) => {
 
     const merged = transactions.map(t => {
       const order = orders.find(o => o.id === t.order_id);
-      const user = user.find(u => u.id === order?.user_id);
+      const user = users.find(u => u.id === order?.user_id);
       return {
         id: t.id, upi_ref: t.upi_ref, amount_verified: t.amount_verified,
         status: t.status, verified_at: t.verified_at,

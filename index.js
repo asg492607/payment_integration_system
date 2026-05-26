@@ -58,7 +58,7 @@ app.use('/api', rateLimit({
 
 app.use('/api/auth/login',  rateLimit({ windowMs: 15*60*1000, max: 15, message: { error: 'Too many login attempts. Wait 15 minutes.' } }));
 app.use('/api/auth/signup', rateLimit({ windowMs: 60*60*1000, max: 10, message: { error: 'Too many signups from this IP.' } }));
-app.use('/api/orders/create', rateLimit({ windowMs: 60*1000,  max: 30, message: { error: 'Too many order requests.' } }));
+app.use('/api/orders/create', rateLimit({ windowMs: 60*1000,  max: 5, message: { error: 'Too many order requests.' } }));
 app.use('/api/orders/sms',    rateLimit({ windowMs: 60*1000,  max: 60, message: { error: 'SMS webhook rate limit exceeded.' } }));
 
 app.use(express.json({ limit: '512kb' }));
