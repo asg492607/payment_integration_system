@@ -59,8 +59,8 @@ async function processQueue() {
       }
 
       const eId = item.enterprise_id;
-      const orders = await db.find('orders', o => 
-        o.enterprise_id === eId && 
+      const ordersData = await db.query('orders', 'enterprise_id', eId);
+      const orders = ordersData.filter(o => 
         o.status === 'pending' && 
         Math.abs(parseFloat(o.amount) - parseFloat(amount)) < 0.009 && 
         new Date(o.expires_at) > new Date()
