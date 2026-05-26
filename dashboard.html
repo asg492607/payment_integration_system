@@ -705,98 +705,10 @@
       </div>
 
       <!-- App Recommendations -->
+      <!-- PayForge Official App -->
       <div class="card" style="margin-bottom:24px">
-        <div class="card-header"><h3>📱 Choose Your SMS Forwarder App</h3></div>
+        <div class="card-header"><h3>📱 Official PayForge SMS Forwarder</h3></div>
         <div class="card-body">
-          <div class="sms-app-grid">
-            <div class="sms-app-card recommended">
-              <div class="app-icon">📨</div>
-              <div class="app-name">SMS Forwarder <span class="app-rec-badge">Recommended</span></div>
-              <p>Simple, lightweight app. Forwards SMS to any HTTP URL. Free, no ads.</p>
-              <a class="app-link" href="https://play.google.com/store/apps/details?id=com.frzinapps.smsforwarder" target="_blank">
-                ↗ Download from Play Store
-              </a>
-            </div>
-            <div class="sms-app-card">
-              <div class="app-icon">🔁</div>
-              <div class="app-name">SMS to URL Forwarder</div>
-              <p>Filters SMS by regex and POSTs to your webhook. Works great for bank alerts.</p>
-              <a class="app-link" href="https://play.google.com/store/apps/details?id=com.contact.app.smsforwardtourl" target="_blank">
-                ↗ Download from Play Store
-              </a>
-            </div>
-            <div class="sms-app-card">
-              <div class="app-icon">🤖</div>
-              <div class="app-name">MacroDroid / Tasker</div>
-              <p>Advanced automation. Use if you want custom SMS filtering rules.</p>
-              <a class="app-link" href="https://play.google.com/store/apps/details?id=com.arlosoft.macrodroid" target="_blank">
-                ↗ Download MacroDroid
-              </a>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Your Webhook Config -->
-      <div class="card" style="margin-bottom:24px">
-        <div class="card-header"><h3>🔧 Your Webhook Configuration</h3></div>
-        <div class="card-body">
-          <p style="color:var(--text-2);font-size:0.875rem;margin-bottom:16px">
-            Copy these values exactly into your SMS Forwarder app settings:
-          </p>
-          <div class="config-box">
-            <div class="config-row">
-              <span class="config-label">Webhook URL</span>
-              <span class="config-value" id="cfg-webhook-url">
-                <span id="webhook-url-val">Loading...</span>
-                <button class="mini-copy" onclick="copyText('webhook-url-val','URL')">📋</button>
-              </span>
-            </div>
-            <div class="config-row">
-              <span class="config-label">HTTP Method</span>
-              <span class="config-value">POST</span>
-            </div>
-            <div class="config-row">
-              <span class="config-label">Content-Type</span>
-              <span class="config-value">application/json</span>
-            </div>
-            <div class="config-row">
-              <span class="config-label">Webhook Secret Header</span>
-              <span class="config-value">
-                <code>x-sms-webhook-secret</code>
-              </span>
-            </div>
-            <div class="config-row">
-              <span class="config-label">Your Secret Key</span>
-              <span class="config-value">
-                <span id="cfg-secret">Loading...</span>
-                <button class="mini-copy" onclick="copyText('cfg-secret','Secret')">📋</button>
-              </span>
-            </div>
-            <div class="config-row">
-              <span class="config-label">Enterprise ID</span>
-              <span class="config-value">
-                <span id="cfg-enterprise-id">Loading...</span>
-                <button class="mini-copy" onclick="copyText('cfg-enterprise-id','Enterprise ID')">📋</button>
-              </span>
-            </div>
-          </div>
-
-          <!-- JSON Body Template -->
-          <p style="font-size:0.82rem;color:var(--text-2);margin-bottom:10px;font-weight:600">JSON Body Template:</p>
-          <div class="code-block" id="json-body-template">
-<button class="copy-btn" onclick="copyCodeBlock(this)">Copy</button>{
-  "rawText": "[content]",
-  "sender":  "[from]",
-  "secret":  "YOUR_SECRET_KEY",
-  "enterprise_id": "YOUR_ENTERPRISE_ID"
-}</div>
-        </div>
-      </div>
-
-      <!-- Step-by-step for SMS Forwarder app -->
-      <div class="card">
-        <div class="card-header"><h3>📋 Step-by-Step Setup (SMS Forwarder App)</h3></div>
           <div style="background: linear-gradient(135deg, rgba(99,102,241,0.1), rgba(16,185,129,0.1)); border: 1px solid rgba(99,102,241,0.3); border-radius: var(--radius); padding: 24px; margin-bottom: 24px;">
             <div style="text-align: center; margin-bottom: 20px;">
               <span style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 700; color: var(--text-3);">Proudly Powered By</span>
@@ -805,60 +717,57 @@
             
             <div class="alert alert-info" style="margin-bottom:0; display:flex; flex-direction:column; gap:12px; background: rgba(0,0,0,0.2);">
               <div>
-                <strong>🚀 Quick Start: Download the App</strong>
-                <p style="margin-top:4px; font-size:0.85rem; opacity:0.9;">Download the official, white-labeled SMS Forwarder App directly to your Android phone.</p>
+                <strong>🚀 Download the App</strong>
+                <p style="margin-top:4px; font-size:0.85rem; opacity:0.9;">Download our official, white-labeled SMS Forwarder App directly to your Android phone. It is pre-configured to automatically route bank alerts to your server.</p>
               </div>
               <div style="display:flex; gap:12px; flex-wrap:wrap;">
-                <a href="/PayForge-App.apk" download class="btn btn-success" style="text-decoration:none; white-space:nowrap;">🌟 Download Official App (Recommended)</a>
-                <a href="/PayForge-Forwarder.apk" download class="btn btn-ghost" style="text-decoration:none; white-space:nowrap;">📥 Download Open-Source Alternative</a>
+                <a href="/PayForge-App.apk" download class="btn btn-success" style="text-decoration:none; white-space:nowrap; padding: 12px 24px; font-size: 1rem;">🌟 Download Official App</a>
               </div>
             </div>
           </div>
 
-          <div class="guide-steps">
+          <p style="color:var(--text-2);font-size:0.875rem;margin-bottom:16px">
+            Copy these credentials into the official app:
+          </p>
+          <div class="config-box">
+            <div class="config-row">
+              <span class="config-label">Enterprise ID</span>
+              <span class="config-value">
+                <span id="cfg-enterprise-id">Loading...</span>
+                <button class="mini-copy" onclick="copyText('cfg-enterprise-id','Enterprise ID')">📋</button>
+              </span>
+            </div>
+            <div class="config-row">
+              <span class="config-label">Webhook Secret</span>
+              <span class="config-value">
+                <span id="cfg-secret">Loading...</span>
+                <button class="mini-copy" onclick="copyText('cfg-secret','Secret')">📋</button>
+              </span>
+            </div>
+          </div>
+
+          <div class="guide-steps" style="margin-top: 24px;">
             <div class="guide-step">
               <div class="guide-step-content">
-                <div class="guide-step-title">Install the App on your Android phone</div>
-                <div class="guide-step-desc">Install on the Android phone that receives your bank SMS alerts (must be the same SIM as your UPI-linked number).</div>
+                <div class="guide-step-title">1. Install the App</div>
+                <div class="guide-step-desc">Download and install the APK on the Android phone that receives your bank SMS alerts (must be the same SIM as your UPI-linked number).</div>
               </div>
             </div>
             <div class="guide-step">
               <div class="guide-step-content">
-                <div class="guide-step-title">Open app → Tap "+" → Choose "HTTP POST"</div>
-                <div class="guide-step-desc">Create a new forwarder rule with HTTP POST method.</div>
+                <div class="guide-step-title">2. Paste Credentials</div>
+                <div class="guide-step-desc">Open the app and paste your Enterprise ID and Webhook Secret from above.</div>
               </div>
             </div>
             <div class="guide-step">
               <div class="guide-step-content">
-                <div class="guide-step-title">Paste your Webhook URL</div>
-                <div class="guide-step-desc">Copy the URL shown above and paste it into the "URL" field in the app.</div>
-              </div>
-            </div>
-            <div class="guide-step">
-              <div class="guide-step-content">
-                <div class="guide-step-title">Add Header: <code>x-sms-webhook-secret: YOUR_SECRET</code></div>
-                <div class="guide-step-desc">In "Headers" section add the key <code>x-sms-webhook-secret</code> with your secret value from above.</div>
-              </div>
-            </div>
-            <div class="guide-step">
-              <div class="guide-step-content">
-                <div class="guide-step-title">Set JSON body with SMS variables</div>
-                <div class="guide-step-desc">Paste the JSON template above. The app will auto-replace <code>[content]</code> and <code>[from]</code> with the real SMS text.</div>
-              </div>
-            </div>
-            <div class="guide-step">
-              <div class="guide-step-content">
-                <div class="guide-step-title">Add SMS filter: "credited" or bank name</div>
-                <div class="guide-step-desc">Optional but recommended: filter to only forward SMS containing "credited" or from your bank's sender ID (e.g. HDFCBK, ICICIB).</div>
-              </div>
-            </div>
-            <div class="guide-step">
-              <div class="guide-step-content">
-                <div class="guide-step-title">Enable and test</div>
-                <div class="guide-step-desc">Turn on the rule. Use the SMS Tester below or make a real test payment to verify it works. You'll see the event in your Live Events feed.</div>
+                <div class="guide-step-title">3. Tap Save</div>
+                <div class="guide-step-desc">Tap Save and grant SMS permissions. The app will immediately start monitoring for bank alerts! Use the SMS Tester below to verify.</div>
               </div>
             </div>
           </div>
+        </div>
+      </div>
           <div class="sep"></div>
 
           <!-- SMS Tester -->
