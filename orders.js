@@ -63,11 +63,17 @@ async function reserveAmount(baseAmount, enterpriseId) {
 // ── POST /api/orders/create ───────────────────────────────────────────────────
 router.post('/create', async (req, res) => {
   try {
-    const { name, email, phone, plan, enterprise_id } = req.body;
-    const eId = enterprise_id || 'global';
+    let { email, name, phone, plan, enterprise_id } = req.body;
+    if (!email || !name || !plan || !enterprise_id) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
 
-    if (!name || !email || !plan) return res.status(400).json({ error: 'Missing required fields' });
+    email = String(email).slice(0, 100);
+    name = String(name).slice(0, 100);
+    if (phone) phone = String(phone).slice(0, 20);
+    plan = String(plan).slice(0, 50);
 
+    const eId = enterprise_id;
     let enterprise = null;
     if (eId !== 'global') {
       enterprise = await db.get(`enterprise_users/${eId}`);

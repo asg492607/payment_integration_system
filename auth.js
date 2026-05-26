@@ -61,11 +61,16 @@ async function requireAuth(req, res, next) {
 // ── POST /api/auth/signup ─────────────────────────────────────────────────────
 router.post('/signup', async (req, res) => {
   try {
-    const { email, name, company, password } = req.body;
+    let { email, name, company, password } = req.body;
 
     if (!email || !name || !password) return res.status(400).json({ error: 'email, name, and password are required' });
     if (password.length < 8) return res.status(400).json({ error: 'Password must be at least 8 characters' });
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return res.status(400).json({ error: 'Invalid email address' });
+
+    email = String(email).slice(0, 100);
+    name = String(name).slice(0, 100);
+    if (company) company = String(company).slice(0, 100);
+    password = String(password).slice(0, 100);
 
     const existing = await db.findOne('enterprise_users', u => u.email === email.toLowerCase());
     if (existing) return res.status(409).json({ error: 'An account with this email already exists' });
