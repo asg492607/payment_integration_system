@@ -1,174 +1,109 @@
-# ⚡ PayForge — Self-Verifying UPI Payment Engine
+# ⚡ PayForge Enterprise — Multi-Tenant UPI Payment Engine
 
-> Enterprise-grade automatic payment verification. No bank APIs. No gateway. Pure UPI.
-
----
-
-## 🚀 Quick Start
-
-**Prerequisites:** [Node.js 18+](https://nodejs.org/en/download)
-
-```bash
-# 1. Install dependencies
-npm install
-
-# 2. Configure your UPI VPA in .env
-#    UPI_VPA=yourname@upi
-#    UPI_PAYEE_NAME=YourService
-
-# 3. Start the server
-npm start
-```
-
-Or on Windows, just double-click **`start.bat`**
-
-| URL | Description |
-|-----|-------------|
-| `http://localhost:3000` | Payment Portal |
-| `http://localhost:3000/admin.html` | Admin Dashboard |
-| Admin Token | `dev_admin_token` (change in `.env`) |
+> Enterprise-grade automatic payment verification. No bank APIs. No gateway fees. Pure UPI, powered by Firebase and SMS Forwarding.
 
 ---
 
-## 🏗️ Architecture
+## 🚀 Overview
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    FRONTEND (public/)                        │
-│  index.html  →  Plan selection → UPI details → Auto-poll    │
-│  admin.html  →  Stats / Transactions / Audit / SMS Test     │
-└──────────────────────┬──────────────────────────────────────┘
-                       │ REST API
-┌──────────────────────▼──────────────────────────────────────┐
-│                 EXPRESS SERVER (server/)                      │
-│  POST /api/orders/create  → Generate UPI payment details    │
-│  GET  /api/orders/:id     → Poll order status               │
-│  POST /api/orders/verify  → Disabled (SMS-only activation)  │
-│  POST /api/orders/sms     → Trusted SMS bank alert webhook  │
-│  GET  /api/admin/*        → Admin APIs (token-gated)        │
-└──────────────────────┬──────────────────────────────────────┘
-                       │
-┌──────────────────────▼──────────────────────────────────────┐
-│              VERIFICATION ENGINE (engine/)                    │
-│                                                              │
-│  Only Signal: Trusted Bank SMS                               │
-│    Your phone forwards bank SMS → protected POST /sms       │
-│                                                              │
-│  All signals → verifyPayment():                              │
-│    ✓ Order exists & not expired                              │
-│    ✓ Exact paise-level amount match                          │
-│    ✓ Replay attack check (used_refs table)                   │
-│    ✓ Promote order: pending → paid                           │
-│    ✓ Activate user: isActive=true                            │
-│    ✓ Immutable audit log entry                               │
-└──────────────────────┬──────────────────────────────────────┘
-                       │
-┌──────────────────────▼──────────────────────────────────────┐
-│                  SQLite DATABASE (db/)                        │
-│  users         → email, name, is_active, plan, activated_at  │
-│  orders        → orderId, amount, plan, status, expires_at   │
-│  transactions  → txnId, upiRef, amount, source, verified_at  │
-│  audit_log     → immutable event trail (append-only)         │
-│  used_refs     → replay attack prevention                    │
-└─────────────────────────────────────────────────────────────┘
-```
+PayForge Enterprise is a highly scalable, multi-tenant payment integration system. It allows multiple businesses (merchants) to sign up, configure their own UPI VPA, and embed a simple JS SDK on their websites to collect payments.
+
+When a customer pays via UPI, the merchant's Android phone automatically catches the bank SMS, forwards it securely to the PayForge backend, and instantly verifies the customer's order. 
+
+**Zero manual intervention. Zero API fees.**
+
+---
+
+## 🏗️ Architecture Stack
+
+### 1. Backend (Express.js + Node-Cron)
+- **REST API:** Handles authentication, SDK checkouts, admin dashboard stats, and SMS webhook ingestion.
+- **Verification Engine:** Matches incoming bank SMS alerts to pending orders using exact paise-level amounts (e.g., ₹499.01).
+- **Security:** Strict rate-limiting, DoS protection, string truncation, and reservation lock systems to prevent race conditions.
+
+### 2. Database (Firebase Realtime Database)
+- **NoSQL via REST:** Uses `firebase.js` to communicate with Firebase RTDB via direct REST calls for ultra-low latency and low memory overhead.
+- **Data Models:** `enterprise_users`, `users` (customers), `orders`, `transactions`, `sms_queue`.
+
+### 3. Frontend & SDK (Vanilla JS)
+- **Merchant Dashboard:** A beautiful, responsive dashboard for merchants to view stats, transactions, configure UPI, and manage their API keys.
+- **PayForge SDK (`sdk.js`):** A drop-in `<script>` tag that merchants embed on their own websites. It automatically generates a beautiful checkout modal with a QR code and intent links.
+
+### 4. Official Android App (PayForge-App.apk)
+- **Background SMS Forwarding:** A lightweight, battery-optimized Android app built specifically for PayForge.
+- **Simple Setup:** Merchants just install the app, paste their `Enterprise ID` and `Webhook Secret` from the dashboard, and the app automatically filters and forwards bank credit alerts to the backend.
 
 ---
 
 ## 🔐 Security Features
 
+We take security seriously. The entire stack has been audited and hardened against modern web threats:
+
 | Feature | Implementation |
 |---------|---------------|
-| **Tamper-proof Order IDs** | HMAC-SHA256 signature on every order |
-| **Replay Attack Prevention** | `used_refs` table — each UTR can only be used once |
-| **Daily Unique Amount Matching** | Orders get day-specific paise amounts, e.g. first `₹50.01`, second `₹50.02`, so SMS-only verification can identify the payer |
-| **Order Expiry** | Orders expire in 15 min (configurable). Cron job enforces it. |
-| **Rate Limiting** | 100 req/15min via `express-rate-limit` |
-| **Admin Token Gate** | All admin APIs require `x-admin-token` header |
-| **Helmet** | Standard HTTP security headers |
+| **Multi-Tenant Isolation** | Every order and transaction is strictly scoped to its `enterprise_id` to prevent cross-merchant data leakage. |
+| **Storefront DoS Protection** | Strict IP-based rate limiting (5 req/min) on the checkout endpoint to prevent attackers from hoarding paise variations. |
+| **Race Condition Locks** | A Firebase-backed reservation system (`active_amounts`) ensures two concurrent checkouts never get the same paise amount. |
+| **Stored XSS Prevention** | The entire dashboard strictly escapes all HTML characters (`escapeHtml()`) before rendering customer names or emails. |
+| **Payload Truncation** | Backend APIs strictly truncate all incoming strings to 100 characters to prevent memory bloat and database exhaustion attacks. |
+| **Ghost Payment Prevention** | The verification engine strictly enforces the presence of a UPI Reference Number (UTR) to prevent fake webhook hits. |
+| **Webhook Authentication** | The Android app must provide a matching `x-sms-webhook-secret` header to verify payments. |
 
 ---
 
-## 📡 Verification Signal Flow
+## 🛠️ Setup & Deployment
 
-### Trusted SMS Bank Alert Parser
-Your Android SMS forwarder sends bank credit alerts from your trusted phone number:
-```
-POST /api/orders/sms
-Header: x-sms-webhook-secret: your_sms_secret
-{ "sender": "7972133643", "rawText": "Rs.499 credited for ORD-ABC-123. Ref 421234567890. -HDFC" }
-```
-The engine checks the webhook secret, confirms the sender matches `TRUSTED_SMS_SENDER`, extracts amount + UTR, prevents replay, matches the exact pending payable amount, marks the order paid, and activates the user.
+### 1. Server Environment (`.env`)
+```env
+PORT=10000
+NODE_ENV=production
+ALLOWED_ORIGIN=https://payment-integration-system.onrender.com
 
-### Auto-Poll (Frontend)
-The frontend polls `GET /api/orders/:id` every 3 seconds. Once the trusted SMS webhook marks the order `paid`, the success screen appears automatically.
+# Firebase Configuration
+FIREBASE_DB_URL=https://your-project.firebaseio.com
+FIREBASE_DB_SECRET=your_firebase_legacy_token
+```
+
+### 2. Running Locally
+```bash
+npm install
+npm start
+```
+The server runs on `http://localhost:3000`. 
+- Visit `/` to see the landing page.
+- Visit `/login.html` to sign up as a merchant.
+
+### 3. Merchant Onboarding
+1. Sign up on the dashboard.
+2. Go to **UPI Setup** and enter your VPA (e.g., `yourname@sbi`).
+3. Download the **Official App** (`PayForge-App.apk`) to your Android phone.
+4. Copy your **Enterprise ID** and **Webhook Secret** from the dashboard into the Android app.
+5. Embed the `<script>` tag on your website to start collecting payments!
 
 ---
 
-## 🗂️ File Structure
+## 📦 Integrating the SDK
 
-```
-payment/
-├── public/
-│   ├── index.html          # Payment portal (3-step modal)
-│   ├── admin.html          # Admin dashboard
-│   ├── style.css           # Full design system
-│   └── app.js              # Frontend logic
-├── server/
-│   ├── index.js            # Express app + cron jobs
-│   ├── db/
-│   │   └── init.js         # SQLite schema + initialization
-│   ├── engine/
-│   │   ├── upiEngine.js    # UPI link and HMAC signing
-│   │   └── verificationEngine.js  # Multi-signal verification
-│   └── routes/
-│       ├── orders.js       # /api/orders/*
-│       └── admin.js        # /api/admin/*
-├── .env                    # Configuration
-├── package.json
-├── start.bat               # Windows one-click launcher
-└── README.md
-```
+Merchants can add the PayForge checkout to their website with just three lines of code:
 
----
+```html
+<script>
+  window.PAYFORGE_ENTERPRISE_ID = 'YOUR_ENTERPRISE_ID';
+  window.PAYFORGE_SERVER = 'https://payment-integration-system.onrender.com';
+</script>
+<script src="https://payment-integration-system.onrender.com/sdk.js"></script>
 
-## ⚙️ Configuration (`.env`)
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `UPI_VPA` | Your UPI address | `yourname@upi` |
-| `UPI_PAYEE_NAME` | Payee name shown in UPI app | `YourService` |
-| `PORT` | Server port | `3000` |
-| `HMAC_SECRET` | For order ID signing | `dev_secret` |
-| `ADMIN_TOKEN` | Admin dashboard token | `dev_admin_token` |
-| `SMS_WEBHOOK_SECRET` | Secret required by SMS webhook | none |
-| `TRUSTED_SMS_SENDER` | Phone number allowed to trigger activation | derived from `UPI_VPA` |
-| `ORDER_EXPIRY_MINUTES` | Order TTL | `15` |
-| `VERIFICATION_POLL_INTERVAL_MS` | Frontend poll interval | `3000` |
-
----
-
-## 🏛️ Scaling Path
-
-```
-Phase 1 (Now):     UPI payment details + trusted SMS webhook verification
-Phase 2:           Android SMS listener hardening and delivery retries
-Phase 3:           Dedicated device health checks and alerting
-Phase 4:           Dynamic VPAs per order (requires bank partnership)
-Phase 5:           Optional payment gateway webhook for enterprise
+<button onclick="PayForge.pay({ plan:'pro', email:'user@example.com', name:'John Doe' })">
+  Buy Now
+</button>
 ```
 
 ---
 
-## 📊 Admin Dashboard
+## 📱 Android App Details
 
-Access at `http://localhost:3000/admin.html`
-- Token: `dev_admin_token` (set `ADMIN_TOKEN` in `.env` for production)
-- Live stats: revenue, paid orders, active users
-- Full transaction log with signal source
-- Immutable audit trail
-- SMS parser tester
+The official PayForge APK ensures maximum deliverability of SMS webhooks even when the phone is sleeping. 
+- It uses `goAsync()` and background Executors to prevent the Android OS from killing the process during network latency.
+- It automatically handles retries if the server is temporarily unreachable.
 
----
-
-*Built with Express + SQLite + vanilla frontend. No external payment gateway required.*
+*Built for absolute performance, scale, and autonomy.*
