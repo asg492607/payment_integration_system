@@ -214,6 +214,33 @@
       .pf-powered a{color:#475569;text-decoration:none}
       .pf-powered a:hover{color:#94a3b8}
 
+      /* Light Theme Overrides */
+      .pf-theme-light #pf-modal {
+        background:linear-gradient(145deg,#ffffff,#f8fafc);
+        color:#0f172a;
+        border:1px solid rgba(0,0,0,0.1);
+        box-shadow:0 25px 80px rgba(0,0,0,0.15);
+      }
+      .pf-theme-light .pf-close { color:#64748b; background:rgba(0,0,0,0.05); }
+      .pf-theme-light .pf-close:hover { color:#0f172a; background:rgba(0,0,0,0.1); }
+      .pf-theme-light .pf-step-dot { background:rgba(0,0,0,0.04); border-color:rgba(0,0,0,0.1); color:#64748b; }
+      .pf-theme-light .pf-step-dot.pf-dot-active { background:#4f46e5; border-color:#4f46e5; color:#fff; box-shadow:0 0 14px rgba(79,70,229,0.3); }
+      .pf-theme-light .pf-step-line { background:rgba(0,0,0,0.08); }
+      .pf-theme-light .pf-step-line.pf-line-active { background:#4f46e5; }
+      .pf-theme-light .pf-sub { color:#64748b; }
+      .pf-theme-light .pf-label { color:#64748b; }
+      .pf-theme-light .pf-input { background:rgba(0,0,0,0.03); border-color:rgba(0,0,0,0.1); color:#0f172a; }
+      .pf-theme-light .pf-input:focus { border-color:#4f46e5; box-shadow:0 0 0 3px rgba(79,70,229,0.15); }
+      .pf-theme-light .pf-btn-ghost { background:rgba(0,0,0,0.03); border-color:rgba(0,0,0,0.1); color:#475569; }
+      .pf-theme-light .pf-btn-ghost:hover { color:#0f172a; border-color:rgba(79,70,229,0.4); }
+      .pf-theme-light .pf-info-box { border-color:rgba(0,0,0,0.08); }
+      .pf-theme-light .pf-info-row { border-color:rgba(0,0,0,0.06); }
+      .pf-theme-light .pf-info-row span:first-child { color:#64748b; }
+      .pf-theme-light .pf-divider::before, .pf-theme-light .pf-divider::after { background:rgba(0,0,0,0.08); }
+      .pf-theme-light .pf-success-details { background:rgba(16,185,129,0.05); border-color:rgba(16,185,129,0.2); }
+      .pf-theme-light .pf-success-row { border-color:rgba(16,185,129,0.1); }
+      .pf-theme-light .pf-success-row span:first-child { color:#64748b; }
+
       @media(max-width:480px){
         #pf-modal{padding:24px 20px;border-radius:20px}
         .pf-btn-row{flex-direction:column}
@@ -227,6 +254,7 @@
     const planMeta = _state.plan;
     const el = document.createElement('div');
     el.id = 'pf-overlay';
+    if (opts.theme === 'light') el.classList.add('pf-theme-light');
     el.innerHTML = `
       <div id="pf-modal" role="dialog" aria-modal="true" aria-label="PayForge Checkout">
 
@@ -551,6 +579,7 @@
      * @param {string}   opts.plan       - 'starter' | 'pro' | 'empire'
      * @param {string}   [opts.name]     - Pre-fill customer name
      * @param {string}   [opts.email]    - Pre-fill customer email
+     * @param {string}   [opts.theme]    - 'light' | 'dark'
      * @param {function} [opts.onSuccess]- Called with { orderId, txnId, plan, email, amount }
      * @param {function} [opts.onCancel] - Called when user closes modal before paying
      * @param {function} [opts.onError]  - Called with error message string
@@ -603,7 +632,10 @@
     if (autoBtn) {
       document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll(autoBtn).forEach(btn => {
-          btn.addEventListener('click', () => PayForge.pay({ plan: btn.dataset.plan || autoPlan || 'pro' }));
+          btn.addEventListener('click', () => PayForge.pay({ 
+            plan: btn.dataset.plan || autoPlan || 'pro',
+            theme: btn.dataset.theme || 'dark'
+          }));
         });
       });
     }
