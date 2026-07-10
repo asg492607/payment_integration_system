@@ -17,10 +17,17 @@ const verEng = require('./verificationEngine');
 const smsQueue = require('./smsQueue');
 smsQueue.init(db, verEng);
 
+// ── Email Fallback Engine ─────────────────────────────────────────────────────
+const emailEngine = require('./emailEngine');
+emailEngine.init(verEng);
+
+// ── Heartbeat Monitor ─────────────────────────────────────────────────────────
+const heartbeat = require('./heartbeat');
+
 // ── Routers ───────────────────────────────────────────────────────────────────
-const ordersRoute = require('./orders');
-const adminRoute  = require('./admin');
-const authRoute   = require('./auth');
+const ordersRoute  = require('./orders');
+const adminRoute   = require('./admin');
+const authRoute    = require('./auth');
 
 // ── Express App ───────────────────────────────────────────────────────────────
 const app  = express();
@@ -106,9 +113,10 @@ app.get('/api/health', async (req, res) => {
 });
 
 // ── API Routes ────────────────────────────────────────────────────────────────
-app.use('/api/auth',   authRoute.router);
-app.use('/api/orders', ordersRoute.router);
-app.use('/api/admin',  adminRoute.router);
+app.use('/api/auth',      authRoute.router);
+app.use('/api/orders',    ordersRoute.router);
+app.use('/api/admin',     adminRoute.router);
+app.use('/api/heartbeat', heartbeat.router);
 
 // ── SPA fallback ──────────────────────────────────────────────────────────────
 app.get('*', (req, res) => {
@@ -119,6 +127,7 @@ app.get('*', (req, res) => {
 // ── Cron Jobs ─────────────────────────────────────────────────────────────────
 cron.schedule('* * * * *', () => {
   verEng.expireStaleOrders().catch(()=>{});
+  heartbeat.checkOfflineDevices().catch(()=>{});
 });
 
 cron.schedule('0 2 * * *', async () => {
@@ -133,6 +142,11 @@ cron.schedule('0 2 * * *', async () => {
 
 cron.schedule('*/30 * * * * *', () => {
   smsQueue.processQueue().catch(()=>{});
+});
+
+// ── Email Fallback Engine Cron (every 2 minutes) ──────────────────────────────
+cron.schedule('*/2 * * * *', () => {
+  emailEngine.pollAllEnterprises().catch(()=>{});
 });
 
 // ── Start ─────────────────────────────────────────────────────────────────────
