@@ -408,6 +408,12 @@
     <button class="nav-item" id="nav-sms" onclick="showPage('sms')">
       <span class="nav-icon">📱</span> SMS Forwarder
     </button>
+    <button class="nav-item" id="nav-devices" onclick="showPage('devices')">
+      <span class="nav-icon">🔌</span> Device Status
+    </button>
+    <button class="nav-item" id="nav-fallback" onclick="showPage('fallback')">
+      <span class="nav-icon">🛡️</span> Fallback Systems
+    </button>
     <button class="nav-item" id="nav-integrate" onclick="showPage('integrate')">
       <span class="nav-icon">🔗</span> Integration Guide
     </button>
@@ -918,6 +924,280 @@ onChildAdded(evt, (snapshot) => {
           </table>
           <div class="alert alert-info" style="margin-top:16px;font-size:0.82rem">
             💡 Each order gets a unique paise-level amount (e.g. ₹499.01, ₹499.02) to distinguish simultaneous payments — this is how the engine auto-matches bank SMS to the right order without any customer input.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ DEVICE STATUS PAGE ════════════════════════════ -->
+    <div class="page" id="page-devices">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+        <div>
+          <h2 style="font-size:1.3rem;font-weight:800;letter-spacing:-0.5px">🔌 Device Status Monitor</h2>
+          <p style="color:var(--text-2);font-size:0.85rem;margin-top:4px">Live status of all Android phones forwarding bank SMS to PayForge.</p>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="loadDeviceStatus()">↻ Refresh</button>
+      </div>
+
+      <div class="alert alert-info" style="margin-bottom:20px">
+        📱 Each device sends a <strong>heartbeat ping every 5 minutes</strong>. If a device hasn't pinged in &gt;10 minutes, it's marked <strong style="color:var(--rose)">OFFLINE</strong>.
+        Configure multiple phones for redundancy — if one dies, others keep verifying payments.
+      </div>
+
+      <div id="devices-wrap">
+        <div class="empty-state"><div class="ei">🔌</div><p>Loading device status...</p></div>
+      </div>
+
+      <div class="card" style="margin-top:24px">
+        <div class="card-header"><h3>⚡ Redundancy Status</h3></div>
+        <div class="card-body">
+          <div id="redundancy-status" style="display:flex;flex-direction:column;gap:12px">
+            <div style="display:flex;align-items:center;gap:12px;padding:14px;border-radius:var(--radius-sm);background:var(--surface);border:1px solid var(--border)">
+              <span style="font-size:1.5rem">📱</span>
+              <div style="flex:1">
+                <div style="font-size:0.9rem;font-weight:700">Android SMS App</div>
+                <div style="font-size:0.78rem;color:var(--text-2)">Fastest — 5 second verification</div>
+              </div>
+              <span id="layer1-status" class="badge badge-pending">Checking...</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;padding:14px;border-radius:var(--radius-sm);background:var(--surface);border:1px solid var(--border)">
+              <span style="font-size:1.5rem">📧</span>
+              <div style="flex:1">
+                <div style="font-size:0.9rem;font-weight:700">Email Fallback (IMAP)</div>
+                <div style="font-size:0.78rem;color:var(--text-2)">Polls every 2 minutes — phone-independent</div>
+              </div>
+              <span id="layer2-status" class="badge badge-pending">Checking...</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;padding:14px;border-radius:var(--radius-sm);background:var(--surface);border:1px solid var(--border)">
+              <span style="font-size:1.5rem">✈️</span>
+              <div style="flex:1">
+                <div style="font-size:0.9rem;font-weight:700">Telegram Bot</div>
+                <div style="font-size:0.78rem;color:var(--text-2)">Forward SMS manually to bot — instant</div>
+              </div>
+              <span id="layer3-status" class="badge badge-pending">Checking...</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;padding:14px;border-radius:var(--radius-sm);background:var(--surface);border:1px solid var(--border)">
+              <span style="font-size:1.5rem">🔧</span>
+              <div style="flex:1">
+                <div style="font-size:0.9rem;font-weight:700">Manual UTR Verification</div>
+                <div style="font-size:0.78rem;color:var(--text-2)">Always available — enter UTR from bank app</div>
+              </div>
+              <span class="badge badge-active">Always ON</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ FALLBACK SYSTEMS PAGE ════════════════════════ -->
+    <div class="page" id="page-fallback">
+      <div style="margin-bottom:24px">
+        <h2 style="font-size:1.3rem;font-weight:800;letter-spacing:-0.5px">🛡️ Fallback Verification Systems</h2>
+        <p style="color:var(--text-2);font-size:0.85rem;margin-top:4px">Configure backup methods so payments are verified even when your phone is offline.</p>
+      </div>
+
+      <!-- TABS -->
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchFallbackTab('email',this)">📧 Email Fallback</button>
+        <button class="tab-btn" onclick="switchFallbackTab('telegram',this)">✈️ Telegram Bot</button>
+        <button class="tab-btn" onclick="switchFallbackTab('utr',this)">🔧 Manual UTR</button>
+      </div>
+
+      <!-- EMAIL FALLBACK TAB -->
+      <div id="fallback-email">
+        <div class="card" style="margin-bottom:20px">
+          <div class="card-header"><h3>📧 Bank Email Alert Polling</h3></div>
+          <div class="card-body">
+            <div class="alert alert-success" style="margin-bottom:20px">
+              ✅ Most Indian banks (HDFC, SBI, ICICI, Axis, Kotak) send a <strong>transaction email</strong> for every credit. PayForge polls this inbox every 2 minutes and verifies payments automatically — no phone needed.
+            </div>
+
+            <div class="alert alert-warn" style="margin-bottom:20px;font-size:0.82rem">
+              ⚠️ <strong>Important:</strong> Create a <strong>dedicated Gmail account</strong> just for bank alerts (e.g., payments@gmail.com). DO NOT use your personal Gmail — the server will read it.
+            </div>
+
+            <h4 style="font-size:0.85rem;font-weight:700;margin-bottom:16px;color:var(--text-2);text-transform:uppercase;letter-spacing:0.5px">Step 1 — Register email with your bank</h4>
+            <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:16px;margin-bottom:20px;font-size:0.82rem;color:var(--text-2);line-height:1.7">
+              <strong style="color:var(--text-1)">HDFC:</strong> NetBanking → Customer Information → Email Alerts → Credit Alert → Enable<br>
+              <strong style="color:var(--text-1)">SBI:</strong> YONO App → Services → Manage Alerts → Credit → Enter email<br>
+              <strong style="color:var(--text-1)">ICICI:</strong> iMobile → Account → Register for Email Alerts → Transactions<br>
+              <strong style="color:var(--text-1)">Axis:</strong> NetBanking → My Profile → Email Alert Settings → Credit Transactions<br>
+              <strong style="color:var(--text-1)">Kotak:</strong> Net Banking → Profile → Manage Alerts → Credit Transactions
+            </div>
+
+            <h4 style="font-size:0.85rem;font-weight:700;margin-bottom:16px;color:var(--text-2);text-transform:uppercase;letter-spacing:0.5px">Step 2 — Generate Gmail App Password</h4>
+            <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:16px;margin-bottom:20px;font-size:0.82rem;color:var(--text-2);line-height:1.7">
+              1. Enable 2-Step Verification on Gmail<br>
+              2. Go to: <a href="https://myaccount.google.com/apppasswords" target="_blank" style="color:var(--indigo-lt)">myaccount.google.com/apppasswords</a><br>
+              3. Select app: <strong>Mail</strong> → Generate<br>
+              4. Copy the 16-character password (e.g. <code>abcd efgh ijkl mnop</code>)
+            </div>
+
+            <h4 style="font-size:0.85rem;font-weight:700;margin-bottom:16px;color:var(--text-2);text-transform:uppercase;letter-spacing:0.5px">Step 3 — Enter Credentials Below</h4>
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Gmail Address</label>
+                <input type="email" id="inp-imap-user" placeholder="payments@gmail.com"/>
+                <div class="hint">The dedicated Gmail receiving bank alerts</div>
+              </div>
+              <div class="form-group">
+                <label>Gmail App Password (16 chars)</label>
+                <input type="password" id="inp-imap-pass" placeholder="abcd efgh ijkl mnop"/>
+                <div class="hint">NOT your Gmail password — the App Password you generated above</div>
+              </div>
+              <div class="form-group">
+                <label>IMAP Host</label>
+                <input type="text" id="inp-imap-host" value="imap.gmail.com" placeholder="imap.gmail.com"/>
+                <div class="hint">Leave as imap.gmail.com for Gmail. For Outlook: outlook.office365.com</div>
+              </div>
+              <div class="form-group">
+                <label>IMAP Port</label>
+                <input type="number" id="inp-imap-port" value="993" placeholder="993"/>
+              </div>
+            </div>
+            <button class="btn btn-primary" onclick="saveEmailFallback()">💾 Save Email Fallback</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- TELEGRAM BOT TAB -->
+      <div id="fallback-telegram" style="display:none">
+        <div class="card">
+          <div class="card-header"><h3>✈️ Telegram Bot Fallback</h3></div>
+          <div class="card-body">
+            <div class="alert alert-info" style="margin-bottom:20px">
+              📲 When your phone gets a bank SMS but the PayForge app fails, you can <strong>copy the SMS text and send it to the PayForge Telegram bot</strong>. The bot verifies the payment instantly.
+            </div>
+
+            <h4 style="font-size:0.85rem;font-weight:700;margin-bottom:14px;color:var(--text-2);text-transform:uppercase;letter-spacing:0.5px">Setup (one-time — done by platform owner)</h4>
+            <div class="guide-steps" style="margin-bottom:24px">
+              <div class="guide-step">
+                <div class="guide-step-content">
+                  <div class="guide-step-title">Create a Telegram Bot</div>
+                  <div class="guide-step-desc">Message <strong>@BotFather</strong> on Telegram → type <code>/newbot</code> → follow prompts → copy the <strong>API Token</strong></div>
+                </div>
+              </div>
+              <div class="guide-step">
+                <div class="guide-step-content">
+                  <div class="guide-step-title">Add token to server .env</div>
+                  <div class="guide-step-desc">Add <code>TELEGRAM_BOT_TOKEN=your_token_here</code> to your Render environment variables and redeploy.</div>
+                </div>
+              </div>
+              <div class="guide-step">
+                <div class="guide-step-content">
+                  <div class="guide-step-title">Link your Telegram account</div>
+                  <div class="guide-step-desc">Open the bot on Telegram and send this exact command:</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="config-box" style="margin-bottom:20px">
+              <div class="config-row">
+                <span class="config-label">Your Link Command</span>
+                <span class="config-value">
+                  <span id="tg-link-cmd">Loading...</span>
+                  <button class="mini-copy" onclick="copyText('tg-link-cmd','Telegram Link Command')">📋</button>
+                </span>
+              </div>
+            </div>
+
+            <h4 style="font-size:0.85rem;font-weight:700;margin-bottom:14px;color:var(--text-2);text-transform:uppercase;letter-spacing:0.5px">How to use when phone fails</h4>
+            <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:16px;font-size:0.82rem;color:var(--text-2);line-height:1.8">
+              1. Open your bank SMS (copy it manually)<br>
+              2. Open the PayForge Telegram bot<br>
+              3. <strong>Paste or forward the bank SMS text</strong><br>
+              4. Bot replies: <strong style="color:var(--emerald-lt)">✅ Payment Verified!</strong>
+            </div>
+
+            <div class="sep"></div>
+
+            <h4 style="font-size:0.85rem;font-weight:700;margin-bottom:14px;color:var(--text-2);text-transform:uppercase;letter-spacing:0.5px">Telegram Bot Commands</h4>
+            <table style="font-size:0.83rem">
+              <thead><tr><th>Command</th><th>What it does</th></tr></thead>
+              <tbody>
+                <tr><td><code>/start YOUR_ID</code></td><td>Link this chat to your merchant account</td></tr>
+                <tr><td><code>/status</code></td><td>Show pending orders count + amounts</td></tr>
+                <tr><td><code>/verify 412345678901</code></td><td>Manually verify by UTR number</td></tr>
+                <tr><td><em>Paste any bank SMS text</em></td><td>Auto-parses and verifies the payment</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- MANUAL UTR TAB -->
+      <div id="fallback-utr" style="display:none">
+        <div class="card" style="margin-bottom:20px">
+          <div class="card-header"><h3>🔧 Manual UTR Verification</h3></div>
+          <div class="card-body">
+            <div class="alert alert-warn" style="margin-bottom:20px">
+              ⚠️ Use this ONLY when you have <strong>confirmed in your bank app</strong> that money was received. Check your bank balance before verifying.
+            </div>
+
+            <div class="tabs">
+              <button class="tab-btn active" onclick="switchUtrTab('by-utr',this)">By UTR + Order ID</button>
+              <button class="tab-btn" onclick="switchUtrTab('by-amount',this)">By Amount + UTR</button>
+              <button class="tab-btn" onclick="switchUtrTab('force',this)">Force Mark Paid</button>
+            </div>
+
+            <!-- By UTR + Order ID -->
+            <div id="utr-by-utr">
+              <p style="color:var(--text-2);font-size:0.85rem;margin-bottom:16px">Enter the Order ID and the UPI Reference Number from your bank app.</p>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label>Order ID</label>
+                  <input type="text" id="mutr-order-id" placeholder="ORD-M3K2A1-AB12"/>
+                </div>
+                <div class="form-group">
+                  <label>UPI Reference (UTR)</label>
+                  <input type="text" id="mutr-utr" placeholder="412345678901"/>
+                  <div class="hint">12-digit number from your bank SMS or app</div>
+                </div>
+              </div>
+              <button class="btn btn-primary" onclick="verifyByUtr()">✅ Verify Payment</button>
+              <div id="utr-result-1" style="margin-top:14px;display:none"></div>
+            </div>
+
+            <!-- By Amount + UTR -->
+            <div id="utr-by-amount" style="display:none">
+              <p style="color:var(--text-2);font-size:0.85rem;margin-bottom:16px">Don't know the Order ID? Enter the exact credited amount and UTR — the system finds the order automatically.</p>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label>Amount Received (₹)</label>
+                  <input type="number" id="mutr-amount" placeholder="499.01" step="0.01"/>
+                  <div class="hint">Enter the exact amount including paise (e.g. 499.01, not 499)</div>
+                </div>
+                <div class="form-group">
+                  <label>UPI Reference (UTR)</label>
+                  <input type="text" id="mutr-utr2" placeholder="412345678901"/>
+                </div>
+              </div>
+              <button class="btn btn-primary" onclick="verifyByAmount()">🔍 Find & Verify</button>
+              <div id="utr-result-2" style="margin-top:14px;display:none"></div>
+            </div>
+
+            <!-- Force Mark Paid -->
+            <div id="utr-force" style="display:none">
+              <div class="alert alert-danger" style="margin-bottom:16px">
+                🚨 <strong>Last Resort Only.</strong> This bypasses all verification and directly activates the customer's service. Use ONLY when you are 100% sure you received the payment in your bank account.
+              </div>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label>Order ID *</label>
+                  <input type="text" id="force-order-id" placeholder="ORD-M3K2A1-AB12"/>
+                </div>
+                <div class="form-group">
+                  <label>UTR (if known)</label>
+                  <input type="text" id="force-utr" placeholder="412345678901 (optional)"/>
+                </div>
+                <div class="form-group form-full">
+                  <label>Reason / Note</label>
+                  <input type="text" id="force-reason" placeholder="Verified in bank app - HDFC NetBanking"/>
+                </div>
+              </div>
+              <button class="btn btn-danger" onclick="forceMarkPaid()">⚠️ Force Mark as Paid</button>
+              <div id="utr-result-3" style="margin-top:14px;display:none"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -1630,7 +1910,177 @@ const originalShowPage = showPage;
 showPage = function(page) {
   originalShowPage(page);
   if (page === 'plans') loadPlans();
+  if (page === 'devices') loadDeviceStatus();
+  if (page === 'fallback') populateFallbackPage();
 };
+
+// ── Device Status ──────────────────────────────────────────────────────────
+async function loadDeviceStatus() {
+  const wrap = document.getElementById('devices-wrap');
+  if (!wrap) return;
+  wrap.innerHTML = '<div class="empty-state"><div class="ei">⏳</div><p>Loading...</p></div>';
+  try {
+    const r = await apiFetch('/api/heartbeat/status');
+    if (!r.ok) { wrap.innerHTML = '<div class="empty-state"><div class="ei">⚠️</div><p>Could not load device status.</p></div>'; return; }
+    const data = await r.json();
+    if (!data.devices || data.devices.length === 0) {
+      wrap.innerHTML = `<div class="alert alert-warn">
+        ⚠️ No devices registered yet. Install the PayForge Android App and configure your Enterprise ID + Webhook Secret.
+        <br><br><button class="btn btn-ghost btn-sm" onclick="showPage('sms')">Go to SMS Forwarder →</button>
+      </div>`;
+      document.getElementById('layer1-status').className = 'badge badge-inactive';
+      document.getElementById('layer1-status').textContent = 'No device';
+      return;
+    }
+    const onlineCount = data.devices.filter(d => d.is_online).length;
+    wrap.innerHTML = `
+      <div style="display:grid;gap:12px">
+        ${data.devices.map(d => `
+          <div style="display:flex;align-items:center;gap:16px;padding:18px;border-radius:var(--radius);
+            background:var(--surface);border:1px solid ${d.is_online ? 'rgba(16,185,129,0.3)' : 'rgba(244,63,94,0.3)'}">
+            <div style="font-size:2rem">${d.is_online ? '🟢' : '🔴'}</div>
+            <div style="flex:1">
+              <div style="font-size:0.95rem;font-weight:700">${d.label || d.id}</div>
+              <div style="font-size:0.78rem;color:var(--text-2);margin-top:2px">
+                ${d.is_online
+                  ? `Online — last seen ${d.minutes_ago === 0 ? 'just now' : d.minutes_ago + ' min ago'}`
+                  : `OFFLINE — last seen ${d.minutes_ago ? d.minutes_ago + ' min ago' : 'never'}`}
+                ${d.battery != null ? ` • Battery: ${d.battery}%` : ''}
+                ${d.network ? ` • ${d.network}` : ''}
+              </div>
+            </div>
+            <button class="btn btn-danger btn-sm" onclick="removeDevice('${d.id}')">Remove</button>
+          </div>
+        `).join('')}
+      </div>
+      <p style="font-size:0.78rem;color:var(--text-3);margin-top:12px">
+        ${onlineCount}/${data.devices.length} device(s) online. Devices ping every 5 minutes.
+      </p>`;
+    const l1 = document.getElementById('layer1-status');
+    if (l1) { l1.className = onlineCount > 0 ? 'badge badge-active' : 'badge badge-inactive'; l1.textContent = onlineCount > 0 ? `${onlineCount} Online` : 'All Offline'; }
+  } catch(e) { wrap.innerHTML = '<div class="empty-state"><div class="ei">❌</div><p>Error loading devices.</p></div>'; }
+}
+
+async function removeDevice(deviceId) {
+  if (!confirm('Remove this device?')) return;
+  const r = await apiFetch(`/api/heartbeat/${deviceId}`, { method: 'DELETE' });
+  if (r.ok) { showToast('Device removed', 'success'); loadDeviceStatus(); }
+  else showToast('Failed to remove device', 'error');
+}
+
+// ── Fallback Page Tabs ────────────────────────────────────────────────────
+function switchFallbackTab(name, btn) {
+  ['email','telegram','utr'].forEach(t => {
+    const el = document.getElementById('fallback-' + t);
+    if (el) el.style.display = t === name ? 'block' : 'none';
+  });
+  document.querySelectorAll('#page-fallback > .tabs .tab-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+}
+
+function switchUtrTab(name, btn) {
+  ['by-utr','by-amount','force'].forEach(t => {
+    const el = document.getElementById('utr-' + t);
+    if (el) el.style.display = t === name ? 'block' : 'none';
+  });
+  document.querySelectorAll('#fallback-utr .tabs .tab-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+}
+
+function populateFallbackPage() {
+  // Set Telegram link command
+  const tgEl = document.getElementById('tg-link-cmd');
+  if (tgEl && _state.user) tgEl.textContent = `/start ${_state.user.id}`;
+  // Populate email fields if already configured
+  if (_state.user) {
+    if (_state.user.email_imap_user) document.getElementById('inp-imap-user').value = _state.user.email_imap_user;
+    if (_state.user.email_imap_host) document.getElementById('inp-imap-host').value = _state.user.email_imap_host;
+    if (_state.user.email_imap_port) document.getElementById('inp-imap-port').value = _state.user.email_imap_port;
+  }
+  // Update layer 2 (email) status in devices page
+  const l2 = document.getElementById('layer2-status');
+  if (l2) { const hasEmail = _state.user?.email_imap_user; l2.className = hasEmail ? 'badge badge-active' : 'badge badge-inactive'; l2.textContent = hasEmail ? 'Configured' : 'Not Set'; }
+  const l3 = document.getElementById('layer3-status');
+  if (l3) { l3.className = 'badge badge-pending'; l3.textContent = 'Set TELEGRAM_BOT_TOKEN'; }
+}
+
+// ── Save Email Fallback ───────────────────────────────────────────────────
+async function saveEmailFallback() {
+  const user = document.getElementById('inp-imap-user').value.trim();
+  const pass = document.getElementById('inp-imap-pass').value.trim();
+  const host = document.getElementById('inp-imap-host').value.trim() || 'imap.gmail.com';
+  const port = document.getElementById('inp-imap-port').value || 993;
+  if (!user || !pass) return showToast('Email and App Password are required', 'error');
+  if (!user.includes('@')) return showToast('Enter a valid email address', 'error');
+  const btn = event.target; btn.classList.add('btn-loading'); btn.textContent = 'Saving...';
+  try {
+    const r = await apiFetch('/api/auth/setup', { method: 'PUT', body: JSON.stringify({
+      upi_vpa: _state.user.upi_vpa || 'placeholder@upi',
+      email_imap_user: user, email_imap_pass: pass, email_imap_host: host, email_imap_port: port
+    })});
+    const d = await r.json();
+    if (d.success || d.user) { showToast('✅ Email fallback saved! Server will poll every 2 minutes.', 'success'); if (d.user) _state.user = d.user; }
+    else showToast(d.error || 'Failed to save', 'error');
+  } catch(e) { showToast('Network error', 'error'); }
+  finally { btn.classList.remove('btn-loading'); btn.textContent = '💾 Save Email Fallback'; }
+}
+
+// ── Manual UTR Verification ───────────────────────────────────────────────
+async function verifyByUtr() {
+  const orderId = document.getElementById('mutr-order-id').value.trim();
+  const utr = document.getElementById('mutr-utr').value.trim();
+  const resEl = document.getElementById('utr-result-1');
+  if (!orderId || !utr) return showToast('Order ID and UTR are required', 'error');
+  resEl.style.display = 'none';
+  const btn = event.target; btn.classList.add('btn-loading'); btn.textContent = 'Verifying...';
+  try {
+    const r = await apiFetch('/api/admin/verify-utr', { method: 'POST', body: JSON.stringify({ order_id: orderId, utr }) });
+    const d = await r.json();
+    resEl.style.display = 'block';
+    resEl.innerHTML = d.success
+      ? `<div class="alert alert-success">✅ ${d.message}<br><small>Transaction ID: ${d.txnId}</small></div>`
+      : `<div class="alert alert-danger">❌ ${d.error || 'Verification failed'}</div>`;
+  } catch(e) { resEl.style.display = 'block'; resEl.innerHTML = '<div class="alert alert-danger">❌ Network error</div>'; }
+  finally { btn.classList.remove('btn-loading'); btn.textContent = '✅ Verify Payment'; }
+}
+
+async function verifyByAmount() {
+  const amount = document.getElementById('mutr-amount').value.trim();
+  const utr = document.getElementById('mutr-utr2').value.trim();
+  const resEl = document.getElementById('utr-result-2');
+  if (!amount || !utr) return showToast('Amount and UTR are required', 'error');
+  resEl.style.display = 'none';
+  const btn = event.target; btn.classList.add('btn-loading'); btn.textContent = 'Searching...';
+  try {
+    const r = await apiFetch('/api/admin/verify-amount', { method: 'POST', body: JSON.stringify({ amount, utr }) });
+    const d = await r.json();
+    resEl.style.display = 'block';
+    resEl.innerHTML = d.success
+      ? `<div class="alert alert-success">✅ ${d.message}<br><small>Order: ${d.orderId} | TxnID: ${d.txnId}</small></div>`
+      : `<div class="alert alert-danger">❌ ${d.error || 'Not found'}</div>`;
+  } catch(e) { resEl.style.display = 'block'; resEl.innerHTML = '<div class="alert alert-danger">❌ Network error</div>'; }
+  finally { btn.classList.remove('btn-loading'); btn.textContent = '🔍 Find & Verify'; }
+}
+
+async function forceMarkPaid() {
+  const orderId = document.getElementById('force-order-id').value.trim();
+  const utr = document.getElementById('force-utr').value.trim();
+  const reason = document.getElementById('force-reason').value.trim();
+  const resEl = document.getElementById('utr-result-3');
+  if (!orderId) return showToast('Order ID is required', 'error');
+  if (!confirm('⚠️ Are you sure you want to FORCE mark this order as paid? Only do this if you have CONFIRMED the payment in your bank.')) return;
+  resEl.style.display = 'none';
+  const btn = event.target; btn.classList.add('btn-loading'); btn.textContent = 'Processing...';
+  try {
+    const r = await apiFetch(`/api/admin/mark-paid/${orderId}`, { method: 'POST', body: JSON.stringify({ utr, reason }) });
+    const d = await r.json();
+    resEl.style.display = 'block';
+    resEl.innerHTML = d.success
+      ? `<div class="alert alert-success">✅ Order force-marked as paid. Customer service activated.<br><small>TxnID: ${d.txnId}</small></div>`
+      : `<div class="alert alert-danger">❌ ${d.error}</div>`;
+  } catch(e) { resEl.style.display = 'block'; resEl.innerHTML = '<div class="alert alert-danger">❌ Network error</div>'; }
+  finally { btn.classList.remove('btn-loading'); btn.textContent = '⚠️ Force Mark as Paid'; }
+}
 
 // Start
 window.addEventListener('DOMContentLoaded', init);
