@@ -1,28 +1,31 @@
 {
-    "name":  "payforge-enterprise",
-    "version":  "2.0.0",
-    "description":  "Enterprise-grade self-verifying UPI Payment Engine with Firebase real-time updates",
-    "main":  "index.js",
-    "engines":  {
-                    "node":  "20.x"
-                },
-    "scripts":  {
-                    "start":  "node index.js",
-                    "dev":  "nodemon index.js",
-                    "build":  "npm install --omit=dev",
-                    "init-db":  "node init.js"
-                },
-    "dependencies":  {
-                         "cors":  "^2.8.5",
-                         "dotenv":  "^16.4.5",
-                         "express":  "^4.18.3",
-                         "express-rate-limit":  "^7.2.0",
-                         "helmet":  "^7.1.0",
-                         "nodemailer":  "^6.9.13",
-                         "node-cron":  "^3.0.3",
-                         "uuid":  "^9.0.1"
-                     },
-    "devDependencies":  {
-                            "nodemon":  "^3.1.0"
-                        }
+    "name": "payforge-enterprise",
+    "version": "2.0.0",
+    "description": "Enterprise-grade self-verifying UPI Payment Engine with Firebase real-time updates",
+    "main": "index.js",
+    "engines": {
+        "node": "20.x"
+    },
+    "scripts": {
+        "start": "node index.js",
+        "dev": "nodemon index.js",
+        "build": "npm install --omit=dev",
+        "init-db": "node init.js"
+    },
+    "dependencies": {
+        "cors": "^2.8.5",
+        "dotenv": "^16.4.5",
+        "express": "^4.18.3",
+        "express-rate-limit": "^7.2.0",
+        "helmet": "^7.1.0",
+        "imapflow": "^1.4.7",
+        "mailparser": "^3.9.14",
+        "node-cron": "^3.0.3",
+        "node-telegram-bot-api": "^1.1.2",
+        "nodemailer": "^6.9.13",
+        "uuid": "^9.0.1"
+    },
+    "devDependencies": {
+        "nodemon": "^3.1.0"
+    }
 }

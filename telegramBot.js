@@ -1,0 +1,265 @@
+/**
+ * PayForge — Telegram Bot Fallback Engine
+ * ─────────────────────────────────────────────────────────────────────────────
+ * Merchants forward their bank credit SMS to a Telegram bot.
+ * The bot parses the SMS and triggers payment verification — completely
+ * independent of the Android PayForge app.
+ *
+ * This is the FASTEST fallback: merchant just copies the bank SMS and
+ * sends it to the Telegram bot. Verified in < 2 seconds.
+ *
+ * Setup (one-time, per platform):
+ *   1. Message @BotFather on Telegram → /newbot → get TOKEN
+ *   2. Set TELEGRAM_BOT_TOKEN in your .env
+ *   3. Each merchant gets a unique /start code linking their Telegram to their Enterprise
+ *
+ * Usage by merchant:
+ *   - Phone receives bank SMS: "Rs.499.01 credited... UPI Ref 412345678901"
+ *   - Merchant copies SMS text, sends to the PayForge bot on Telegram
+ *   - Bot verifies payment and replies: "✅ Payment Verified! Order XYZ activated."
+ *
+ * Commands:
+ *   /start <enterprise_id>   — Link Telegram chat to an enterprise account
+ *   /status                  — Check how many pending orders exist
+ *   /verify <UTR>            — Manually verify a payment by UTR number
+ *
+ * npm install node-telegram-bot-api
+ */
+
+require('dotenv').config();
+const db = require('./database');
+let verifyPayment;
+let parseSmsAlert;
+
+const TELEGRAM_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+let bot = null;
+
+function init(verEng) {
+  verifyPayment = verEng.verifyPayment;
+  parseSmsAlert = verEng.parseSmsAlert;
+
+  if (!TELEGRAM_TOKEN) {
+    console.log('[TelegramBot] TELEGRAM_BOT_TOKEN not set. Telegram fallback disabled.');
+    return;
+  }
+
+  try {
+    const TelegramBot = require('node-telegram-bot-api');
+    bot = new TelegramBot(TELEGRAM_TOKEN, { polling: true });
+    setupHandlers();
+    console.log('[TelegramBot] ✅ Telegram bot started and polling');
+  } catch (e) {
+    console.warn('[TelegramBot] Failed to start:', e.message);
+  }
+}
+
+function setupHandlers() {
+  if (!bot) return;
+
+  // ── /start <enterprise_id> — Link chat to enterprise ──────────────────────
+  bot.onText(/\/start(.*)/, async (msg, match) => {
+    const chatId = msg.chat.id;
+    const eId = (match[1] || '').trim();
+
+    if (!eId) {
+      return bot.sendMessage(chatId,
+        `👋 *Welcome to PayForge Payment Bot!*\n\n` +
+        `To link this chat to your merchant account, use:\n` +
+        `/start YOUR_ENTERPRISE_ID\n\n` +
+        `Find your Enterprise ID in your PayForge Dashboard → Integration tab.`,
+        { parse_mode: 'Markdown' }
+      );
+    }
+
+    try {
+      const enterprise = await db.get(`enterprise_users/${eId}`);
+      if (!enterprise) {
+        return bot.sendMessage(chatId, '❌ Enterprise ID not found. Please check your Dashboard.');
+      }
+
+      // Save the telegram chat_id → enterprise mapping
+      await db.put(`telegram_links/${chatId}`, {
+        chat_id: String(chatId),
+        enterprise_id: eId,
+        enterprise_name: enterprise.company || enterprise.name,
+        linked_at: new Date().toISOString(),
+      });
+
+      bot.sendMessage(chatId,
+        `✅ *Linked to ${enterprise.company || enterprise.name}!*\n\n` +
+        `Now just *forward or paste any bank credit SMS* here and I'll verify the payment automatically.\n\n` +
+        `*Commands:*\n` +
+        `/status — View pending orders\n` +
+        `/verify <UTR> — Manually verify by UTR number`,
+        { parse_mode: 'Markdown' }
+      );
+    } catch (err) {
+      bot.sendMessage(chatId, '❌ Error linking account. Please try again.');
+    }
+  });
+
+  // ── /status — Show pending orders ─────────────────────────────────────────
+  bot.onText(/\/status/, async (msg) => {
+    const chatId = msg.chat.id;
+    const link = await db.get(`telegram_links/${chatId}`);
+    if (!link) return bot.sendMessage(chatId, '❗ Please link your account first: /start YOUR_ENTERPRISE_ID');
+
+    try {
+      const orders = await db.query('orders', 'enterprise_id', link.enterprise_id);
+      const pending = orders.filter(o => o.status === 'pending' && new Date(o.expires_at) > new Date());
+      const paid = orders.filter(o => o.status === 'paid').length;
+
+      bot.sendMessage(chatId,
+        `📊 *Status for ${link.enterprise_name}*\n\n` +
+        `⏳ Pending Orders: *${pending.length}*\n` +
+        `✅ Paid Orders: *${paid}*\n\n` +
+        `${pending.length > 0 ? pending.slice(0, 5).map(o =>
+          `• \`${o.id}\` — ₹${o.amount} — expires ${new Date(o.expires_at).toLocaleTimeString('en-IN')}`
+        ).join('\n') : 'No pending orders right now.'}`,
+        { parse_mode: 'Markdown' }
+      );
+    } catch (err) {
+      bot.sendMessage(chatId, '❌ Error fetching orders.');
+    }
+  });
+
+  // ── /verify <UTR> — Manual UTR verification ───────────────────────────────
+  bot.onText(/\/verify (.+)/, async (msg, match) => {
+    const chatId = msg.chat.id;
+    const utr = match[1].trim().toUpperCase();
+    const link = await db.get(`telegram_links/${chatId}`);
+    if (!link) return bot.sendMessage(chatId, '❗ Please link your account first: /start YOUR_ENTERPRISE_ID');
+
+    await handleUtrVerification(chatId, link.enterprise_id, utr);
+  });
+
+  // ── Any text message — treat as a bank SMS ────────────────────────────────
+  bot.on('message', async (msg) => {
+    if (!msg.text || msg.text.startsWith('/')) return;
+
+    const chatId = msg.chat.id;
+    const link = await db.get(`telegram_links/${chatId}`);
+
+    if (!link) {
+      return bot.sendMessage(chatId,
+        '❗ Please link your merchant account first:\n/start YOUR_ENTERPRISE_ID'
+      );
+    }
+
+    await handleSmsText(chatId, link.enterprise_id, msg.text);
+  });
+}
+
+// ── Core: Parse & verify an SMS text ─────────────────────────────────────────
+async function handleSmsText(chatId, enterpriseId, rawText) {
+  try {
+    const parsed = parseSmsAlert(rawText);
+
+    if (!parsed.amount) {
+      return bot.sendMessage(chatId,
+        `⚠️ Could not parse a payment amount from this message.\n\n` +
+        `Make sure it's a bank credit alert. Example:\n` +
+        `_"Rs.499.01 credited to A/c XX1234 UPI Ref 412345678901"_`,
+        { parse_mode: 'Markdown' }
+      );
+    }
+
+    // Find matching order
+    const ordersData = await db.query('orders', 'enterprise_id', enterpriseId);
+    const matching = ordersData.filter(o =>
+      o.status === 'pending' &&
+      Math.abs(parseFloat(o.amount) - parseFloat(parsed.amount)) < 0.009 &&
+      new Date(o.expires_at) > new Date()
+    ).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+    if (!matching.length) {
+      return bot.sendMessage(chatId,
+        `⚠️ No pending order found for *₹${parsed.amount}*.\n\n` +
+        `The order may have expired or already been paid. Check the dashboard.`,
+        { parse_mode: 'Markdown' }
+      );
+    }
+
+    const result = await verifyPayment({
+      orderId: matching[0].id,
+      upiRef: parsed.ref,
+      amount: parsed.amount,
+      source: 'telegram_bot',
+      rawText: rawText.slice(0, 500),
+      enterpriseId,
+    });
+
+    if (result.success) {
+      bot.sendMessage(chatId,
+        `✅ *Payment Verified!*\n\n` +
+        `💰 Amount: ₹${parsed.amount}\n` +
+        `📋 Order: \`${matching[0].id}\`\n` +
+        `🔑 UTR: \`${parsed.ref || 'N/A'}\`\n` +
+        `🎉 Service activated for customer!`,
+        { parse_mode: 'Markdown' }
+      );
+    } else {
+      bot.sendMessage(chatId,
+        `❌ Verification failed: ${result.message}\n\nCode: \`${result.code}\``,
+        { parse_mode: 'Markdown' }
+      );
+    }
+  } catch (err) {
+    console.error('[TelegramBot] Error handling SMS:', err.message);
+    if (bot) bot.sendMessage(chatId, '❌ Server error. Please try again.');
+  }
+}
+
+// ── Core: Verify by UTR number directly ──────────────────────────────────────
+async function handleUtrVerification(chatId, enterpriseId, utr) {
+  try {
+    // Check if UTR already used
+    const used = await db.get(`used_refs/${utr}`);
+    if (used) {
+      return bot.sendMessage(chatId,
+        `⚠️ UTR \`${utr}\` was already used to verify order \`${used.order_id}\`.`,
+        { parse_mode: 'Markdown' }
+      );
+    }
+
+    // Find pending orders for this enterprise
+    const ordersData = await db.query('orders', 'enterprise_id', enterpriseId);
+    const pending = ordersData.filter(o =>
+      o.status === 'pending' && new Date(o.expires_at) > new Date()
+    ).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+    if (!pending.length) {
+      return bot.sendMessage(chatId, '⚠️ No pending orders found to match this UTR against.');
+    }
+
+    // Use the most recent pending order (merchant knows which order they're verifying)
+    const result = await verifyPayment({
+      orderId: pending[0].id,
+      upiRef: utr,
+      amount: null, // Skip amount check when manually providing UTR
+      source: 'telegram_manual_utr',
+      rawText: `Manual UTR verification: ${utr}`,
+      enterpriseId,
+    });
+
+    if (result.success) {
+      bot.sendMessage(chatId,
+        `✅ *Payment Verified by UTR!*\n\n` +
+        `📋 Order: \`${pending[0].id}\`\n` +
+        `🔑 UTR: \`${utr}\`\n` +
+        `💰 Amount: ₹${pending[0].amount}\n` +
+        `🎉 Service activated!`,
+        { parse_mode: 'Markdown' }
+      );
+    } else {
+      bot.sendMessage(chatId,
+        `❌ Verification failed: ${result.message}`,
+        { parse_mode: 'Markdown' }
+      );
+    }
+  } catch (err) {
+    bot.sendMessage(chatId, '❌ Error during UTR verification.');
+  }
+}
+
+module.exports = { init };

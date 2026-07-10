@@ -24,6 +24,13 @@ emailEngine.init(verEng);
 // ── Heartbeat Monitor ─────────────────────────────────────────────────────────
 const heartbeat = require('./heartbeat');
 
+// ── Telegram Bot Fallback ─────────────────────────────────────────────────────
+const telegramBot = require('./telegramBot');
+telegramBot.init(verEng);
+
+// ── Manual UTR Verification ───────────────────────────────────────────────────
+const manualVerify = require('./manualVerify');
+
 // ── Routers ───────────────────────────────────────────────────────────────────
 const ordersRoute  = require('./orders');
 const adminRoute   = require('./admin');
@@ -113,10 +120,11 @@ app.get('/api/health', async (req, res) => {
 });
 
 // ── API Routes ────────────────────────────────────────────────────────────────
-app.use('/api/auth',      authRoute.router);
-app.use('/api/orders',    ordersRoute.router);
-app.use('/api/admin',     adminRoute.router);
-app.use('/api/heartbeat', heartbeat.router);
+app.use('/api/auth',         authRoute.router);
+app.use('/api/orders',       ordersRoute.router);
+app.use('/api/admin',        adminRoute.router);
+app.use('/api/heartbeat',    heartbeat.router);
+app.use('/api/admin',        manualVerify.router); // Manual UTR verify endpoints
 
 // ── SPA fallback ──────────────────────────────────────────────────────────────
 app.get('*', (req, res) => {
