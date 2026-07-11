@@ -999,6 +999,7 @@ onChildAdded(evt, (snapshot) => {
       <!-- TABS -->
       <div class="tabs">
         <button class="tab-btn active" onclick="switchFallbackTab('razorpay',this)">⚡ Razorpay</button>
+        <button class="tab-btn" onclick="switchFallbackTab('cashfree',this)">💸 Cashfree</button>
         <button class="tab-btn" onclick="switchFallbackTab('email',this)">📧 Email</button>
         <button class="tab-btn" onclick="switchFallbackTab('telegram',this)">✈️ Telegram Bot</button>
         <button class="tab-btn" onclick="switchFallbackTab('utr',this)">🔧 Manual UTR</button>
@@ -1059,6 +1060,63 @@ onChildAdded(evt, (snapshot) => {
               </div>
             </div>
             <button class="btn btn-primary" onclick="saveRazorpaySecret()">💾 Save Razorpay Secret</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- CASHFREE TAB -->
+      <div id="fallback-cashfree" style="display:none">
+        <div class="card" style="margin-bottom:20px">
+          <div class="card-header"><h3>💸 Cashfree Webhooks (Official Integration)</h3></div>
+          <div class="card-body">
+            <div class="alert alert-success" style="margin-bottom:20px">
+              ✅ <strong>Recommended for high-volume merchants.</strong> Get instant, guaranteed verification directly from Cashfree, bypassing the need for SMS or Email parsing entirely.
+            </div>
+
+            <h4 style="font-size:0.85rem;font-weight:700;margin-bottom:14px;color:var(--text-2);text-transform:uppercase;letter-spacing:0.5px">Setup Instructions</h4>
+            <div class="guide-steps" style="margin-bottom:24px">
+              <div class="guide-step">
+                <div class="guide-step-content">
+                  <div class="guide-step-title">1. Create a Webhook Secret</div>
+                  <div class="guide-step-desc">Enter a secure, random string below and save it.</div>
+                </div>
+              </div>
+              <div class="guide-step">
+                <div class="guide-step-content">
+                  <div class="guide-step-title">2. Add Webhook in Cashfree</div>
+                  <div class="guide-step-desc">Go to Cashfree Dashboard → Developers → Webhooks. Click <strong>Add Webhook URL</strong>.</div>
+                </div>
+              </div>
+              <div class="guide-step">
+                <div class="guide-step-content">
+                  <div class="guide-step-title">3. Configure Cashfree</div>
+                  <div class="guide-step-desc">
+                    Paste the Webhook URL below.<br>
+                    Select the <strong>PAYMENT_SUCCESS_WEBHOOK</strong> event.<br>
+                    Save.
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="config-box" style="margin-bottom:20px">
+              <div class="config-row">
+                <span class="config-label">Your Webhook URL</span>
+                <span class="config-value">
+                  <span id="cashfree-webhook-url">Loading...</span>
+                  <button class="mini-copy" onclick="copyText('cashfree-webhook-url','Webhook URL')">📋</button>
+                </span>
+              </div>
+            </div>
+
+            <h4 style="font-size:0.85rem;font-weight:700;margin-bottom:16px;color:var(--text-2);text-transform:uppercase;letter-spacing:0.5px">Configure Secret in PayForge</h4>
+            <div class="form-grid">
+              <div class="form-group form-full">
+                <label>Cashfree Webhook Secret</label>
+                <input type="text" id="inp-cashfree-secret" placeholder="Enter a random secure string"/>
+              </div>
+            </div>
+            <button class="btn btn-primary" onclick="saveCashfreeSecret()">💾 Save Cashfree Secret</button>
           </div>
         </div>
       </div>
@@ -2030,7 +2088,7 @@ async function removeDevice(deviceId) {
 
 // ── Fallback Page Tabs ────────────────────────────────────────────────────
 function switchFallbackTab(name, btn) {
-  ['razorpay','email','telegram','utr'].forEach(t => {
+  ['razorpay','cashfree','email','telegram','utr'].forEach(t => {
     const el = document.getElementById('fallback-' + t);
     if (el) el.style.display = t === name ? 'block' : 'none';
   });
@@ -2054,9 +2112,14 @@ function populateFallbackPage() {
   // Populate email fields if already configured
   if (_state.user) {
     if (_state.user.razorpay_webhook_secret) document.getElementById('inp-razorpay-secret').value = _state.user.razorpay_webhook_secret;
-    const webhookUrl = window.location.origin + '/api/webhooks/razorpay/' + _state.user.id;
+    const rzpWebhookUrl = window.location.origin + '/api/webhooks/razorpay/' + _state.user.id;
     const rzpUrlEl = document.getElementById('razorpay-webhook-url');
-    if (rzpUrlEl) rzpUrlEl.textContent = webhookUrl;
+    if (rzpUrlEl) rzpUrlEl.textContent = rzpWebhookUrl;
+
+    if (_state.user.cashfree_webhook_secret) document.getElementById('inp-cashfree-secret').value = _state.user.cashfree_webhook_secret;
+    const cfWebhookUrl = window.location.origin + '/api/webhooks/cashfree/' + _state.user.id;
+    const cfUrlEl = document.getElementById('cashfree-webhook-url');
+    if (cfUrlEl) cfUrlEl.textContent = cfWebhookUrl;
     
     if (_state.user.email_imap_user) document.getElementById('inp-imap-user').value = _state.user.email_imap_user;
     if (_state.user.email_imap_host) document.getElementById('inp-imap-host').value = _state.user.email_imap_host;
@@ -2084,6 +2147,23 @@ async function saveRazorpaySecret() {
     else showToast(d.error || 'Failed to save', 'error');
   } catch(e) { showToast('Network error', 'error'); }
   finally { btn.classList.remove('btn-loading'); btn.textContent = '💾 Save Razorpay Secret'; }
+}
+
+// ── Save Cashfree Webhook ─────────────────────────────────────────────────
+async function saveCashfreeSecret() {
+  const secret = document.getElementById('inp-cashfree-secret').value.trim();
+  if (!secret) return showToast('Please enter a Webhook Secret', 'error');
+  const btn = event.target; btn.classList.add('btn-loading'); btn.textContent = 'Saving...';
+  try {
+    const r = await apiFetch('/api/auth/setup', { method: 'PUT', body: JSON.stringify({
+      upi_vpa: _state.user.upi_vpa || 'placeholder@upi',
+      cashfree_webhook_secret: secret
+    })});
+    const d = await r.json();
+    if (d.success || d.user) { showToast('✅ Cashfree Webhook Secret saved!', 'success'); if (d.user) _state.user = d.user; }
+    else showToast(d.error || 'Failed to save', 'error');
+  } catch(e) { showToast('Network error', 'error'); }
+  finally { btn.classList.remove('btn-loading'); btn.textContent = '💾 Save Cashfree Secret'; }
 }
 
 // ── Save Email Fallback ───────────────────────────────────────────────────

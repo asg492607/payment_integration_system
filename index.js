@@ -38,6 +38,8 @@ const authRoute    = require('./auth');
 
 // ── Razorpay Webhook ──────────────────────────────────────────────────────────
 const razorpayWebhook = require('./razorpayWebhook');
+// ── Cashfree Webhook ──────────────────────────────────────────────────────────
+const cashfreeWebhook = require('./cashfreeWebhook');
 
 // ── Express App ───────────────────────────────────────────────────────────────
 const app  = express();
@@ -129,6 +131,7 @@ app.use('/api/admin',        adminRoute.router);
 app.use('/api/heartbeat',    heartbeat.router);
 app.use('/api/admin',        manualVerify.router); // Manual UTR verify endpoints
 app.use('/api/webhooks/razorpay', razorpayWebhook.router);
+app.use('/api/webhooks/cashfree', cashfreeWebhook.router);
 
 // ── SPA fallback ──────────────────────────────────────────────────────────────
 app.get('*', (req, res) => {
