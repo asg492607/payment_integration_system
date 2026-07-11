@@ -251,9 +251,32 @@
 
     document.getElementById('display-amount').textContent = `₹${parseFloat(amountParam).toFixed(2)}`;
 
-    // Simple fetch for enterprise info (Optional, could just use global)
-    // We will just show "Secure Merchant" for now to reduce API calls before creation.
-    document.getElementById('display-merchant').innerHTML = `<span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg> Verified Merchant</span>`;
+    // Fetch merchant branding
+    async function loadMerchantBranding() {
+      try {
+        const res = await fetch(`/api/auth/merchant/${eId}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success) {
+            document.getElementById('display-merchant').innerHTML = `<span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg> ${data.brand_name}</span>`;
+            
+            // Inject dynamic CSS
+            const style = document.createElement('style');
+            style.textContent = `
+              :root {
+                --primary: ${data.brand_color};
+                --primary-hover: ${data.brand_color}ee;
+              }
+              .glow-1 {
+                background: radial-gradient(circle, ${data.brand_color}40 0%, rgba(9,9,11,0) 70%);
+              }
+            `;
+            document.head.appendChild(style);
+          }
+        }
+      } catch (e) {}
+    }
+    loadMerchantBranding();
 
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 

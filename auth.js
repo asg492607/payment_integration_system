@@ -186,7 +186,7 @@ router.get('/me', requireAuth, async (req, res) => {
 // ── PUT /api/auth/setup ───────────────────────────────────────────────────────
 router.put('/setup', requireAuth, async (req, res) => {
   try {
-    const { upi_vpa, upi_payee_name, trusted_sms_sender, company, email_imap_user, email_imap_pass, email_imap_host, email_imap_port, razorpay_webhook_secret, cashfree_webhook_secret } = req.body;
+    const { upi_vpa, upi_payee_name, trusted_sms_sender, company, email_imap_user, email_imap_pass, email_imap_host, email_imap_port, razorpay_webhook_secret, cashfree_webhook_secret, brand_color, brand_name } = req.body;
     if (!upi_vpa) return res.status(400).json({ error: 'UPI VPA (UPI ID) is required' });
     if (!/^[\w.\-+]+@[\w]+$/.test(upi_vpa.trim())) return res.status(400).json({ error: 'Invalid UPI ID format' });
 
@@ -205,6 +205,9 @@ router.put('/setup', requireAuth, async (req, res) => {
     if (razorpay_webhook_secret !== undefined) updates.razorpay_webhook_secret = String(razorpay_webhook_secret).trim();
     // Cashfree webhook secret
     if (cashfree_webhook_secret !== undefined) updates.cashfree_webhook_secret = String(cashfree_webhook_secret).trim();
+    // Custom Branding
+    if (brand_color !== undefined) updates.brand_color = String(brand_color).trim();
+    if (brand_name !== undefined) updates.brand_name = String(brand_name).trim();
 
     await db.patch(`enterprise_users/${req.enterpriseUserId}`, updates);
     const user = await db.get(`enterprise_users/${req.enterpriseUserId}`);
@@ -224,6 +227,23 @@ router.get('/setup', requireAuth, async (req, res) => {
     if (!user) return res.status(404).json({ error: 'User not found' });
     delete user.password_hash;
     res.json({ user });
+  } catch (e) {
+    res.status(500).json({ error: 'Failed' });
+  }
+});
+
+// ── GET /api/auth/merchant/:id ────────────────────────────────────────────────
+router.get('/merchant/:id', async (req, res) => {
+  try {
+    const user = await db.get(`enterprise_users/${req.params.id}`);
+    if (!user) return res.status(404).json({ error: 'Merchant not found' });
+    // ONLY return safe, public data
+    res.json({
+      success: true,
+      brand_color: user.brand_color || '#4f46e5',
+      brand_name: user.brand_name || user.company || 'Verified Merchant',
+      upi_payee_name: user.upi_payee_name || 'Merchant'
+    });
   } catch (e) {
     res.status(500).json({ error: 'Failed' });
   }

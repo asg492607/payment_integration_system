@@ -445,7 +445,7 @@
         style="display:none;background:none;border:none;cursor:pointer;color:var(--text-1);font-size:1.3rem" id="menu-btn">☰</button>
       <div class="topbar-title" id="topbar-title">Dashboard</div>
     </div>
-    <div class="topbar-right">
+      <button id="btn-soundbox" onclick="toggleSoundbox()" title="Virtual Soundbox: Audio Alerts" style="background:none; border:none; cursor:pointer; font-size:1.2rem; opacity:0.5; transition:0.2s">🔇</button>
       <div class="live-indicator" id="live-indicator" title="Firebase real-time connection">
         <div class="live-dot"></div> Live
       </div>
@@ -1381,6 +1381,29 @@ onChildAdded(evt, (snapshot) => {
       </div>
 
       <div class="card" style="margin-bottom:24px">
+        <div class="card-header">
+          <h3>🎨 Brand Settings</h3>
+          <span class="badge badge-active">NEW</span>
+        </div>
+        <div class="card-body">
+          <div class="alert alert-info" style="margin-bottom:16px">
+            🎨 Customize how your Smart Checkout links look to your customers.
+          </div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Brand Name</label>
+              <input type="text" id="set-brand-name" placeholder="My Awesome Store"/>
+            </div>
+            <div class="form-group">
+              <label>Brand Color (Hex)</label>
+              <input type="color" id="set-brand-color" value="#4f46e5" style="width:100%; height:48px; padding:4px; border-radius:8px; background:rgba(0,0,0,0.2); border:1px solid var(--border); cursor:pointer;"/>
+            </div>
+          </div>
+          <button class="btn btn-primary" onclick="saveBrandSettings()">💾 Save Branding</button>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:24px">
         <div class="card-header"><h3>🔑 Change Password</h3></div>
         <div class="card-body">
           <div class="form-group" style="max-width:400px">
@@ -1603,6 +1626,12 @@ function setupFirebaseListener() {
       addEventToFeed(evt);
       if (evt.type === 'PAYMENT_VERIFIED') {
         toast(`💸 Payment verified! ₹${evt.amount} — ${evt.plan}`, 'success');
+        
+        // Virtual Soundbox
+        if (soundboxEnabled) {
+          playTTS(`Payment of rupees ${evt.amount} received on PayForge.`);
+        }
+
         // Refresh stats
         fetchMe();
         if (document.getElementById('page-transactions').classList.contains('active')) {
@@ -2354,8 +2383,48 @@ async function forceMarkPaid() {
   finally { btn.classList.remove('btn-loading'); btn.textContent = '⚠️ Force Mark as Paid'; }
 }
 
-// Start
-window.addEventListener('DOMContentLoaded', init);
+async function saveBrandSettings() {
+  const brandName = document.getElementById('set-brand-name').value;
+  const brandColor = document.getElementById('set-brand-color').value;
+  try {
+    const res = await fetch('/api/auth/setup', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('admin_token')}` },
+      body: JSON.stringify({ brand_name: brandName, brand_color: brandColor })
+    });
+    if (res.ok) {
+      showToast('Brand settings saved!', 'success');
+      currentUser.brand_name = brandName;
+      currentUser.brand_color = brandColor;
+    } else showToast('Failed to save', 'error');
+  } catch (e) { showToast('Error saving settings', 'error'); }
+}
+
+// ── Virtual Soundbox ──────────────────────────────────────────────────────
+let soundboxEnabled = false;
+function toggleSoundbox() {
+  soundboxEnabled = !soundboxEnabled;
+  const btn = document.getElementById('btn-soundbox');
+  if (soundboxEnabled) {
+    btn.textContent = '🔊';
+    btn.style.opacity = '1';
+    playTTS("Virtual Soundbox Activated.");
+    showToast('Virtual Soundbox Enabled', 'success');
+  } else {
+    btn.textContent = '🔇';
+    btn.style.opacity = '0.5';
+    showToast('Virtual Soundbox Disabled', 'info');
+  }
+}
+function playTTS(text) {
+  if (!('speechSynthesis' in window)) return;
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = 'en-IN';
+  utterance.rate = 1.0;
+  window.speechSynthesis.speak(utterance);
+}
+
+document.addEventListener('DOMContentLoaded', initApp);
 </script>
 <script>
   const toggleBtn = document.getElementById('theme-toggle');
