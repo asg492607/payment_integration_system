@@ -137,6 +137,7 @@ app.use('/api/heartbeat',    heartbeat.router);
 app.use('/api/admin',        manualVerify.router); // Manual UTR verify endpoints
 app.use('/api/webhooks/razorpay', razorpayWebhook.router);
 app.use('/api/webhooks/cashfree', cashfreeWebhook.router);
+app.use('/api/v1',           apiV1.router);
 
 // ── SPA fallback ──────────────────────────────────────────────────────────────
 app.get('*', (req, res) => {

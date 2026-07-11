@@ -163,6 +163,11 @@ router.get('/me', requireAuth, async (req, res) => {
   try {
     const user = await db.get(`enterprise_users/${req.enterpriseUserId}`);
     if (!user) return res.status(404).json({ error: 'User not found' });
+    
+    if (!user.api_key) {
+      user.api_key = 'pf_' + crypto.randomBytes(24).toString('hex');
+      await db.patch(`enterprise_users/${req.enterpriseUserId}`, { api_key: user.api_key });
+    }
 
     const orders = await db.query('orders', 'enterprise_id', req.enterpriseUserId);
     const endUsers = await db.query('users', 'enterprise_id', req.enterpriseUserId);
@@ -186,13 +191,17 @@ router.get('/me', requireAuth, async (req, res) => {
 // ── PUT /api/auth/setup ───────────────────────────────────────────────────────
 router.put('/setup', requireAuth, async (req, res) => {
   try {
-    const { upi_vpa, upi_payee_name, trusted_sms_sender, company, email_imap_user, email_imap_pass, email_imap_host, email_imap_port, razorpay_webhook_secret, cashfree_webhook_secret, brand_color, brand_name } = req.body;
-    if (!upi_vpa) return res.status(400).json({ error: 'UPI VPA (UPI ID) is required' });
-    if (!/^[\w.\-+]+@[\w]+$/.test(upi_vpa.trim())) return res.status(400).json({ error: 'Invalid UPI ID format' });
+    const { upi_vpa, upi_payee_name, trusted_sms_sender, company, email_imap_user, email_imap_pass, email_imap_host, email_imap_port, razorpay_webhook_secret, cashfree_webhook_secret, brand_color, brand_name, merchant_webhook_url } = req.body;
+    
+    // Allow saving just branding/webhooks even if VPA is empty (though VPA is usually required to complete setup)
+    const updates = { updated_at: new Date().toISOString() };
+    if (upi_vpa) {
+      if (!/^[\w.\-+]+@[\w]+$/.test(upi_vpa.trim())) return res.status(400).json({ error: 'Invalid UPI ID format' });
+      updates.upi_vpa = upi_vpa.trim();
+      updates.setup_complete = 1;
+    }
 
-    const updates = {
-      upi_vpa: upi_vpa.trim(), setup_complete: 1, updated_at: new Date().toISOString()
-    };
+
     if (upi_payee_name !== undefined) updates.upi_payee_name = upi_payee_name.trim();
     if (trusted_sms_sender !== undefined) updates.trusted_sms_sender = trusted_sms_sender.trim();
     if (company !== undefined) updates.company = company.trim();
@@ -208,6 +217,8 @@ router.put('/setup', requireAuth, async (req, res) => {
     // Custom Branding
     if (brand_color !== undefined) updates.brand_color = String(brand_color).trim();
     if (brand_name !== undefined) updates.brand_name = String(brand_name).trim();
+    // Developer Webhook
+    if (merchant_webhook_url !== undefined) updates.merchant_webhook_url = String(merchant_webhook_url).trim();
 
     await db.patch(`enterprise_users/${req.enterpriseUserId}`, updates);
     const user = await db.get(`enterprise_users/${req.enterpriseUserId}`);
@@ -225,6 +236,12 @@ router.get('/setup', requireAuth, async (req, res) => {
   try {
     const user = await db.get(`enterprise_users/${req.enterpriseUserId}`);
     if (!user) return res.status(404).json({ error: 'User not found' });
+    
+    if (!user.api_key) {
+      user.api_key = 'pf_' + crypto.randomBytes(24).toString('hex');
+      await db.patch(`enterprise_users/${req.enterpriseUserId}`, { api_key: user.api_key });
+    }
+
     delete user.password_hash;
     res.json({ user });
   } catch (e) {

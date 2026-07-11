@@ -108,6 +108,31 @@ async function verifyPayment(signal) {
       updateEnterpriseStats({
         enterpriseId: eId, totalRevenue: totalRev, paidOrders: paid, pendingOrders: pending, activeUsers: active
       }).catch(()=>{});
+      
+      // Developer Webhook integration
+      const enterprise = await db.get(`enterprise_users/${eId}`);
+      if (enterprise && enterprise.merchant_webhook_url) {
+        const payload = {
+          event: 'payment.verified',
+          order_id: order.id,
+          reference_id: order.reference_id || null,
+          amount: numericAmount ?? order.amount,
+          currency: order.currency || 'INR',
+          upi_ref: finalRef,
+          customer_email: user?.email,
+          timestamp: new Date().toISOString()
+        };
+        // Compute simple signature using their API key
+        const crypto = require('crypto');
+        const signature = crypto.createHmac('sha256', enterprise.api_key || 'secret').update(JSON.stringify(payload)).digest('hex');
+        
+        fetch(enterprise.merchant_webhook_url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-payforge-signature': signature },
+          body: JSON.stringify(payload)
+        }).catch(err => console.error('[Webhook] Failed to notify merchant:', err.message));
+      }
+
     } catch(e) {}
   }
 
