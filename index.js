@@ -36,6 +36,9 @@ const ordersRoute  = require('./orders');
 const adminRoute   = require('./admin');
 const authRoute    = require('./auth');
 
+// ── Razorpay Webhook ──────────────────────────────────────────────────────────
+const razorpayWebhook = require('./razorpayWebhook');
+
 // ── Express App ───────────────────────────────────────────────────────────────
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -125,6 +128,7 @@ app.use('/api/orders',       ordersRoute.router);
 app.use('/api/admin',        adminRoute.router);
 app.use('/api/heartbeat',    heartbeat.router);
 app.use('/api/admin',        manualVerify.router); // Manual UTR verify endpoints
+app.use('/api/webhooks/razorpay', razorpayWebhook.router);
 
 // ── SPA fallback ──────────────────────────────────────────────────────────────
 app.get('*', (req, res) => {

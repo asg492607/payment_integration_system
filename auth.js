@@ -186,7 +186,7 @@ router.get('/me', requireAuth, async (req, res) => {
 // ── PUT /api/auth/setup ───────────────────────────────────────────────────────
 router.put('/setup', requireAuth, async (req, res) => {
   try {
-    const { upi_vpa, upi_payee_name, trusted_sms_sender, company, email_imap_user, email_imap_pass, email_imap_host, email_imap_port } = req.body;
+    const { upi_vpa, upi_payee_name, trusted_sms_sender, company, email_imap_user, email_imap_pass, email_imap_host, email_imap_port, razorpay_webhook_secret } = req.body;
     if (!upi_vpa) return res.status(400).json({ error: 'UPI VPA (UPI ID) is required' });
     if (!/^[\w.\-+]+@[\w]+$/.test(upi_vpa.trim())) return res.status(400).json({ error: 'Invalid UPI ID format' });
 
@@ -198,9 +198,11 @@ router.put('/setup', requireAuth, async (req, res) => {
     if (company !== undefined) updates.company = company.trim();
     // Email fallback credentials
     if (email_imap_user !== undefined) updates.email_imap_user = String(email_imap_user).slice(0, 100);
-    if (email_imap_pass !== undefined) updates.email_imap_pass = String(email_imap_pass).slice(0, 200); // App Password
+    if (email_imap_pass !== undefined) updates.email_imap_pass = String(email_imap_pass).slice(0, 100);
     if (email_imap_host !== undefined) updates.email_imap_host = String(email_imap_host).slice(0, 100);
     if (email_imap_port !== undefined) updates.email_imap_port = parseInt(email_imap_port) || 993;
+    // Razorpay webhook secret
+    if (razorpay_webhook_secret !== undefined) updates.razorpay_webhook_secret = String(razorpay_webhook_secret).trim();
 
     await db.patch(`enterprise_users/${req.enterpriseUserId}`, updates);
     const user = await db.get(`enterprise_users/${req.enterpriseUserId}`);
