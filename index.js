@@ -91,9 +91,14 @@ app.get('/sdk.js', (req, res) => {
 });
 
 // ── Static Frontend ───────────────────────────────────────────────────────────
-const publicFiles = ['login.html', 'dashboard.html', 'admin.html', 'app.js', 'style.css'];
+const publicFiles = ['login.html', 'dashboard.html', 'admin.html', 'app.js', 'style.css', 'checkout.html'];
 publicFiles.forEach(file => {
   app.get('/' + file, (req, res) => res.sendFile(path.join(__dirname, file)));
+});
+
+// ── Smart Checkout Link Route ─────────────────────────────────────────────────
+app.get('/pay/:enterpriseId', (req, res) => {
+  res.sendFile(path.join(__dirname, 'checkout.html'));
 });
 
 // Enforce strict APK download headers for Android phones

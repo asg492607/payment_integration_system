@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>PayForge Secure Checkout</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <style>
+    :root {
+      --bg: #09090b;
+      --bg-2: #18181b;
+      --surface: rgba(24, 24, 27, 0.6);
+      --border: rgba(255, 255, 255, 0.1);
+      --text: #ffffff;
+      --text-muted: #a1a1aa;
+      --primary: #4f46e5;
+      --primary-hover: #4338ca;
+      --success: #10b981;
+      --radius: 16px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Ambient Background Glow */
+    .glow-1 {
+      position: absolute; top: -10%; left: -10%; width: 50vw; height: 50vw;
+      background: radial-gradient(circle, rgba(79,70,229,0.15) 0%, rgba(9,9,11,0) 70%);
+      z-index: 0; pointer-events: none;
+    }
+    .glow-2 {
+      position: absolute; bottom: -10%; right: -10%; width: 50vw; height: 50vw;
+      background: radial-gradient(circle, rgba(16,185,129,0.1) 0%, rgba(9,9,11,0) 70%);
+      z-index: 0; pointer-events: none;
+    }
+
+    .checkout-card {
+      background: var(--surface);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      width: 100%;
+      max-width: 420px;
+      padding: 32px;
+      z-index: 10;
+      box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+      position: relative;
+      overflow: hidden;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .header { text-align: center; margin-bottom: 24px; }
+    .header h2 { font-size: 1.2rem; font-weight: 600; color: var(--text-muted); }
+    .header .amount { font-size: 2.8rem; font-weight: 800; margin: 8px 0; letter-spacing: -1px; }
+    .header .merchant { font-size: 0.9rem; color: var(--text-muted); display: flex; align-items: center; justify-content: center; gap: 6px; }
+    .header .merchant span { background: rgba(255,255,255,0.1); padding: 4px 10px; border-radius: 20px; font-weight: 500; font-size: 0.8rem; }
+
+    .qr-container {
+      background: #ffffff;
+      padding: 16px;
+      border-radius: 12px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 0 auto 24px auto;
+      width: fit-content;
+      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3);
+      position: relative;
+    }
+
+    .qr-overlay {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(255,255,255,0.9);
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+    .qr-overlay.active { opacity: 1; pointer-events: auto; }
+
+    .spinner {
+      width: 30px; height: 30px;
+      border: 3px solid rgba(79,70,229,0.2);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 8px;
+    }
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+
+    .btn {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover { background: var(--primary-hover); transform: translateY(-1px); }
+
+    .footer-logos {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 24px;
+      opacity: 0.5;
+    }
+    .footer-logos img { height: 20px; }
+
+    .input-group { margin-bottom: 20px; }
+    .input-group label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px; font-weight: 500; }
+    .input-group input {
+      width: 100%; padding: 14px; border-radius: 8px; border: 1px solid var(--border);
+      background: rgba(0,0,0,0.2); color: white; font-size: 1rem; outline: none; transition: border 0.2s;
+    }
+    .input-group input:focus { border-color: var(--primary); }
+
+    /* Success State */
+    .success-state {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: var(--surface);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.5s;
+      z-index: 20;
+    }
+    .success-state.active { opacity: 1; pointer-events: auto; }
+    
+    .checkmark {
+      width: 80px; height: 80px; border-radius: 50%;
+      background: rgba(16, 185, 129, 0.1);
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 20px;
+      animation: scaleIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+      transform: scale(0);
+    }
+    .checkmark svg { width: 40px; height: 40px; color: var(--success); }
+    @keyframes scaleIn { to { transform: scale(1); } }
+
+    .success-text { font-size: 1.5rem; font-weight: 700; margin-bottom: 8px; }
+    .success-sub { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 24px; }
+
+  </style>
+</head>
+<body>
+
+  <div class="glow-1"></div>
+  <div class="glow-2"></div>
+
+  <div class="checkout-card" id="card-main">
+    
+    <!-- Stage 1: Enter Details -->
+    <div id="stage-init">
+      <div class="header">
+        <h2>Complete your payment</h2>
+        <div class="amount" id="display-amount">₹0.00</div>
+        <div class="merchant" id="display-merchant">Loading...</div>
+      </div>
+      
+      <div class="input-group">
+        <label>Your Name</label>
+        <input type="text" id="inp-name" placeholder="John Doe" required/>
+      </div>
+      <div class="input-group">
+        <label>Your Email</label>
+        <input type="email" id="inp-email" placeholder="john@example.com" required/>
+      </div>
+      
+      <button class="btn btn-primary" onclick="createOrder()" id="btn-pay">Pay Now</button>
+    </div>
+
+    <!-- Stage 2: QR Code & Polling -->
+    <div id="stage-qr" style="display: none;">
+      <div class="header">
+        <h2>Scan with any UPI App</h2>
+        <div class="amount" id="qr-amount">₹0.00</div>
+        <div class="merchant"><span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg> Secure Connection</span></div>
+      </div>
+
+      <div class="qr-container" id="qr-wrapper">
+        <div id="qrcode"></div>
+        <div class="qr-overlay" id="qr-overlay">
+          <div class="spinner"></div>
+          <div style="color:var(--primary);font-weight:600;font-size:0.9rem">Waiting for payment...</div>
+        </div>
+      </div>
+
+      <button class="btn btn-primary" id="btn-upi-app" style="display:none;margin-bottom:12px" onclick="openUpiApp()">Pay via UPI App</button>
+      <div style="text-align:center;color:var(--text-muted);font-size:0.8rem">Keep this page open. It will auto-confirm.</div>
+    </div>
+
+    <div class="footer-logos">
+      <!-- Minimal textual representation -->
+      <span style="font-size:0.8rem;font-weight:700">GPay</span>
+      <span style="font-size:0.8rem;font-weight:700">PhonePe</span>
+      <span style="font-size:0.8rem;font-weight:700">Paytm</span>
+      <span style="font-size:0.8rem;font-weight:700">BHIM</span>
+    </div>
+
+    <!-- Stage 3: Success Overlay -->
+    <div class="success-state" id="stage-success">
+      <div class="checkmark">
+        <svg fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
+      </div>
+      <div class="success-text">Payment Successful!</div>
+      <div class="success-sub">Thank you for your purchase.</div>
+      <button class="btn" style="background:rgba(255,255,255,0.1);color:white;width:auto;padding:10px 24px" onclick="window.location.reload()">Done</button>
+    </div>
+  </div>
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const amountParam = urlParams.get('amount') || '0';
+    const planParam = urlParams.get('plan') || 'custom';
+    const eId = window.location.pathname.split('/').pop();
+    
+    let currentOrderId = null;
+    let pollInterval = null;
+    let upiLinkStr = null;
+
+    document.getElementById('display-amount').textContent = `₹${parseFloat(amountParam).toFixed(2)}`;
+
+    // Simple fetch for enterprise info (Optional, could just use global)
+    // We will just show "Secure Merchant" for now to reduce API calls before creation.
+    document.getElementById('display-merchant').innerHTML = `<span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg> Verified Merchant</span>`;
+
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+    async function createOrder() {
+      const name = document.getElementById('inp-name').value.trim();
+      const email = document.getElementById('inp-email').value.trim();
+      
+      if(!name || !email) {
+        alert("Please enter Name and Email");
+        return;
+      }
+
+      const btn = document.getElementById('btn-pay');
+      btn.textContent = 'Processing...';
+      btn.disabled = true;
+
+      try {
+        const res = await fetch('/api/orders/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name, email, plan: planParam, enterprise_id: eId
+          })
+        });
+        const data = await res.json();
+        
+        if(data.success) {
+          currentOrderId = data.orderId;
+          upiLinkStr = data.upiLink;
+          
+          document.getElementById('stage-init').style.display = 'none';
+          document.getElementById('stage-qr').style.display = 'block';
+          document.getElementById('qr-amount').textContent = `₹${parseFloat(data.amount).toFixed(2)}`;
+
+          // Generate QR
+          new QRCode(document.getElementById("qrcode"), {
+            text: upiLinkStr, width: 200, height: 200,
+            colorDark : "#000000", colorLight : "#ffffff",
+            correctLevel : QRCode.CorrectLevel.H
+          });
+
+          if(isMobile) {
+            document.getElementById('btn-upi-app').style.display = 'flex';
+          }
+
+          // Start Polling
+          setTimeout(() => {
+            document.getElementById('qr-overlay').classList.add('active');
+          }, 3000);
+          
+          pollInterval = setInterval(pollPayment, 3000);
+        } else {
+          alert(data.error || 'Failed to create order');
+          btn.textContent = 'Pay Now';
+          btn.disabled = false;
+        }
+      } catch (err) {
+        alert("Network error");
+        btn.textContent = 'Pay Now';
+        btn.disabled = false;
+      }
+    }
+
+    function openUpiApp() {
+      if(upiLinkStr) window.location.href = upiLinkStr;
+    }
+
+    async function pollPayment() {
+      if(!currentOrderId) return;
+      try {
+        const r = await fetch('/api/orders/' + currentOrderId);
+        const d = await r.json();
+        if(d.order && d.order.status === 'paid') {
+          clearInterval(pollInterval);
+          document.getElementById('stage-success').classList.add('active');
+        }
+      } catch(e){}
+    }
+  </script>
+</body>
+</html>

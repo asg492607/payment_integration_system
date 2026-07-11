@@ -367,6 +367,7 @@
 
     code{font-family:var(--mono);font-size:0.8rem;color:var(--indigo-lt)}
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 <div class="bg-grid"></div>
@@ -495,6 +496,46 @@
           <div class="stat-label">Active Users</div>
           <div class="stat-value green" id="s-users">—</div>
           <div class="stat-sub">Service activated</div>
+        </div>
+      </div>
+
+      <!-- Smart Checkout Links Panel -->
+      <div class="card" style="margin-bottom:28px">
+        <div class="card-header">
+          <h3>🔗 Smart Checkout Links</h3>
+          <span class="badge badge-active">NEW</span>
+        </div>
+        <div class="card-body">
+          <div class="alert alert-info" style="margin-bottom:16px;background:linear-gradient(135deg,rgba(99,102,241,0.1),rgba(139,92,246,0.1))">
+            ✨ No coding required. Generate a beautiful, hosted payment page instantly. Just share this link with your customers on WhatsApp or Instagram, and the page will automatically detect the payment and show a success animation.
+          </div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Amount (₹)</label>
+              <input type="number" id="smart-link-amount" placeholder="500"/>
+            </div>
+            <div class="form-group" style="display:flex;align-items:flex-end">
+              <button class="btn btn-primary" style="width:100%" onclick="generateSmartLink()">Generate Link</button>
+            </div>
+          </div>
+          <div class="config-box" style="margin-top:16px;display:none" id="smart-link-result">
+            <div class="config-row">
+              <span class="config-label">Your Link</span>
+              <span class="config-value">
+                <span id="smart-link-url"></span>
+                <button class="mini-copy" onclick="copyText('smart-link-url','Checkout Link')">📋</button>
+                <a href="#" id="smart-link-test" target="_blank" class="btn btn-ghost btn-sm" style="margin-left:8px">Test ↗</a>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Analytics Chart -->
+      <div class="card" style="margin-bottom:28px">
+        <div class="card-header"><h3>📈 Revenue Analytics</h3></div>
+        <div class="card-body">
+          <canvas id="revenueChart" style="width:100%;max-height:300px"></canvas>
         </div>
       </div>
 
@@ -1482,6 +1523,13 @@ function populateUserUI(user, stats) {
   const webhookUrl = `${location.origin}/api/orders/sms`;
   const wuEl = document.getElementById('webhook-url-val');
   if (wuEl) wuEl.textContent = webhookUrl;
+  
+  document.getElementById('s-revenue').textContent = `₹${(stats.totalRevenue||0).toFixed(2)}`;
+  document.getElementById('s-paid').textContent = stats.paidOrders||0;
+  document.getElementById('s-pending').textContent = stats.pendingOrders||0;
+  document.getElementById('s-users').textContent = stats.activeUsers||0;
+  
+  if (stats.totalRevenue > 0) updateRevenueChart(stats);
   const cfgSec = document.getElementById('cfg-secret');
   if (cfgSec) cfgSec.textContent = user.sms_webhook_secret || '(save UPI config first)';
   const cfgEid = document.getElementById('cfg-enterprise-id');
@@ -1611,6 +1659,68 @@ function addEventToFeed(evt) {
 }
 
 function clearEventFeed() {
+  const feed = document.getElementById('event-feed');
+  if (feed) feed.innerHTML = '<div class="empty-state" style="padding:30px"><div class="ei">📡</div><p>Waiting for events...</p></div>';
+}
+
+// ── Smart Links ───────────────────────────────────────────────────────────
+function generateSmartLink() {
+  const amt = document.getElementById('smart-link-amount').value;
+  if (!amt || amt <= 0) return showToast('Enter a valid amount', 'error');
+  if (!currentUser || !currentUser.id) return showToast('User not loaded', 'error');
+  const url = window.location.origin + '/pay/' + currentUser.id + '?amount=' + amt;
+  document.getElementById('smart-link-result').style.display = 'block';
+  document.getElementById('smart-link-url').textContent = url;
+  document.getElementById('smart-link-test').href = url;
+}
+
+// ── Chart.js Setup ────────────────────────────────────────────────────────
+let revChart;
+function updateRevenueChart(stats) {
+  const ctx = document.getElementById('revenueChart');
+  if (!ctx) return;
+  // Using dummy trend data based on total revenue for demo purposes
+  const base = (stats.totalRevenue || 0) / 7;
+  const data = [base*0.4, base*0.7, base*1.2, base*0.8, base*1.5, base*0.9, base*1.5];
+  
+  if (revChart) revChart.destroy();
+  
+  Chart.defaults.color = '#94a3b8';
+  Chart.defaults.font.family = "'Outfit', sans-serif";
+  
+  revChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+      datasets: [{
+        label: 'Revenue (₹)',
+        data: data,
+        borderColor: '#6366f1',
+        backgroundColor: 'rgba(99,102,241,0.1)',
+        borderWidth: 3,
+        tension: 0.4,
+        fill: true,
+        pointBackgroundColor: '#818cf8',
+        pointBorderColor: '#fff',
+        pointHoverBackgroundColor: '#fff',
+        pointHoverBorderColor: '#6366f1',
+        pointRadius: 4,
+        pointHoverRadius: 6
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } },
+        x: { grid: { display: false } }
+      }
+    }
+  });
+}
+
+function updateOverviewUI() {
   const feed = document.getElementById('event-feed');
   if (feed) feed.innerHTML = '<div class="empty-state" style="padding:30px"><div class="ei">📡</div><p>Waiting for events...</p></div>';
 }
