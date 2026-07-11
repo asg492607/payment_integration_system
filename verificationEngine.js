@@ -133,6 +133,13 @@ async function verifyPayment(signal) {
         }).catch(err => console.error('[Webhook] Failed to notify merchant:', err.message));
       }
 
+      // Telegram Bot Alert
+      if (enterprise && enterprise.telegram_chat_id) {
+        const { sendTelegramMessage } = require('./telegramBot');
+        const alertMsg = `✅ *Payment Received!*\n\n💰 Amount: ₹${numericAmount ?? order.amount}\n👤 From: ${user?.email || 'Customer'}\n📈 Total Revenue Today: ₹${totalRev.toFixed(2)}`;
+        sendTelegramMessage(enterprise.telegram_chat_id, alertMsg);
+      }
+
     } catch(e) {}
   }
 

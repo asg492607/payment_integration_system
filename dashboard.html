@@ -1506,6 +1506,38 @@ app.post('/webhook', (req, res) => {
       </div>
 
       <div class="card" style="margin-bottom:24px">
+        <div class="card-header">
+          <h3>🤖 Telegram Business Bot</h3>
+          <span class="badge badge-active">LAZY MODE</span>
+        </div>
+        <div class="card-body">
+          <div class="alert alert-info" style="margin-bottom:16px;background:linear-gradient(135deg,rgba(56,189,248,0.1),rgba(3,105,161,0.1))">
+            🚀 <strong>Get addicted to notifications!</strong> Link your Telegram to receive instant real-time payment alerts directly to your phone. Plus, generate payment links via chat by typing <code>/pay 500</code>.
+          </div>
+          <div class="config-box">
+            <div class="config-row">
+              <span class="config-label">Telegram Bot Link Command</span>
+              <span class="config-value" style="display:flex;flex-direction:column;align-items:flex-end">
+                <div style="display:flex;align-items:center;gap:8px">
+                  <span id="telegram-link-cmd">—</span>
+                  <button class="mini-copy" onclick="copyText('telegram-link-cmd','Telegram Command')">📋</button>
+                </div>
+                <div style="font-size:0.75rem;color:var(--text-3);margin-top:4px">
+                  Copy this and send it to the PayForge Telegram Bot to link your account.
+                </div>
+              </span>
+            </div>
+            <div class="config-row">
+              <span class="config-label">Status</span>
+              <span class="config-value">
+                <span id="telegram-status" class="badge badge-inactive">Not Linked</span>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:24px">
         <div class="card-header"><h3>🔑 Change Password</h3></div>
         <div class="card-body">
           <div class="form-group" style="max-width:400px">
@@ -1683,6 +1715,34 @@ function populateUserUI(user, stats) {
   if (dKey) dKey.textContent = user.api_key || 'Generate via Setup';
   const dWeb = document.getElementById('dev-webhook-url');
   if (dWeb) dWeb.value = user.merchant_webhook_url || '';
+
+  // Telegram
+  const tCmd = document.getElementById('telegram-link-cmd');
+  if (tCmd) tCmd.textContent = `/start ${user.id}`;
+  const tStatus = document.getElementById('telegram-status');
+  if (tStatus) {
+    if (user.telegram_chat_id) {
+      tStatus.className = 'badge badge-active';
+      tStatus.textContent = 'Linked ✅';
+    } else {
+      tStatus.className = 'badge badge-inactive';
+      tStatus.textContent = 'Not Linked';
+    }
+  }
+
+  // Telegram
+  const tCmd = document.getElementById('telegram-link-cmd');
+  if (tCmd) tCmd.textContent = `/start ${user.id}`;
+  const tStatus = document.getElementById('telegram-status');
+  if (tStatus) {
+    if (user.telegram_chat_id) {
+      tStatus.className = 'badge badge-active';
+      tStatus.textContent = 'Linked ✅';
+    } else {
+      tStatus.className = 'badge badge-inactive';
+      tStatus.textContent = 'Not Linked';
+    }
+  }
   
   document.getElementById('s-revenue').textContent = `₹${(stats.totalRevenue||0).toFixed(2)}`;
   document.getElementById('s-paid').textContent = stats.paidOrders||0;

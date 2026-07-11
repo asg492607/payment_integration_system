@@ -98,6 +98,55 @@ function setupHandlers() {
     }
   });
 
+  // ── /pay <amount> — Generate a Smart Link ─────────────────────────────────
+  bot.onText(/\/pay (.+)/, async (msg, match) => {
+    const chatId = msg.chat.id;
+    const amountStr = match[1].trim();
+    
+    const link = await db.get(`telegram_links/${chatId}`);
+    if (!link) return bot.sendMessage(chatId, '❗ Please link your account first: /start YOUR_ENTERPRISE_ID');
+
+    const amount = parseFloat(amountStr);
+    if (isNaN(amount) || amount <= 0) {
+      return bot.sendMessage(chatId, '❌ Invalid amount. Usage: `/pay 500`', { parse_mode: 'Markdown' });
+    }
+
+    try {
+      const user = await db.get(`enterprise_users/${link.enterprise_id}`);
+      const { v4: uuidv4 } = require('uuid');
+      const orderId = 'T-' + uuidv4().split('-')[0].toUpperCase();
+      const expiresAt = new Date(Date.now() + 15 * 60000).toISOString();
+      const checkoutLink = `https://payforge.com/pay/${user.id}?order_id=${orderId}&amount=${amount.toFixed(2)}`;
+      
+      // Just a placeholder since upiEngine is not required here yet, let's require it at the top or use simple string
+      const upiEngine = require('./upiEngine');
+      const upiLink = upiEngine.buildUpiLinkForEnterprise({
+        orderId,
+        amount: amount.toFixed(2),
+        note: `${user.company || 'PayForge'} - ${orderId}`,
+        vpa: user.upi_vpa,
+        payeeName: user.upi_payee_name
+      });
+
+      const order = {
+        id: orderId, enterprise_id: user.id, user_id: 'telegram_bot', amount: amount.toFixed(2),
+        currency: 'INR', plan: 'telegram_link', upi_link: upiLink, status: 'pending',
+        expires_at: expiresAt, created_at: new Date().toISOString()
+      };
+      
+      await db.put(`orders/${orderId}`, order);
+
+      bot.sendMessage(chatId, 
+        `🔗 *Payment Link Generated!*\n\n` +
+        `💰 Amount: ₹${amount.toFixed(2)}\n\n` +
+        `Forward this link to your customer:\n${checkoutLink}`,
+        { parse_mode: 'Markdown' }
+      );
+    } catch (err) {
+      bot.sendMessage(chatId, '❌ Error generating link.');
+    }
+  });
+
   // ── /status — Show pending orders ─────────────────────────────────────────
   bot.onText(/\/status/, async (msg) => {
     const chatId = msg.chat.id;
@@ -262,4 +311,15 @@ async function handleUtrVerification(chatId, enterpriseId, utr) {
   }
 }
 
-module.exports = { init };
+async function sendTelegramMessage(chatId, text) {
+  if (!bot || !chatId) return false;
+  try {
+    await bot.sendMessage(chatId, text, { parse_mode: 'Markdown' });
+    return true;
+  } catch(e) {
+    console.error('[TelegramBot] Failed to send message:', e.message);
+    return false;
+  }
+}
+
+module.exports = { init, sendTelegramMessage };
