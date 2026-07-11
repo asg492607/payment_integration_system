@@ -66,5 +66,12 @@ async function updateEnterpriseStats({ enterpriseId, totalRevenue, paidOrders, p
   return firebasePut(path, { totalRevenue, paidOrders, pendingOrders, activeUsers }, 'PUT');
 }
 
-module.exports = { emitPaymentEvent, emitSmsEvent, updateEnterpriseStats, firebasePut };
+/**
+ * Push POS State to Firebase
+ */
+async function pushPosState(enterpriseId, stateData) {
+  const path = `pos_state/${enterpriseId}`;
+  return firebasePut(path, stateData, 'PUT');
+}
 
+module.exports = { emitPaymentEvent, emitSmsEvent, updateEnterpriseStats, firebasePut, pushPosState };

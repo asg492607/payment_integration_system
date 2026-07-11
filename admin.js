@@ -160,6 +160,30 @@ router.post('/orders/test', async (req, res) => {
   }
 });
 
+// ── Smart POS Routes ────────────────────────────────────────────────────────
+router.post('/pos/push', async (req, res) => {
+  try {
+    const { pushPosState } = require('./firebase');
+    const { amount, orderId, upiLink } = req.body;
+    
+    await pushPosState(req.enterpriseUserId, {
+      amount, orderId, upiLink, timestamp: Date.now(), status: 'waiting'
+    });
+    
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to push POS state' });
+  }
+});
 
+router.post('/pos/clear', async (req, res) => {
+  try {
+    const { pushPosState } = require('./firebase');
+    await pushPosState(req.enterpriseUserId, { status: 'idle', timestamp: Date.now() });
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to clear POS state' });
+  }
+});
 
 module.exports = { router, setDb };

@@ -529,6 +529,30 @@
             </div>
           </div>
         </div>
+        </div>
+      </div>
+
+      <!-- Smart POS Remote Control -->
+      <div class="card" style="margin-bottom:28px">
+        <div class="card-header">
+          <h3>📱 Smart POS (Customer Display)</h3>
+          <span class="badge badge-active">GAME CHANGER</span>
+        </div>
+        <div class="card-body">
+          <div class="alert alert-info" style="margin-bottom:16px;background:linear-gradient(135deg,rgba(16,185,129,0.1),rgba(52,211,153,0.1))">
+            🛍️ Open the POS Display on a tablet facing your customer. Enter the bill amount below to push a giant, dynamic QR code instantly to their screen!
+          </div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Bill Amount (₹)</label>
+              <input type="number" id="pos-amount" placeholder="1450"/>
+            </div>
+            <div class="form-group" style="display:flex;align-items:flex-end;gap:8px">
+              <button class="btn btn-primary" style="flex:1" onclick="pushToPOS()">🚀 Send to POS</button>
+              <button class="btn btn-ghost" onclick="clearPOS()">Reset POS</button>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Analytics Chart -->
@@ -1572,6 +1596,12 @@ function populateUserUI(user, stats) {
   if (cLink) cLink.textContent = cashierUrl;
   const cTest = document.getElementById('api-cashier-test');
   if (cTest) cTest.href = cashierUrl;
+
+  const posUrl = `${location.origin}/pos.html?eid=${user.id}`;
+  const pLink = document.getElementById('api-pos-link');
+  if (pLink) pLink.textContent = posUrl;
+  const pTest = document.getElementById('api-pos-test');
+  if (pTest) pTest.href = posUrl;
   
   document.getElementById('s-revenue').textContent = `₹${(stats.totalRevenue||0).toFixed(2)}`;
   document.getElementById('s-paid').textContent = stats.paidOrders||0;
@@ -2033,6 +2063,44 @@ function showPage(name) {
   if (page) page.classList.add('active');
   const nav = document.getElementById(`nav-${name}`);
   if (nav) nav.classList.add('active');
+
+  // ── Smart POS Logic ─────────────────────────────────────────────────────────
+async function pushToPOS() {
+  const amount = document.getElementById('pos-amount').value.trim();
+  if(!amount || isNaN(amount)) return toast('Enter a valid amount', 'error');
+  
+  // 1. First create an order to get the UPI link
+  try {
+    toast('Generating dynamic QR...', 'info');
+    const res = await apiFetch('/api/orders/create', {
+      method: 'POST',
+      body: JSON.stringify({ name: 'POS Customer', email: 'pos@local', plan: 'custom', enterprise_id: currentUser.id, amount })
+    });
+    const orderData = await res.json();
+    if(!res.ok) return toast(orderData.error || 'Failed to create order', 'error');
+
+    // 2. Push state to POS screen
+    const pushRes = await apiFetch('/api/admin/pos/push', {
+      method: 'POST',
+      body: JSON.stringify({ amount, orderId: orderData.orderId, upiLink: orderData.upiLink })
+    });
+    if(pushRes.ok) {
+      toast('🚀 Sent to Customer Display!', 'success');
+      document.getElementById('pos-amount').value = '';
+    } else {
+      toast('Failed to push to POS', 'error');
+    }
+  } catch(e) { toast('Error pushing to POS', 'error'); }
+}
+
+async function clearPOS() {
+  try {
+    await apiFetch('/api/admin/pos/clear', { method: 'POST' });
+    toast('POS Screen reset to idle', 'success');
+  } catch(e) { toast('Failed to clear POS', 'error'); }
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────
 
   const titles = {
     overview:'Dashboard', transactions:'Transactions', orders:'Orders',

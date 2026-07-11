@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>PayForge POS Display</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <style>
+    :root {
+      --bg: #050810; --text: #ffffff;
+      --primary: #4f46e5;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Outfit', sans-serif; }
+    body { background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; }
+    
+    .screen { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.5s ease, transform 0.5s ease; transform: scale(0.95); }
+    .screen.active { opacity: 1; pointer-events: auto; transform: scale(1); }
+    
+    .glow { position: absolute; width: 600px; height: 600px; background: radial-gradient(circle, var(--primary) 0%, transparent 60%); opacity: 0.15; z-index: -1; animation: pulse 4s infinite alternate; }
+    @keyframes pulse { 0% { transform: scale(0.8); opacity: 0.1; } 100% { transform: scale(1.2); opacity: 0.2; } }
+
+    .brand-name { font-size: 3rem; font-weight: 800; letter-spacing: -1px; margin-bottom: 20px; text-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+    .subtitle { font-size: 1.5rem; color: rgba(255,255,255,0.6); }
+    
+    /* Waiting Screen */
+    .qr-card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 40px; border-radius: 24px; backdrop-filter: blur(10px); box-shadow: 0 20px 40px rgba(0,0,0,0.4); text-align: center; }
+    .amount { font-size: 4rem; font-weight: 800; color: var(--primary); text-shadow: 0 0 20px rgba(79, 70, 229, 0.4); line-height: 1; margin-bottom: 30px; }
+    .qr-box { background: white; padding: 20px; border-radius: 16px; margin: 0 auto; display: inline-block; }
+    .instruction { margin-top: 24px; font-size: 1.2rem; color: rgba(255,255,255,0.7); }
+    
+    /* Success Screen */
+    .screen-success { background: #10b981; z-index: 100; }
+    .checkmark { width: 160px; height: 160px; border-radius: 50%; background: white; display: flex; align-items: center; justify-content: center; margin-bottom: 40px; animation: scaleIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; transform: scale(0); }
+    .checkmark svg { width: 80px; height: 80px; color: #10b981; }
+    .success-text { font-size: 4rem; font-weight: 800; color: white; margin-bottom: 10px; }
+    .success-sub { font-size: 1.8rem; color: rgba(255,255,255,0.9); }
+    
+    @keyframes scaleIn { to { transform: scale(1); } }
+  </style>
+</head>
+<body>
+
+  <div class="glow"></div>
+
+  <!-- Screen 1: Idle -->
+  <div class="screen active" id="screen-idle">
+    <div class="brand-name" id="idle-brand">PayForge</div>
+    <div class="subtitle">Ready for next customer</div>
+  </div>
+
+  <!-- Screen 2: QR Waiting -->
+  <div class="screen" id="screen-qr">
+    <div class="brand-name" id="qr-brand" style="font-size:2rem; margin-bottom:20px;">PayForge</div>
+    <div class="qr-card">
+      <div class="amount" id="display-amount">₹0.00</div>
+      <div class="qr-box" id="qrcode"></div>
+      <div class="instruction">Scan with any UPI app to pay</div>
+    </div>
+  </div>
+
+  <!-- Screen 3: Success -->
+  <div class="screen screen-success" id="screen-success">
+    <div class="checkmark">
+      <svg fill="none" stroke="currentColor" stroke-width="4" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
+    </div>
+    <div class="success-text">Payment Successful!</div>
+    <div class="success-sub">Thank you</div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getDatabase, ref, onValue, onChildAdded } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCCoQaBHkp6XBIXATmn34-c89h8auPTe24",
+      databaseURL: "https://payment-2e43c-default-rtdb.firebaseio.com",
+      projectId: "payment-2e43c"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const rtdb = getDatabase(app);
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const eId = urlParams.get('eid');
+    let brandColor = '#4f46e5';
+    let brandName = 'Verified Merchant';
+
+    // UI Switching
+    function showScreen(id) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+    }
+
+    // Audio Alert
+    function playAudioAlert(amount) {
+      if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(`Payment of rupees ${amount} received.`);
+        utterance.lang = 'en-IN';
+        utterance.rate = 1.0;
+        window.speechSynthesis.speak(utterance);
+      }
+    }
+
+    if (!eId) {
+      document.getElementById('idle-brand').textContent = 'Invalid Link';
+    } else {
+      // 1. Fetch Branding
+      fetch(`/api/auth/merchant/${eId}`).then(r => r.json()).then(data => {
+        if(data.success) {
+          brandColor = data.brand_color || '#4f46e5';
+          brandName = data.brand_name || 'Verified Merchant';
+          document.documentElement.style.setProperty('--primary', brandColor);
+          document.getElementById('idle-brand').textContent = brandName;
+          document.getElementById('qr-brand').textContent = brandName;
+        }
+      }).catch(e=>{});
+
+      // 2. Listen for POS State changes (from cashier)
+      const stateRef = ref(rtdb, `pos_state/${eId}`);
+      onValue(stateRef, (snapshot) => {
+        const state = snapshot.val();
+        if(!state) return showScreen('screen-idle');
+
+        if(state.status === 'idle') {
+          showScreen('screen-idle');
+        } 
+        else if(state.status === 'waiting' && state.upiLink) {
+          document.getElementById('display-amount').textContent = `₹${parseFloat(state.amount).toFixed(2)}`;
+          document.getElementById('qrcode').innerHTML = ''; // clear old
+          new QRCode(document.getElementById("qrcode"), {
+            text: state.upiLink, width: 300, height: 300,
+            colorDark : "#000000", colorLight : "#ffffff",
+            correctLevel : QRCode.CorrectLevel.H
+          });
+          showScreen('screen-qr');
+        }
+      });
+
+      // 3. Listen for Payment Verification Events
+      const eventsRef = ref(rtdb, `events/${eId}`);
+      onChildAdded(eventsRef, (snapshot) => {
+        const evt = snapshot.val();
+        // Check if we are currently waiting for a payment
+        const activeScreen = document.querySelector('.screen.active');
+        if (evt && evt.type === 'PAYMENT_VERIFIED' && activeScreen.id === 'screen-qr') {
+          // If we receive ANY payment while waiting, assume it's this one (or we could match orderId)
+          showScreen('screen-success');
+          playAudioAlert(evt.amount);
+          
+          // Auto-reset back to idle after 6 seconds
+          setTimeout(() => {
+            fetch('/api/admin/pos/clear', {
+              method: 'POST',
+              headers: { 'Authorization': `Bearer ${localStorage.getItem('admin_token')}` }
+            }).catch(e=>{}); // best effort
+            showScreen('screen-idle');
+          }, 6000);
+        }
+      });
+    }
+    
+    // Initial click to enable audio policy
+    document.body.addEventListener('click', () => {
+      if ('speechSynthesis' in window) {
+        let u = new SpeechSynthesisUtterance('');
+        u.volume = 0; window.speechSynthesis.speak(u);
+      }
+    }, { once: true });
+  </script>
+</body>
+</html>
