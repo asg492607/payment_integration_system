@@ -91,7 +91,7 @@ app.get('/sdk.js', (req, res) => {
 });
 
 // ── Static Frontend ───────────────────────────────────────────────────────────
-const publicFiles = ['login.html', 'dashboard.html', 'admin.html', 'app.js', 'style.css', 'checkout.html'];
+const publicFiles = ['login.html', 'dashboard.html', 'admin.html', 'app.js', 'style.css', 'checkout.html', 'cashier.html'];
 publicFiles.forEach(file => {
   app.get('/' + file, (req, res) => res.sendFile(path.join(__dirname, file)));
 });

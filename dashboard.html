@@ -573,7 +573,10 @@
       <div class="card">
         <div class="card-header">
           <h3>💳 All Transactions</h3>
-          <button class="btn btn-ghost btn-sm" onclick="loadTransactions()">↻ Refresh</button>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-primary btn-sm" onclick="exportTransactionsCSV()">📥 Export to CSV</button>
+            <button class="btn btn-ghost btn-sm" onclick="loadTransactions()">↻ Refresh</button>
+          </div>
         </div>
         <div class="table-wrap" id="txn-wrap">
           <div class="empty-state"><div class="ei">💳</div><p>Loading...</p></div>
@@ -1448,6 +1451,23 @@ onChildAdded(evt, (snapshot) => {
             </div>
           </div>
           <div class="sep"></div>
+
+          <h4 style="font-size:0.85rem;font-weight:700;margin-bottom:14px;color:var(--text-2);text-transform:uppercase;letter-spacing:0.5px">Staff Access (Cashier Mode)</h4>
+          <div class="alert alert-info" style="margin-bottom:16px;background:rgba(16,185,129,0.1);border-color:rgba(16,185,129,0.3)">
+            👥 Share this link with your cashier. They will hear audio alerts and see live payments, but they CANNOT see total revenue or change settings.
+          </div>
+          <div class="config-box">
+            <div class="config-row">
+              <span class="config-label">Cashier Link</span>
+              <span class="config-value">
+                <span id="api-cashier-link">—</span>
+                <button class="mini-copy" onclick="copyText('api-cashier-link','Cashier Link')">📋</button>
+                <a href="#" id="api-cashier-test" target="_blank" class="btn btn-ghost btn-sm" style="margin-left:8px">Open ↗</a>
+              </span>
+            </div>
+          </div>
+          
+          <div class="sep"></div>
           <button class="btn btn-danger btn-sm" onclick="logout()">↩ Sign Out</button>
         </div>
       </div>
@@ -1546,6 +1566,12 @@ function populateUserUI(user, stats) {
   const webhookUrl = `${location.origin}/api/orders/sms`;
   const wuEl = document.getElementById('webhook-url-val');
   if (wuEl) wuEl.textContent = webhookUrl;
+  
+  const cashierUrl = `${location.origin}/cashier.html?eid=${user.id}`;
+  const cLink = document.getElementById('api-cashier-link');
+  if (cLink) cLink.textContent = cashierUrl;
+  const cTest = document.getElementById('api-cashier-test');
+  if (cTest) cTest.href = cashierUrl;
   
   document.getElementById('s-revenue').textContent = `₹${(stats.totalRevenue||0).toFixed(2)}`;
   document.getElementById('s-paid').textContent = stats.paidOrders||0;
@@ -1845,11 +1871,14 @@ async function loadCustomers() {
     if (!res.ok) { wrap.innerHTML = '<div class="empty-state"><div class="ei">⚠️</div><p>Failed</p></div>'; return; }
     const data = await res.json();
     if (!data.length) { wrap.innerHTML = '<div class="empty-state"><div class="ei">👥</div><p>No customers yet. Share your payment link!</p></div>'; return; }
-    wrap.innerHTML = `<table><thead><tr><th>Name</th><th>Email</th><th>Plan</th><th>Status</th><th>Activated</th><th>Joined</th></tr></thead>
+    wrap.innerHTML = `<table><thead><tr><th>Name</th><th>Email</th><th>LTV (Total Spent)</th><th>Status</th><th>Activated</th><th>Joined</th></tr></thead>
       <tbody>${data.map(u=>`<tr>
-        <td>${esc(u.name)}</td>
+        <td>
+          ${esc(u.name)}
+          ${u.is_vip ? '<span class="badge" style="background:rgba(234,179,8,0.2);color:#eab308;border:1px solid rgba(234,179,8,0.4)">👑 VIP</span>' : ''}
+        </td>
         <td style="color:var(--text-2)">${esc(u.email)}</td>
-        <td>${esc((u.plan||'free').toUpperCase())}</td>
+        <td style="font-weight:700;color:var(--emerald-lt)">₹${(u.ltv||0).toFixed(2)}</td>
         <td><span class="badge ${u.is_active?'badge-active':'badge-inactive'}">${u.is_active?'Active':'Inactive'}</span></td>
         <td style="font-size:0.75rem;color:var(--text-3)">${fmt(u.activated_at)}</td>
         <td style="font-size:0.75rem;color:var(--text-3)">${fmt(u.created_at)}</td>
@@ -2090,6 +2119,27 @@ function setupMobileMenu() {
   });
 }
 
+// ── EXPORT CSV ──────────────────────────────────────────────────────────────
+function exportTransactionsCSV() {
+  if (!allTransactions || allTransactions.length === 0) return toast('No transactions to export', 'error');
+  let csv = 'Transaction ID,Order ID,Amount,Currency,Plan,Status,Verified By,Timestamp\n';
+  allTransactions.forEach(t => {
+    const verifiedBy = (t.upi_ref && t.upi_ref.startsWith('RZR')) ? 'Razorpay' :
+                       (t.upi_ref && t.upi_ref.startsWith('CSH')) ? 'Cashfree' :
+                       (t.upi_ref && t.upi_ref.startsWith('M-')) ? 'Manual' :
+                       (t.upi_ref && t.upi_ref.startsWith('BOT')) ? 'Telegram' : 'SMS/Engine';
+    csv += `${t.id},${t.order_id},${t.amount},INR,${t.plan||''},${t.status},${verifiedBy},${t.created_at}\n`;
+  });
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.setAttribute('hidden', '');
+  a.setAttribute('href', url);
+  a.setAttribute('download', `PayForge_Transactions_${new Date().toISOString().split('T')[0]}.csv`);
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
 
 // -- Plans Management --------------------------------------------------------
 async function loadPlans() {

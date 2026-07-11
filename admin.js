@@ -60,7 +60,19 @@ router.get('/orders', async (req, res) => {
 router.get('/customers', async (req, res) => {
   try {
     const users = await db.find('users', u => u.enterprise_id === req.enterpriseUserId);
-    const sorted = users.sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
+    const orders = await db.query('orders', 'enterprise_id', req.enterpriseUserId);
+
+    const customersWithLtv = users.map(u => {
+      const userOrders = orders.filter(o => o.user_id === u.id && o.status === 'paid');
+      const ltv = userOrders.reduce((sum, o) => sum + parseFloat(o.amount || 0), 0);
+      return {
+        ...u,
+        ltv,
+        is_vip: ltv > 5000 // Define VIP threshold
+      };
+    });
+
+    const sorted = customersWithLtv.sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
     res.json(sorted);
   } catch (e) {
     res.status(500).json({ error: 'Server error' });
