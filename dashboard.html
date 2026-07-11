@@ -401,6 +401,9 @@
     <button class="nav-item" id="nav-customers" onclick="showPage('customers')">
       <span class="nav-icon">👥</span> Customers
     </button>
+    <button class="nav-item" id="nav-catalog" onclick="showPage('catalog')">
+      <span class="nav-icon">📦</span> Catalog
+    </button>
 
     <div class="nav-section-title" style="margin-top:12px">Configuration</div>
     <button class="nav-item" id="nav-setup" onclick="showPage('setup')">
@@ -535,24 +538,47 @@
         </div>
       </div>
 
-      <!-- Smart POS Remote Control -->
+      <!-- Smart Billing & Cash Register -->
       <div class="card" style="margin-bottom:28px">
         <div class="card-header">
-          <h3>📱 Smart POS (Customer Display)</h3>
-          <span class="badge badge-active">GAME CHANGER</span>
+          <h3>🛒 Smart Cash Register (POS)</h3>
+          <span class="badge badge-active">NEW UI</span>
         </div>
         <div class="card-body">
           <div class="alert alert-info" style="margin-bottom:16px;background:linear-gradient(135deg,rgba(16,185,129,0.1),rgba(52,211,153,0.1))">
-            🛍️ Open the POS Display on a tablet facing your customer. Enter the bill amount below to push a giant, dynamic QR code instantly to their screen!
+            🛍️ Tap items to build a cart. The total is calculated automatically. Click "Send to POS" to push an itemized bill + QR code to the customer display!
           </div>
-          <div class="form-grid">
-            <div class="form-group">
-              <label>Bill Amount (₹)</label>
-              <input type="number" id="pos-amount" placeholder="1450"/>
+          
+          <div style="display:flex;gap:24px;">
+            <!-- Left: Product Grid -->
+            <div style="flex:1;">
+              <h4 style="margin-top:0;margin-bottom:12px;font-size:0.9rem;color:var(--text-2);">Product Catalog</h4>
+              <div id="cash-register-products" style="display:grid;grid-template-columns:repeat(auto-fill, minmax(120px, 1fr));gap:12px;">
+                <!-- Filled by JS -->
+                <div class="empty-state" style="padding:10px;grid-column:1/-1;">No products found. Add them in the Catalog tab.</div>
+              </div>
             </div>
-            <div class="form-group" style="display:flex;align-items:flex-end;gap:8px">
-              <button class="btn btn-primary" style="flex:1" onclick="pushToPOS()">🚀 Send to POS</button>
-              <button class="btn btn-ghost" onclick="clearPOS()">Reset POS</button>
+            
+            <!-- Right: Cart -->
+            <div style="width:300px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:16px;display:flex;flex-direction:column;">
+              <h4 style="margin-top:0;margin-bottom:12px;font-size:0.9rem;color:var(--text-2);">Current Cart</h4>
+              <div id="cash-register-cart" style="flex:1;overflow-y:auto;margin-bottom:16px;">
+                <!-- Cart Items -->
+                <div style="text-align:center;color:var(--text-3);font-size:0.8rem;margin-top:20px;">Cart is empty</div>
+              </div>
+              <div style="border-top:1px dashed var(--border);padding-top:12px;margin-bottom:16px;">
+                <div style="display:flex;justify-content:space-between;font-weight:bold;font-size:1.1rem;">
+                  <span>Total</span>
+                  <span id="cash-register-total">₹0.00</span>
+                </div>
+              </div>
+              <div style="display:flex;gap:8px;">
+                <button class="btn btn-primary" style="flex:1" onclick="pushCartToPOS()">🚀 Send to POS</button>
+                <button class="btn btn-ghost" onclick="clearCart()">Clear</button>
+              </div>
+              <div style="margin-top:8px;">
+                 <button class="btn btn-ghost" style="width:100%" onclick="clearPOS()">Reset POS Display</button>
+              </div>
             </div>
           </div>
         </div>
@@ -642,6 +668,48 @@
         </div>
         <div class="table-wrap" id="customers-wrap">
           <div class="empty-state"><div class="ei">👥</div><p>Loading...</p></div>
+        </div>
+      </div>
+    </div>
+    </div>
+
+    <!-- ══ CATALOG PAGE ════════════════════════════════════ -->
+    <div class="page" id="page-catalog">
+      <div class="card" style="margin-bottom: 24px;">
+        <div class="card-header">
+          <h3>➕ Add Product to Catalog</h3>
+        </div>
+        <div class="card-body">
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Product Name</label>
+              <input type="text" id="cat-prod-name" placeholder="Latte, Consultation, Premium Access..." />
+            </div>
+            <div class="form-group">
+              <label>Price (₹)</label>
+              <input type="number" id="cat-prod-price" placeholder="250" />
+            </div>
+            <div class="form-group">
+              <label>Type</label>
+              <select id="cat-prod-type">
+                <option value="item">Physical Item (F&B, Retail)</option>
+                <option value="service">Digital Service / Consulting</option>
+              </select>
+            </div>
+            <div class="form-group" style="display:flex;align-items:flex-end">
+              <button class="btn btn-success" style="width:100%" onclick="saveProduct()">💾 Add to Catalog</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="card">
+        <div class="card-header">
+          <h3>📦 Your Product Catalog</h3>
+          <button class="btn btn-ghost btn-sm" onclick="loadCatalog()">↻ Refresh</button>
+        </div>
+        <div class="table-wrap" id="catalog-wrap">
+          <div class="empty-state"><div class="ei">📦</div><p>Loading catalog...</p></div>
         </div>
       </div>
     </div>
@@ -2255,11 +2323,161 @@ async function clearPOS() {
   } catch(e) { toast('Failed to clear POS', 'error'); }
 }
 
-// ── INIT ──────────────────────────────────────────────────────────────────
+// ── Catalog & Cash Register (POS) ───────────────────────────────────────────
+let currentCatalog = [];
+let currentCart = [];
 
+async function loadCatalog() {
+  try {
+    const res = await apiFetch('/api/admin/catalog');
+    if (!res.ok) throw new Error();
+    const data = await res.json();
+    currentCatalog = data.products || [];
+    renderCatalogTable();
+    renderCashRegisterProducts();
+  } catch (e) {
+    document.getElementById('catalog-wrap').innerHTML = `<div class="empty-state">Error loading catalog</div>`;
+  }
+}
+
+function renderCatalogTable() {
+  const wrap = document.getElementById('catalog-wrap');
+  if (!currentCatalog.length) {
+    wrap.innerHTML = `<div class="empty-state"><div class="ei">📦</div><p>Your catalog is empty.</p></div>`;
+    return;
+  }
+  let html = `<table class="table"><thead><tr><th>Name</th><th>Type</th><th>Price</th><th>Actions</th></tr></thead><tbody>`;
+  currentCatalog.forEach(p => {
+    html += `<tr>
+      <td><strong>${escapeHTML(p.name)}</strong></td>
+      <td><span class="badge ${p.type === 'service' ? 'badge-active' : 'badge-inactive'}">${p.type}</span></td>
+      <td>₹${p.price}</td>
+      <td><button class="btn btn-danger btn-sm" onclick="deleteProduct('${p.id}')">Delete</button></td>
+    </tr>`;
+  });
+  html += `</tbody></table>`;
+  wrap.innerHTML = html;
+}
+
+async function saveProduct() {
+  const name = document.getElementById('cat-prod-name').value.trim();
+  const price = document.getElementById('cat-prod-price').value;
+  const type = document.getElementById('cat-prod-type').value;
+  if (!name || !price) return toast('Name and price are required', 'error');
+  
+  try {
+    const res = await apiFetch('/api/admin/catalog', {
+      method: 'POST',
+      body: JSON.stringify({ name, price, type })
+    });
+    if (res.ok) {
+      toast('Product added', 'success');
+      document.getElementById('cat-prod-name').value = '';
+      document.getElementById('cat-prod-price').value = '';
+      loadCatalog();
+    } else throw new Error();
+  } catch (e) { toast('Error saving product', 'error'); }
+}
+
+async function deleteProduct(id) {
+  if(!confirm('Delete this product?')) return;
+  try {
+    const res = await apiFetch(`/api/admin/catalog/${id}`, { method: 'DELETE' });
+    if(res.ok) loadCatalog();
+  } catch(e) { toast('Error deleting', 'error'); }
+}
+
+function renderCashRegisterProducts() {
+  const grid = document.getElementById('cash-register-products');
+  if(!grid) return;
+  if (!currentCatalog.length) {
+    grid.innerHTML = `<div class="empty-state" style="padding:10px;grid-column:1/-1;">No products found. Add them in the Catalog tab.</div>`;
+    return;
+  }
+  let html = '';
+  currentCatalog.forEach(p => {
+    html += `<div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px;cursor:pointer;transition:0.2s;" 
+      onmouseover="this.style.borderColor='var(--indigo)'" onmouseout="this.style.borderColor='var(--border)'"
+      onclick="addToCart('${p.id}')">
+      <div style="font-weight:700;font-size:0.85rem;margin-bottom:8px;">${escapeHTML(p.name)}</div>
+      <div style="color:var(--indigo-lt);font-weight:bold;font-size:0.9rem;">₹${p.price}</div>
+    </div>`;
+  });
+  grid.innerHTML = html;
+}
+
+function addToCart(productId) {
+  const p = currentCatalog.find(x => x.id === productId);
+  if(!p) return;
+  const existing = currentCart.find(x => x.id === productId);
+  if (existing) {
+    existing.qty += 1;
+  } else {
+    currentCart.push({ ...p, qty: 1 });
+  }
+  renderCart();
+}
+
+function removeFromCart(productId) {
+  currentCart = currentCart.filter(x => x.id !== productId);
+  renderCart();
+}
+
+function clearCart() {
+  currentCart = [];
+  renderCart();
+}
+
+function renderCart() {
+  const cartEl = document.getElementById('cash-register-cart');
+  const totalEl = document.getElementById('cash-register-total');
+  if(!cartEl || !totalEl) return;
+  
+  if (!currentCart.length) {
+    cartEl.innerHTML = `<div style="text-align:center;color:var(--text-3);font-size:0.8rem;margin-top:20px;">Cart is empty</div>`;
+    totalEl.textContent = '₹0.00';
+    return;
+  }
+  
+  let html = '';
+  let total = 0;
+  currentCart.forEach(item => {
+    const itemTotal = item.qty * parseFloat(item.price);
+    total += itemTotal;
+    html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);">
+      <div style="flex:1;">
+        <div style="font-size:0.8rem;font-weight:600;">${escapeHTML(item.name)}</div>
+        <div style="font-size:0.75rem;color:var(--text-3);">${item.qty} x ₹${item.price}</div>
+      </div>
+      <div style="font-weight:bold;font-size:0.85rem;margin-right:8px;">₹${itemTotal.toFixed(2)}</div>
+      <button class="mini-copy" style="color:#ef4444" onclick="removeFromCart('${item.id}')">✖</button>
+    </div>`;
+  });
+  cartEl.innerHTML = html;
+  totalEl.textContent = `₹${total.toFixed(2)}`;
+}
+
+async function pushCartToPOS() {
+  if (!currentCart.length) return toast('Cart is empty', 'error');
+  const total = currentCart.reduce((sum, item) => sum + (item.qty * parseFloat(item.price)), 0);
+  
+  try {
+    const res = await apiFetch('/api/admin/pos/push', {
+      method: 'POST',
+      body: JSON.stringify({ 
+        amount: total.toFixed(2), 
+        cartItems: currentCart 
+      })
+    });
+    if (res.ok) toast('Pushed to POS!', 'success');
+    else toast('Failed to push', 'error');
+  } catch (e) { toast('Error', 'error'); }
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────
   const titles = {
     overview:'Dashboard', transactions:'Transactions', orders:'Orders',
-    customers:'Customers', setup:'UPI Setup', sms:'SMS Forwarder',
+    customers:'Customers', catalog:'Product Catalog', setup:'UPI Setup', sms:'SMS Forwarder',
     devices:'Device Status', fallback:'Fallback Systems', integrate:'Integration Guide',
     settings:'Settings', developer: 'Developer API'
   };
@@ -2269,6 +2487,7 @@ async function clearPOS() {
   if (name === 'transactions') loadTransactions();
   else if (name === 'orders')  loadOrders(currentOrderFilter);
   else if (name === 'customers') loadCustomers();
+  else if (name === 'catalog') loadCatalog();
 
   // Close mobile sidebar
   document.getElementById('sidebar').classList.remove('open');

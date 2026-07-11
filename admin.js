@@ -164,10 +164,10 @@ router.post('/orders/test', async (req, res) => {
 router.post('/pos/push', async (req, res) => {
   try {
     const { pushPosState } = require('./firebase');
-    const { amount, orderId, upiLink } = req.body;
+    const { amount, orderId, upiLink, cartItems } = req.body;
     
     await pushPosState(req.enterpriseUserId, {
-      amount, orderId, upiLink, timestamp: Date.now(), status: 'waiting'
+      amount, orderId, upiLink, cartItems: cartItems || [], timestamp: Date.now(), status: 'waiting'
     });
     
     res.json({ success: true });
@@ -183,6 +183,51 @@ router.post('/pos/clear', async (req, res) => {
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: 'Failed to clear POS state' });
+  }
+});
+
+// ── Catalog Routes ────────────────────────────────────────────────────────────
+router.get('/catalog', async (req, res) => {
+  try {
+    const products = await db.query('products', 'enterprise_id', req.enterpriseUserId);
+    res.json({ products: products || [] });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch catalog' });
+  }
+});
+
+router.post('/catalog', async (req, res) => {
+  try {
+    const { id, name, price, type } = req.body;
+    if (!name || !price) return res.status(400).json({ error: 'Name and price required' });
+    
+    let productId = id;
+    if (!productId) {
+      const { v4: uuidv4 } = require('uuid');
+      productId = 'PROD-' + uuidv4().split('-')[0].toUpperCase();
+    }
+    
+    const product = {
+      id: productId,
+      enterprise_id: req.enterpriseUserId,
+      name: name.trim(),
+      price: parseFloat(price).toFixed(2),
+      type: type || 'item' // item or service
+    };
+    
+    await db.put(`products/${productId}`, product);
+    res.json({ success: true, product });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to save product' });
+  }
+});
+
+router.delete('/catalog/:id', async (req, res) => {
+  try {
+    await db.remove(`products/${req.params.id}`);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to delete product' });
   }
 });
 
