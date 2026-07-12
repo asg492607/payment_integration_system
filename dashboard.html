@@ -584,11 +584,19 @@
         </div>
       </div>
 
-      <!-- Analytics Chart -->
-      <div class="card" style="margin-bottom:28px">
-        <div class="card-header"><h3>📈 Revenue Analytics</h3></div>
-        <div class="card-body">
-          <canvas id="revenueChart" style="width:100%;max-height:300px"></canvas>
+      <!-- Analytics & Top Products -->
+      <div style="display:grid;grid-template-columns:2fr 1fr;gap:24px;margin-bottom:28px">
+        <div class="card">
+          <div class="card-header"><h3>📈 7-Day Revenue Trend</h3></div>
+          <div class="card-body">
+            <canvas id="revenueChart" style="width:100%;max-height:250px"></canvas>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h3>🔥 Top Products</h3></div>
+          <div class="card-body" id="top-products-wrap">
+            <div class="empty-state">Loading...</div>
+          </div>
         </div>
       </div>
 
@@ -647,6 +655,7 @@
           <button class="tab-btn" onclick="filterOrders('expired',this)">Expired</button>
         </div>
         <div style="margin-left:auto; display:flex; gap:8px;">
+          <button class="btn btn-primary btn-sm" onclick="exportOrdersCSV()">📥 Export CSV</button>
           <button class="btn btn-ghost btn-sm" onclick="generateTestOrder()" style="color:var(--emerald-lt); border: 1px solid var(--emerald-lt);">✨ Create Test Order</button>
           <button class="btn btn-ghost btn-sm" onclick="clearPendingOrders()" style="color:#ff4444; border: 1px solid #ff444455;">🗑 Clear Pending</button>
           <button class="btn btn-ghost btn-sm" onclick="loadOrders(currentOrderFilter)">↻ Refresh</button>
@@ -1817,7 +1826,7 @@ function populateUserUI(user, stats) {
   document.getElementById('s-pending').textContent = stats.pendingOrders||0;
   document.getElementById('s-users').textContent = stats.activeUsers||0;
   
-  if (stats.totalRevenue > 0) updateRevenueChart(stats);
+  loadAnalytics();
   const cfgSec = document.getElementById('cfg-secret');
   if (cfgSec) cfgSec.textContent = user.sms_webhook_secret || '(save UPI config first)';
   const cfgEid = document.getElementById('cfg-enterprise-id');
@@ -1957,6 +1966,82 @@ function clearEventFeed() {
   if (feed) feed.innerHTML = '<div class="empty-state" style="padding:30px"><div class="ei">📡</div><p>Waiting for events...</p></div>';
 }
 
+// ── Analytics (Chart & Top Products) ──────────────────────────────────────
+let revChart;
+async function loadAnalytics() {
+  try {
+    const res = await apiFetch('/api/admin/analytics');
+    if (!res.ok) return;
+    const data = await res.json();
+    if (!data.success) return;
+    
+    // 1. Render Chart
+    const ctx = document.getElementById('revenueChart');
+    if (ctx) {
+      if (revChart) revChart.destroy();
+      
+      Chart.defaults.color = '#94a3b8';
+      Chart.defaults.font.family = "'Inter', sans-serif";
+      
+      revChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: data.trend.labels,
+          datasets: [{
+            label: 'Revenue (₹)',
+            data: data.trend.data,
+            borderColor: '#4f46e5',
+            backgroundColor: 'rgba(79,70,229,0.1)',
+            borderWidth: 3,
+            tension: 0.4,
+            fill: true,
+            pointBackgroundColor: '#818cf8',
+            pointBorderColor: '#fff',
+            pointHoverBackgroundColor: '#fff',
+            pointHoverBorderColor: '#4f46e5',
+            pointRadius: 4,
+            pointHoverRadius: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, border: { dash: [4,4] } },
+            x: { grid: { display: false } }
+          },
+          interaction: { intersect: false, mode: 'index' }
+        }
+      });
+    }
+    
+    // 2. Render Top Products
+    const wrap = document.getElementById('top-products-wrap');
+    if (wrap) {
+      if (data.topProducts && data.topProducts.length > 0) {
+        wrap.innerHTML = data.topProducts.map((p, i) => `
+          <div style="display:flex; justify-content:space-between; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+            <div style="display:flex; align-items:center; gap: 12px;">
+              <div style="width: 24px; height: 24px; background: rgba(79,70,229,0.2); color: #818cf8; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: bold;">${i+1}</div>
+              <div>
+                <div style="font-weight: 600; font-size: 0.9rem;">${escapeHTML(p.name)}</div>
+                <div style="font-size: 0.75rem; color: var(--text-muted);">${p.sold} sold</div>
+              </div>
+            </div>
+            <div style="font-weight: bold; color: var(--text);">₹${p.revenue.toFixed(2)}</div>
+          </div>
+        `).join('');
+      } else {
+        wrap.innerHTML = `<div class="empty-state">No product sales yet</div>`;
+      }
+    }
+    
+  } catch(e) {
+    console.error('Analytics load failed', e);
+  }
+}
+
 // ── Smart Links ───────────────────────────────────────────────────────────
 function generateSmartLink() {
   const amt = document.getElementById('smart-link-amount').value;
@@ -2082,6 +2167,7 @@ async function loadOrders(status='all') {
     const wrap = document.getElementById('orders-wrap');
     if (!res.ok) { wrap.innerHTML = '<div class="empty-state"><div class="ei">⚠️</div><p>Failed</p></div>'; return; }
     const data = await res.json();
+    window.allOrdersRaw = data;
     if (!data.length) { wrap.innerHTML = `<div class="empty-state"><div class="ei">📦</div><p>No ${status !== 'all' ? status : ''} orders</p></div>`; return; }
     wrap.innerHTML = `<table><thead><tr><th>Order ID</th><th>Customer</th><th>Plan</th><th>Amount</th><th>Status</th><th>Expires</th><th>Created</th></tr></thead>
       <tbody>${data.map(o=>`<tr>
@@ -2579,6 +2665,25 @@ function exportTransactionsCSV() {
   a.setAttribute('hidden', '');
   a.setAttribute('href', url);
   a.setAttribute('download', `PayForge_Transactions_${new Date().toISOString().split('T')[0]}.csv`);
+  document.body.appendChild(a);
+  document.body.removeChild(a);
+}
+
+function exportOrdersCSV() {
+  if (!window.allOrdersRaw || window.allOrdersRaw.length === 0) return toast('No orders to export', 'error');
+  let csv = 'Order ID,Customer Email,Amount,Status,UPI Link,Created At,Reminded\n';
+  window.allOrdersRaw.forEach(o => {
+    // Escape possible commas in upi_link or email
+    const email = o.user_id ? o.user_id : '';
+    const link = o.upi_link ? `"${o.upi_link}"` : '';
+    csv += `${o.id},${email},${o.amount},${o.status},${link},${o.created_at},${o.reminded || false}\n`;
+  });
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.setAttribute('hidden', '');
+  a.setAttribute('href', url);
+  a.setAttribute('download', `PayForge_Orders_${new Date().toISOString().split('T')[0]}.csv`);
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);

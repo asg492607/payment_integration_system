@@ -127,6 +127,57 @@ router.delete('/plans/:id', async (req, res) => {
     res.status(500).json({ error: 'Failed' });
   }
 });
+// ── GET /analytics ─────────────────────────────────────────────────────────────
+router.get('/analytics', async (req, res) => {
+  try {
+    const eId = req.enterpriseUserId;
+    const allOrders = await db.query('orders', 'enterprise_id', eId);
+    
+    // 1. 7-Day Revenue Trend
+    const trend = {};
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const dateStr = d.toISOString().split('T')[0];
+      trend[dateStr] = 0;
+    }
+    
+    // 2. Top Products
+    const productCounts = {};
+    
+    allOrders.forEach(o => {
+      if (o.status === 'paid') {
+        // Trend
+        const oDateStr = o.created_at.split('T')[0];
+        if (trend[oDateStr] !== undefined) {
+          trend[oDateStr] += parseFloat(o.amount || 0);
+        }
+        
+        // Products
+        if (o.cartItems && Array.isArray(o.cartItems)) {
+          o.cartItems.forEach(item => {
+            if (!productCounts[item.name]) {
+              productCounts[item.name] = { name: item.name, revenue: 0, sold: 0 };
+            }
+            productCounts[item.name].sold += item.qty;
+            productCounts[item.name].revenue += (item.qty * parseFloat(item.price || 0));
+          });
+        }
+      }
+    });
+    
+    const labels = Object.keys(trend).map(d => d.slice(5)); // MM-DD
+    const data = Object.values(trend);
+    
+    const topProducts = Object.values(productCounts)
+      .sort((a, b) => b.revenue - a.revenue)
+      .slice(0, 5); // top 5
+      
+    res.json({ success: true, trend: { labels, data }, topProducts });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch analytics' });
+  }
+});
 
 router.delete('/orders/pending', async (req, res) => {
   try {

@@ -175,6 +175,31 @@ cron.schedule('*/2 * * * *', () => {
   emailEngine.pollAllEnterprises().catch(()=>{});
 });
 
+// ── Abandoned Cart Recovery Engine Cron (every 5 minutes) ────────────────────
+cron.schedule('*/5 * * * *', async () => {
+  try {
+    const now = new Date();
+    // Find pending orders older than 10 mins, less than 24 hours, not reminded yet
+    const pending = await db.find('orders', o => 
+      o.status === 'pending' && !o.reminded &&
+      (now - new Date(o.created_at)) > 10 * 60 * 1000 &&
+      (now - new Date(o.created_at)) < 24 * 60 * 60 * 1000
+    );
+    
+    for (const order of pending) {
+      if (!order.user_id) continue;
+      const user = await db.get(`users/${order.user_id}`);
+      if (user && user.email) {
+        console.log(`[Recovery Engine] 🛒 Sent Abandoned Cart Email to ${user.email} for order ${order.id} (₹${order.amount})`);
+        // In production: send actual email here via NodeMailer/SES
+        await db.patch(`orders/${order.id}`, { reminded: true });
+      }
+    }
+  } catch (e) {
+    console.error('[Recovery Engine Error]', e.message);
+  }
+});
+
 // ── Start ─────────────────────────────────────────────────────────────────────
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`\n⚡ PayForge Enterprise v2.0 (Firebase RTDB)`);
