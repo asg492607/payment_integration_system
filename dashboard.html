@@ -355,6 +355,22 @@
     ::-webkit-scrollbar-track{background:transparent}
     ::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
 
+    @media (max-width: 1024px) {
+      .dashboard { flex-direction: column; }
+      .sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--border); display: flex; flex-direction: row; align-items: center; justify-content: space-between; overflow-x: auto; padding: 12px; }
+      .sidebar-nav { display: flex; flex-direction: row; gap: 8px; margin-top: 0; padding: 0 12px; overflow-x: auto; white-space: nowrap; }
+      .nav-item { margin-bottom: 0; padding: 8px 12px; }
+      .sidebar-footer { border-top: none; padding: 0 12px; border-left: 1px solid var(--border); display: flex; flex-direction: row; gap: 8px; }
+      .main-content { margin-left: 0; padding: 16px; }
+      
+      div[style*="grid-template-columns:2fr 1fr"],
+      div[style*="grid-template-columns: 2fr 1fr"],
+      div[style*="grid-template-columns:1fr 1fr"],
+      div[style*="grid-template-columns: 1fr 1fr"] {
+        grid-template-columns: 1fr !important;
+      }
+    }
+
     /* ── Mobile ── */
     @media(max-width:768px){
       .sidebar{transform:translateX(-100%);transition:transform 0.3s}
