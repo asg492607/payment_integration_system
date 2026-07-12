@@ -55,13 +55,7 @@ app.use(helmet({
 }));
 
 const corsOptions = {
-  origin: (origin, cb) => {
-    const allowed = process.env.ALLOWED_ORIGIN;
-    if (!allowed || allowed === '*' || !origin) return cb(null, true);
-    if (origin === allowed || origin.endsWith('.' + new URL(allowed).hostname)) return cb(null, true);
-    cb(null, true);
-  },
-  credentials: true,
+  origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'x-admin-token', 'x-sms-webhook-secret', 'x-sms-sender'],
 };

@@ -1318,28 +1318,30 @@ onChildAdded(evt, (snapshot) => {
             </div>
 
             <h4 style="font-size:0.85rem;font-weight:700;margin-bottom:16px;color:var(--text-2);text-transform:uppercase;letter-spacing:0.5px">Step 3 — Enter Credentials Below</h4>
-            <div class="form-grid">
-              <div class="form-group">
-                <label>Gmail Address</label>
-                <input type="email" id="inp-imap-user" placeholder="payments@gmail.com"/>
-                <div class="hint">The dedicated Gmail receiving bank alerts</div>
+            <form onsubmit="event.preventDefault(); saveEmailFallback();">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label>Gmail Address</label>
+                  <input type="email" id="inp-imap-user" placeholder="payments@gmail.com"/>
+                  <div class="hint">The dedicated Gmail receiving bank alerts</div>
+                </div>
+                <div class="form-group">
+                  <label>Gmail App Password (16 chars)</label>
+                  <input type="password" id="inp-imap-pass" placeholder="abcd efgh ijkl mnop"/>
+                  <div class="hint">NOT your Gmail password — the App Password you generated above</div>
+                </div>
+                <div class="form-group">
+                  <label>IMAP Host</label>
+                  <input type="text" id="inp-imap-host" value="imap.gmail.com" placeholder="imap.gmail.com"/>
+                  <div class="hint">Leave as imap.gmail.com for Gmail. For Outlook: outlook.office365.com</div>
+                </div>
+                <div class="form-group">
+                  <label>IMAP Port</label>
+                  <input type="number" id="inp-imap-port" value="993" placeholder="993"/>
+                </div>
               </div>
-              <div class="form-group">
-                <label>Gmail App Password (16 chars)</label>
-                <input type="password" id="inp-imap-pass" placeholder="abcd efgh ijkl mnop"/>
-                <div class="hint">NOT your Gmail password — the App Password you generated above</div>
-              </div>
-              <div class="form-group">
-                <label>IMAP Host</label>
-                <input type="text" id="inp-imap-host" value="imap.gmail.com" placeholder="imap.gmail.com"/>
-                <div class="hint">Leave as imap.gmail.com for Gmail. For Outlook: outlook.office365.com</div>
-              </div>
-              <div class="form-group">
-                <label>IMAP Port</label>
-                <input type="number" id="inp-imap-port" value="993" placeholder="993"/>
-              </div>
-            </div>
-            <button class="btn btn-primary" onclick="saveEmailFallback()">💾 Save Email Fallback</button>
+              <button type="submit" class="btn btn-primary">💾 Save Email Fallback</button>
+            </form>
           </div>
         </div>
       </div>
@@ -1635,15 +1637,17 @@ app.post('/webhook', (req, res) => {
       <div class="card" style="margin-bottom:24px">
         <div class="card-header"><h3>🔑 Change Password</h3></div>
         <div class="card-body">
-          <div class="form-group" style="max-width:400px">
-            <label>Current Password</label>
-            <input type="password" id="set-curr-pass" placeholder="••••••••"/>
-          </div>
-          <div class="form-group" style="max-width:400px">
-            <label>New Password</label>
-            <input type="password" id="set-new-pass" placeholder="Min 8 characters"/>
-          </div>
-          <button class="btn btn-primary" onclick="changePassword()">Update Password</button>
+          <form onsubmit="event.preventDefault(); changePassword();">
+            <div class="form-group" style="max-width:400px">
+              <label>Current Password</label>
+              <input type="password" id="set-curr-pass" placeholder="••••••••"/>
+            </div>
+            <div class="form-group" style="max-width:400px">
+              <label>New Password</label>
+              <input type="password" id="set-new-pass" placeholder="Min 8 characters"/>
+            </div>
+            <button type="submit" class="btn btn-primary">Update Password</button>
+          </form>
         </div>
       </div>
 
@@ -1735,7 +1739,7 @@ app.post('/webhook', (req, res) => {
 </script>
 
 <script>
-const API = '';
+const API = (window.location.hostname === 'localhost' && window.location.port === '3000') || window.location.hostname === 'payment-integration-system.onrender.com' ? '' : 'https://payment-integration-system.onrender.com';
 let authToken = '';
 let currentUser = null;
 let currentOrderFilter = 'all';

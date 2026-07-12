@@ -3,7 +3,7 @@
  * Firebase real-time payment detection + UPI flow
  */
 
-const API = '';
+const API = (window.location.hostname === 'localhost' && window.location.port === '3000') || window.location.hostname === 'payment-integration-system.onrender.com' ? '' : 'https://payment-integration-system.onrender.com';
 
 let state = {
   selectedPlan: 'pro',

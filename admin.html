@@ -233,7 +233,7 @@
 <div class="toast-container" id="toast-container"></div>
 
 <script>
-const API = '';
+const API = (window.location.hostname === 'localhost' && window.location.port === '3000') || window.location.hostname === 'payment-integration-system.onrender.com' ? '' : 'https://payment-integration-system.onrender.com';
 let adminToken = '';
 
 function toast(message, type = 'info') {
