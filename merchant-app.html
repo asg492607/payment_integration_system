@@ -2,7 +2,9 @@
 <html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#0ea5e9">
   <title>ASG Business</title>
   
@@ -20,6 +22,9 @@
       background: var(--bg);
       padding-bottom: 70px; /* Space for bottom nav */
       overscroll-behavior-y: none;
+      -webkit-user-select: none;
+      user-select: none;
+      touch-action: pan-y;
     }
     
     .app-header {
@@ -176,6 +181,62 @@
       font-size: 1rem; font-weight: 700;
       cursor: pointer;
     }
+
+    /* POS Keypad */
+    .pos-display {
+      background: var(--bg2);
+      border: 2px solid var(--indigo);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--indigo);
+      text-align: right;
+      margin-bottom: 16px;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+    }
+    .keypad-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .key-btn {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 20px 0;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text-1);
+      cursor: pointer;
+      transition: background 0.1s;
+    }
+    .key-btn:active { background: var(--border); }
+    .key-btn.key-action { color: var(--indigo); background: rgba(14, 165, 233, 0.1); border-color: var(--indigo-lt); }
+    
+    /* Settings List */
+    .settings-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .setting-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .setting-item button {
+      padding: 8px 16px;
+      border-radius: 100px;
+      border: none;
+      font-weight: 700;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
@@ -221,19 +282,68 @@
     </div>
     
     <div class="page" id="page-qr">
-      <div style="text-align:center; padding: 20px 0;">
-        <h2 style="font-size: 1.4rem; font-weight: 800; margin-bottom: 8px;">Smart Checkout</h2>
-        <p style="color: var(--text-2); font-size: 0.9rem; margin-bottom: 24px;">Show this QR to walk-in customers.</p>
+      <div style="padding: 10px;">
+        <h2 style="font-size: 1.2rem; font-weight: 800; margin-bottom: 16px; text-align: center;">Dynamic POS QR</h2>
         
-        <div style="background: white; padding: 24px; border-radius: var(--radius-lg); display: inline-block; box-shadow: var(--shadow);">
-          <img id="store-qr" src="" alt="QR Code" style="width: 200px; height: 200px; display: none;">
-          <div id="qr-loading" style="width: 200px; height: 200px; display: flex; align-items: center; justify-content: center; background: #f8fafc; color: #94a3b8;">
-            Loading...
+        <div id="qr-input-view">
+          <div class="pos-display" id="pos-amount">₹0</div>
+          <div class="keypad-grid">
+            <button class="key-btn" onclick="pressKey(1)">1</button>
+            <button class="key-btn" onclick="pressKey(2)">2</button>
+            <button class="key-btn" onclick="pressKey(3)">3</button>
+            <button class="key-btn" onclick="pressKey(4)">4</button>
+            <button class="key-btn" onclick="pressKey(5)">5</button>
+            <button class="key-btn" onclick="pressKey(6)">6</button>
+            <button class="key-btn" onclick="pressKey(7)">7</button>
+            <button class="key-btn" onclick="pressKey(8)">8</button>
+            <button class="key-btn" onclick="pressKey(9)">9</button>
+            <button class="key-btn key-action" onclick="pressKey('C')">C</button>
+            <button class="key-btn" onclick="pressKey(0)">0</button>
+            <button class="key-btn key-action" onclick="pressKey('X')">⌫</button>
+          </div>
+          <button class="btn-primary" onclick="generateDynamicQR()">Generate Custom QR</button>
+          <div style="text-align: center; margin-top: 16px;">
+            <a href="#" onclick="generateGenericQR()" style="color: var(--text-3); font-size: 0.9rem; font-weight: 600; text-decoration: underline;">Show Generic Store QR</a>
           </div>
         </div>
         
-        <div style="margin-top: 24px;">
-          <a id="store-link" href="#" target="_blank" style="color: var(--indigo); font-weight: 700; text-decoration: none;">Open Store Link ↗</a>
+        <div id="qr-display-view" style="display: none; text-align: center; margin-top: 20px;">
+          <div style="background: white; padding: 24px; border-radius: var(--radius-lg); display: inline-block; box-shadow: var(--shadow);">
+            <img id="store-qr" src="" alt="QR Code" style="width: 220px; height: 220px; display: none;">
+            <div id="qr-loading" style="width: 220px; height: 220px; display: flex; align-items: center; justify-content: center; background: #f8fafc; color: #94a3b8;">
+              Generating...
+            </div>
+          </div>
+          <div style="margin-top: 24px;">
+            <button class="btn-primary" style="width: 200px;" onclick="resetQRView()">← Back to Keypad</button>
+          </div>
+          <div style="margin-top: 16px;">
+            <a id="store-link" href="#" target="_blank" style="color: var(--indigo); font-weight: 700; text-decoration: none;">Open Link ↗</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="page" id="page-settings">
+      <div style="padding: 10px;">
+        <h2 style="font-size: 1.4rem; font-weight: 800; margin-bottom: 24px;">Settings</h2>
+        
+        <div class="settings-list">
+          <div class="setting-item">
+            <div>
+              <div style="font-weight: 700; font-size: 1rem;">Virtual Soundbox</div>
+              <div style="font-size: 0.8rem; color: var(--text-2);">Test your audio alerts</div>
+            </div>
+            <button style="background: rgba(14, 165, 233, 0.1); color: var(--indigo);" onclick="playAudioAlert(500)">Test 🔊</button>
+          </div>
+          
+          <div class="setting-item">
+            <div>
+              <div style="font-weight: 700; font-size: 1rem;">Enterprise Account</div>
+              <div style="font-size: 0.8rem; color: var(--text-2);" id="set-ent-id">ID: ---</div>
+            </div>
+            <button style="background: rgba(244, 63, 94, 0.1); color: var(--rose);" onclick="logoutApp()">Logout</button>
+          </div>
         </div>
       </div>
     </div>
@@ -244,7 +354,10 @@
         <i>🏠</i> Home
       </button>
       <button class="nav-btn" onclick="nav('qr', this)">
-        <i>📱</i> QR Code
+        <i>📱</i> QR POS
+      </button>
+      <button class="nav-btn" onclick="nav('settings', this)">
+        <i>⚙️</i> Settings
       </button>
     </nav>
   </div>
@@ -292,16 +405,9 @@
     async function setupFirebase(id) {
       document.getElementById('app-ent-label').textContent = 'ID: ' + id;
       
-      // Load QR Code dynamically via our QR API
-      const storeUrl = window.location.origin + '/pay/' + id;
-      document.getElementById('store-link').href = storeUrl;
-      const qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=' + encodeURIComponent(storeUrl);
-      const img = document.getElementById('store-qr');
-      img.onload = () => {
-        img.style.display = 'block';
-        document.getElementById('qr-loading').style.display = 'none';
-      };
-      img.src = qrUrl;
+      document.getElementById('set-ent-id').textContent = 'ID: ' + id;
+      
+      // Removed auto QR generation from here. Handled by generic/dynamic functions now.
 
       // Fetch Firebase Config via API
       try {
@@ -394,6 +500,74 @@
       utterance.rate = 1.0;
       utterance.pitch = 1.1;
       window.speechSynthesis.speak(utterance);
+    }
+    // 5. POS Keypad Logic
+    let currentAmount = "0";
+
+    function pressKey(key) {
+      if (key === 'C') {
+        currentAmount = "0";
+      } else if (key === 'X') {
+        currentAmount = currentAmount.length > 1 ? currentAmount.slice(0, -1) : "0";
+      } else {
+        if (currentAmount === "0") currentAmount = key.toString();
+        else if (currentAmount.length < 6) currentAmount += key.toString();
+      }
+      document.getElementById('pos-amount').textContent = '₹' + currentAmount;
+    }
+
+    function generateDynamicQR() {
+      if (currentAmount === "0" || !entId) return alert('Enter a valid amount');
+      
+      document.getElementById('qr-input-view').style.display = 'none';
+      document.getElementById('qr-display-view').style.display = 'block';
+      document.getElementById('store-qr').style.display = 'none';
+      document.getElementById('qr-loading').style.display = 'flex';
+      
+      const storeUrl = window.location.origin + '/pay/' + entId + '?amount=' + currentAmount;
+      document.getElementById('store-link').href = storeUrl;
+      
+      const qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=' + encodeURIComponent(storeUrl);
+      const img = document.getElementById('store-qr');
+      img.onload = () => {
+        img.style.display = 'block';
+        document.getElementById('qr-loading').style.display = 'none';
+      };
+      img.src = qrUrl;
+    }
+
+    function generateGenericQR() {
+      if (!entId) return;
+      document.getElementById('qr-input-view').style.display = 'none';
+      document.getElementById('qr-display-view').style.display = 'block';
+      document.getElementById('store-qr').style.display = 'none';
+      document.getElementById('qr-loading').style.display = 'flex';
+      
+      const storeUrl = window.location.origin + '/pay/' + entId;
+      document.getElementById('store-link').href = storeUrl;
+      
+      const qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=' + encodeURIComponent(storeUrl);
+      const img = document.getElementById('store-qr');
+      img.onload = () => {
+        img.style.display = 'block';
+        document.getElementById('qr-loading').style.display = 'none';
+      };
+      img.src = qrUrl;
+    }
+
+    function resetQRView() {
+      document.getElementById('qr-display-view').style.display = 'none';
+      document.getElementById('qr-input-view').style.display = 'block';
+      currentAmount = "0";
+      document.getElementById('pos-amount').textContent = '₹0';
+    }
+
+    // 6. Settings Logic
+    function logoutApp() {
+      if (confirm('Are you sure you want to disconnect this device?')) {
+        localStorage.removeItem('asg_merchant_id');
+        window.location.reload();
+      }
     }
   </script>
 </body>
