@@ -266,5 +266,38 @@ router.get('/merchant/:id', async (req, res) => {
   }
 });
 
+// ── GET /api/public/order/:id ────────────────────────────────────────────────
+// Used by invoice.html to render digital receipts
+router.get('/public/order/:id', async (req, res) => {
+  try {
+    const order = await db.get(`orders/${req.params.id}`);
+    if (!order) return res.status(404).json({ success: false });
+    
+    const enterprise = await db.get(`enterprise_users/${order.enterprise_id}`);
+    
+    // Strip sensitive fields
+    const safeOrder = {
+      id: order.id,
+      amount: order.amount,
+      status: order.status,
+      created_at: order.created_at,
+      upi_ref: order.upi_ref,
+      source: order.source,
+      cartItems: order.cartItems || []
+    };
+    
+    res.json({
+      success: true,
+      order: safeOrder,
+      merchant: {
+        name: enterprise?.brand_name || enterprise?.company || 'Merchant',
+        color: enterprise?.brand_color || '#4f46e5'
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ success: false });
+  }
+});
+
 function setDb() {} // No longer needed
 module.exports = { router, setDb, requireAuth, hashToken };

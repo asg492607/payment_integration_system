@@ -129,6 +129,11 @@ app.get('/api/health', async (req, res) => {
   });
 });
 
+// ── Public Web Routes ─────────────────────────────────────────────────────────
+app.get('/invoice/:id', (req, res) => {
+  res.sendFile(path.join(__dirname, 'invoice.html'));
+});
+
 // ── API Routes ────────────────────────────────────────────────────────────────
 app.use('/api/auth',         authRoute.router);
 app.use('/api/orders',       ordersRoute.router);

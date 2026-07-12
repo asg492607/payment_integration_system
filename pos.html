@@ -90,6 +90,10 @@
     </div>
     <div class="success-text">Payment Successful!</div>
     <div class="success-sub">Thank you</div>
+    <div style="margin-top: 40px; background: rgba(255,255,255,0.15); padding: 20px; border-radius: 16px; backdrop-filter: blur(5px); text-align: center;">
+      <div style="color: white; font-weight: bold; margin-bottom: 12px; font-size: 1.1rem;">Scan to Download Receipt</div>
+      <div id="receipt-qrcode" style="background: white; padding: 10px; border-radius: 8px; display: inline-block;"></div>
+    </div>
   </div>
 
   <script type="module">
@@ -191,17 +195,29 @@
         const activeScreen = document.querySelector('.screen.active');
         if (evt && evt.type === 'PAYMENT_VERIFIED' && activeScreen.id === 'screen-qr') {
           // If we receive ANY payment while waiting, assume it's this one (or we could match orderId)
+          
+          // Render receipt QR
+          document.getElementById('receipt-qrcode').innerHTML = '';
+          if (evt.orderId) {
+            new QRCode(document.getElementById("receipt-qrcode"), {
+              text: `${window.location.origin}/invoice/${evt.orderId}`,
+              width: 150, height: 150,
+              colorDark : "#000000", colorLight : "#ffffff",
+              correctLevel : QRCode.CorrectLevel.M
+            });
+          }
+
           showScreen('screen-success');
           playAudioAlert(evt.amount);
           
-          // Auto-reset back to idle after 6 seconds
+          // Auto-reset back to idle after 15 seconds so customer has time to scan
           setTimeout(() => {
             fetch('/api/admin/pos/clear', {
               method: 'POST',
               headers: { 'Authorization': `Bearer ${localStorage.getItem('admin_token')}` }
             }).catch(e=>{}); // best effort
             showScreen('screen-idle');
-          }, 6000);
+          }, 15000);
         }
       });
     }

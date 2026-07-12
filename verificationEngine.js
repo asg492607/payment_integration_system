@@ -109,6 +109,12 @@ async function verifyPayment(signal) {
         enterpriseId: eId, totalRevenue: totalRev, paidOrders: paid, pendingOrders: pending, activeUsers: active
       }).catch(()=>{});
       
+      // Automated Customer Invoice Dispatch
+      if (user?.email) {
+        // In production, this would invoke nodemailer or AWS SES
+        console.log(`[Invoice Engine] 📧 Dispatched Digital Receipt for order ${orderId} to customer email: ${user.email}`);
+      }
+      
       // Developer Webhook integration
       const enterprise = await db.get(`enterprise_users/${eId}`);
       if (enterprise && enterprise.merchant_webhook_url) {

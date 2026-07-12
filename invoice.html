@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payment Receipt</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f9fafb; --surface: #ffffff;
+      --text-1: #111827; --text-2: #4b5563; --text-3: #9ca3af;
+      --border: #e5e7eb; --primary: #4f46e5;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Outfit', sans-serif; }
+    body { background: var(--bg); color: var(--text-1); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+    
+    .invoice-card { background: var(--surface); border: 1px solid var(--border); max-width: 500px; width: 100%; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); overflow: hidden; }
+    
+    .header { background: var(--primary); padding: 40px 30px; text-align: center; color: white; }
+    .header h1 { font-size: 2rem; font-weight: 700; margin-bottom: 8px; }
+    .header p { opacity: 0.8; font-size: 0.9rem; }
+    
+    .status-badge { display: inline-block; background: #10b981; color: white; font-weight: 600; font-size: 0.8rem; padding: 6px 12px; border-radius: 20px; margin-top: 16px; text-transform: uppercase; letter-spacing: 1px; }
+    
+    .body { padding: 30px; }
+    .detail-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 0.95rem; }
+    .detail-row:last-child { border-bottom: none; }
+    .detail-label { color: var(--text-2); }
+    .detail-value { font-weight: 600; text-align: right; word-break: break-all; max-width: 60%; }
+    
+    .items-section { margin-top: 30px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+    .items-header { background: #f3f4f6; padding: 10px 15px; font-weight: 600; font-size: 0.85rem; color: var(--text-2); display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); }
+    .item-row { display: flex; justify-content: space-between; padding: 12px 15px; font-size: 0.95rem; border-bottom: 1px solid var(--border); }
+    .item-row:last-child { border-bottom: none; }
+    
+    .total-section { margin-top: 20px; padding-top: 20px; border-top: 2px dashed var(--border); display: flex; justify-content: space-between; align-items: center; }
+    .total-label { font-size: 1.2rem; font-weight: 600; color: var(--text-2); }
+    .total-amount { font-size: 2rem; font-weight: 800; color: var(--primary); }
+    
+    .footer { padding: 20px 30px; text-align: center; background: #f3f4f6; color: var(--text-3); font-size: 0.8rem; border-top: 1px solid var(--border); }
+    
+    .btn-print { display: block; width: 100%; padding: 14px; background: var(--text-1); color: white; text-align: center; text-decoration: none; font-weight: 600; border: none; cursor: pointer; transition: 0.2s; }
+    .btn-print:hover { background: #374151; }
+    
+    @media print {
+      body { background: white; padding: 0; }
+      .invoice-card { box-shadow: none; border: none; }
+      .btn-print { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="invoice-card" id="invoice">
+    <div style="padding: 40px; text-align: center;">Loading receipt...</div>
+  </div>
+
+  <script>
+    async function loadInvoice() {
+      const orderId = window.location.pathname.split('/').pop();
+      try {
+        const res = await fetch(`/api/public/order/${orderId}`);
+        const data = await res.json();
+        
+        if (!data.success) {
+          document.getElementById('invoice').innerHTML = `<div style="padding:40px;text-align:center;color:red;">Invoice not found or expired.</div>`;
+          return;
+        }
+        
+        const order = data.order;
+        const brandName = data.merchant.name || 'Merchant';
+        const brandColor = data.merchant.color || '#4f46e5';
+        document.documentElement.style.setProperty('--primary', brandColor);
+        document.title = `Receipt - ${order.id}`;
+
+        let itemsHtml = '';
+        if (order.cartItems && order.cartItems.length > 0) {
+          itemsHtml = `
+            <div class="items-section">
+              <div class="items-header"><span>Item</span><span>Amount</span></div>
+              ${order.cartItems.map(i => `
+                <div class="item-row">
+                  <span>${i.qty}x ${i.name}</span>
+                  <strong>₹${(i.qty * parseFloat(i.price)).toFixed(2)}</strong>
+                </div>
+              `).join('')}
+            </div>
+          `;
+        }
+        
+        const statusBadge = order.status === 'paid' ? 
+          `<div class="status-badge">Payment Successful</div>` : 
+          `<div class="status-badge" style="background:#f59e0b;">${order.status.toUpperCase()}</div>`;
+
+        document.getElementById('invoice').innerHTML = `
+          <div class="header">
+            <h1>${brandName}</h1>
+            <p>Digital Receipt</p>
+            ${statusBadge}
+          </div>
+          <div class="body">
+            <div class="detail-row">
+              <span class="detail-label">Receipt No.</span>
+              <span class="detail-value">${order.id}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Date</span>
+              <span class="detail-value">${new Date(order.created_at).toLocaleString('en-IN')}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Payment Ref (UTR)</span>
+              <span class="detail-value">${order.upi_ref || 'N/A'}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Payment Source</span>
+              <span class="detail-value">UPI (${order.source || 'Direct'})</span>
+            </div>
+            
+            ${itemsHtml}
+            
+            <div class="total-section">
+              <span class="total-label">Amount Paid</span>
+              <span class="total-amount">₹${parseFloat(order.amount).toFixed(2)}</span>
+            </div>
+          </div>
+          <button class="btn-print" onclick="window.print()">🖨️ Print / Save as PDF</button>
+          <div class="footer">
+            Powered by <strong>PayForge</strong><br>
+            Automated Payment Infrastructure
+          </div>
+        `;
+      } catch (err) {
+        document.getElementById('invoice').innerHTML = `<div style="padding:40px;text-align:center;">Failed to load receipt.</div>`;
+      }
+    }
+    
+    loadInvoice();
+  </script>
+</body>
+</html>
