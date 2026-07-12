@@ -2042,51 +2042,6 @@ function generateSmartLink() {
   document.getElementById('smart-link-test').href = url;
 }
 
-// ── Chart.js Setup ────────────────────────────────────────────────────────
-let revChart;
-function updateRevenueChart(stats) {
-  const ctx = document.getElementById('revenueChart');
-  if (!ctx) return;
-  // Using dummy trend data based on total revenue for demo purposes
-  const base = (stats.totalRevenue || 0) / 7;
-  const data = [base*0.4, base*0.7, base*1.2, base*0.8, base*1.5, base*0.9, base*1.5];
-  
-  if (revChart) revChart.destroy();
-  
-  Chart.defaults.color = '#94a3b8';
-  Chart.defaults.font.family = "'Outfit', sans-serif";
-  
-  revChart = new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-      datasets: [{
-        label: 'Revenue (₹)',
-        data: data,
-        borderColor: '#6366f1',
-        backgroundColor: 'rgba(99,102,241,0.1)',
-        borderWidth: 3,
-        tension: 0.4,
-        fill: true,
-        pointBackgroundColor: '#818cf8',
-        pointBorderColor: '#fff',
-        pointHoverBackgroundColor: '#fff',
-        pointHoverBorderColor: '#6366f1',
-        pointRadius: 4,
-        pointHoverRadius: 6
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
-      scales: {
-        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } },
-        x: { grid: { display: false } }
-      }
-    }
-  });
-}
 
 function updateOverviewUI() {
   const feed = document.getElementById('event-feed');
