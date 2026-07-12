@@ -1830,10 +1830,11 @@ function populateUserUI(user, stats) {
   }
 
 
-  document.getElementById('s-revenue').textContent = `₹${(stats.totalRevenue||0).toFixed(2)}`;
+  if (stats) {   document.getElementById('s-revenue').textContent = `₹${(stats.totalRevenue||0).toFixed(2)}`;
   document.getElementById('s-paid').textContent = stats.paidOrders||0;
   document.getElementById('s-pending').textContent = stats.pendingOrders||0;
   document.getElementById('s-users').textContent = stats.activeUsers||0;
+  }
   
   loadAnalytics();
   const cfgSec = document.getElementById('cfg-secret');
@@ -2199,7 +2200,7 @@ async function saveSetup() {
     populateUserUI(data.user, null);
     toast('✅ UPI configuration saved!', 'success');
   } catch(e) { 
-    alert("Exact error: " + e.message + "\nStack: " + e.stack);
+
     toast('Save failed. Is the server running?','error'); 
   }
   finally { btn.textContent = '💾 Save Configuration'; btn.disabled = false; }
