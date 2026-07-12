@@ -2789,22 +2789,22 @@ function switchUtrTab(name, btn) {
 function populateFallbackPage() {
   // Set Telegram link command
   const tgEl = document.getElementById('tg-link-cmd');
-  if (tgEl && _state.user) tgEl.textContent = `/start ${_state.user.id}`;
+  if (tgEl && currentUser) tgEl.textContent = `/start ${currentUser.id}`;
   // Populate email fields if already configured
-  if (_state.user) {
-    if (_state.user.razorpay_webhook_secret) document.getElementById('inp-razorpay-secret').value = _state.user.razorpay_webhook_secret;
-    const rzpWebhookUrl = window.location.origin + '/api/webhooks/razorpay/' + _state.user.id;
+  if (currentUser) {
+    if (currentUser.razorpay_webhook_secret) document.getElementById('inp-razorpay-secret').value = currentUser.razorpay_webhook_secret;
+    const rzpWebhookUrl = window.location.origin + '/api/webhooks/razorpay/' + currentUser.id;
     const rzpUrlEl = document.getElementById('razorpay-webhook-url');
     if (rzpUrlEl) rzpUrlEl.textContent = rzpWebhookUrl;
 
-    if (_state.user.cashfree_webhook_secret) document.getElementById('inp-cashfree-secret').value = _state.user.cashfree_webhook_secret;
-    const cfWebhookUrl = window.location.origin + '/api/webhooks/cashfree/' + _state.user.id;
+    if (currentUser.cashfree_webhook_secret) document.getElementById('inp-cashfree-secret').value = currentUser.cashfree_webhook_secret;
+    const cfWebhookUrl = window.location.origin + '/api/webhooks/cashfree/' + currentUser.id;
     const cfUrlEl = document.getElementById('cashfree-webhook-url');
     if (cfUrlEl) cfUrlEl.textContent = cfWebhookUrl;
     
-    if (_state.user.email_imap_user) document.getElementById('inp-imap-user').value = _state.user.email_imap_user;
-    if (_state.user.email_imap_host) document.getElementById('inp-imap-host').value = _state.user.email_imap_host;
-    if (_state.user.email_imap_port) document.getElementById('inp-imap-port').value = _state.user.email_imap_port;
+    if (currentUser.email_imap_user) document.getElementById('inp-imap-user').value = currentUser.email_imap_user;
+    if (currentUser.email_imap_host) document.getElementById('inp-imap-host').value = currentUser.email_imap_host;
+    if (currentUser.email_imap_port) document.getElementById('inp-imap-port').value = currentUser.email_imap_port;
   }
   // Update layer 2 (email) status in devices page
   const l2 = document.getElementById('layer2-status');
@@ -2966,7 +2966,7 @@ function playTTS(text) {
   window.speechSynthesis.speak(utterance);
 }
 
-document.addEventListener('DOMContentLoaded', initApp);
+document.addEventListener('DOMContentLoaded', init);
 </script>
 <script>
   function toggleTheme() {
