@@ -2198,7 +2198,10 @@ async function saveSetup() {
     currentUser = data.user;
     populateUserUI(data.user, null);
     toast('✅ UPI configuration saved!', 'success');
-  } catch(e) { toast('Save failed. Is the server running?','error'); }
+  } catch(e) { 
+    alert("Exact error: " + e.message + "\nStack: " + e.stack);
+    toast('Save failed. Is the server running?','error'); 
+  }
   finally { btn.textContent = '💾 Save Configuration'; btn.disabled = false; }
 }
 
