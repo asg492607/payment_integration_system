@@ -35,6 +35,7 @@ const manualVerify = require('./manualVerify');
 const ordersRoute  = require('./orders');
 const adminRoute   = require('./admin');
 const authRoute    = require('./auth');
+const apiV1        = require('./api_v1');
 
 // ── Razorpay Webhook ──────────────────────────────────────────────────────────
 const razorpayWebhook = require('./razorpayWebhook');
