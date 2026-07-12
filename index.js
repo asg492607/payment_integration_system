@@ -92,7 +92,7 @@ app.get('/sdk.js', (req, res) => {
 });
 
 // ── Static Frontend ───────────────────────────────────────────────────────────
-const publicFiles = ['login.html', 'dashboard.html', 'admin.html', 'app.js', 'style.css', 'checkout.html', 'cashier.html', 'pos.html', 'manifest.json', 'sw.js', 'icon-192.png', 'icon-512.png'];
+const publicFiles = ['login.html', 'dashboard.html', 'admin.html', 'app.js', 'style.css', 'checkout.html', 'cashier.html', 'pos.html', 'manifest.json', 'sw.js', 'icon-192.png', 'icon-512.png', 'google9dcca288a538a651.html'];
 publicFiles.forEach(file => {
   app.get('/' + file, (req, res) => res.sendFile(path.join(__dirname, file)));
 });
