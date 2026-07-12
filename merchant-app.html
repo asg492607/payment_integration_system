@@ -309,8 +309,9 @@
         
         <div id="qr-display-view" style="display: none; text-align: center; margin-top: 20px;">
           <div style="background: white; padding: 24px; border-radius: var(--radius-lg); display: inline-block; box-shadow: var(--shadow);">
-            <img id="store-qr" src="" alt="QR Code" style="width: 220px; height: 220px; display: none;">
-            <div id="qr-loading" style="width: 220px; height: 220px; display: flex; align-items: center; justify-content: center; background: #f8fafc; color: #94a3b8;">
+            <div id="pos-pushed-msg"></div>
+            <img id="store-qr" src="" alt="QR Code" style="width: 220px; height: 220px; display: none; margin: 0 auto;">
+            <div id="qr-loading" style="width: 220px; height: 220px; display: flex; align-items: center; justify-content: center; background: #f8fafc; color: #94a3b8; margin: 0 auto;">
               Generating...
             </div>
           </div>
@@ -419,6 +420,8 @@
         }
         db = firebase.database();
         listenToOrders();
+        listenToPosState();
+        listenToOrderChanges();
       } catch (err) {
         console.error("Failed to load DB config", err);
         alert("Failed to connect to backend. Check Enterprise ID.");
@@ -479,12 +482,63 @@
           </div>
         `).join('');
       });
+    }
 
-      // Listen for NEW paid orders for soundbox
-      ordersRef.on('child_changed', snap => {
+    function listenToPosState() {
+      db.ref('pos_state/' + entId).on('value', snap => {
+        if (!snap.exists()) return;
+        const state = snap.val();
+        
+        if (state.status === 'idle') {
+          resetQRView();
+        } else if (state.amount) {
+          // Display the pushed cart!
+          document.getElementById('qr-input-view').style.display = 'none';
+          document.getElementById('qr-display-view').style.display = 'block';
+          document.getElementById('store-qr').style.display = 'none';
+          document.getElementById('qr-loading').style.display = 'flex';
+          
+          let html = `<div style="font-weight:800; font-size:1.5rem; margin-bottom: 12px;">Total: ₹${state.amount}</div>`;
+          
+          if (state.cartItems && state.cartItems.length) {
+            html += `<div style="text-align:left; font-size:0.9rem; max-height:150px; overflow-y:auto; margin-bottom: 16px; border:1px dashed var(--border); padding:8px; border-radius:8px;">`;
+            state.cartItems.forEach(item => {
+              html += `<div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                <span>${item.qty}x ${item.name}</span>
+                <span style="font-weight:bold;">₹${(item.qty * parseFloat(item.price)).toFixed(2)}</span>
+              </div>`;
+            });
+            html += `</div>`;
+          }
+          
+          const posMsg = document.getElementById('pos-pushed-msg');
+          if (posMsg) posMsg.innerHTML = html;
+          
+          const storeUrl = window.location.origin + '/pay/' + entId + '?amount=' + state.amount;
+          document.getElementById('store-link').href = storeUrl;
+          
+          const qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=' + encodeURIComponent(storeUrl);
+          const img = document.getElementById('store-qr');
+          img.onload = () => {
+            img.style.display = 'block';
+            document.getElementById('qr-loading').style.display = 'none';
+            // Play a ding when push arrives
+            if (soundboxActive && 'speechSynthesis' in window) {
+               const u = new SpeechSynthesisUtterance("Checkout initiated for " + state.amount + " rupees");
+               window.speechSynthesis.speak(u);
+            }
+          };
+          img.src = qrUrl;
+        }
+      });
+    }
+
+    // Listen for NEW paid orders for soundbox
+    function listenToOrderChanges() {
+      db.ref('orders').on('child_changed', snap => {
         const o = snap.val();
         if (o.status === 'paid' && soundboxActive) {
-          // Only alert if payment was completed RECENTLY (prevent duplicate rings on old data changes)
+          // Only alert if payment was completed RECENTLY
           const now = Date.now();
           if (now - initializedTimestamp > 2000) { 
             playAudioAlert(o.amount);
