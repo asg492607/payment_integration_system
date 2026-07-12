@@ -91,10 +91,14 @@ app.get('/sdk.js', (req, res) => {
 });
 
 // ── Static Frontend ───────────────────────────────────────────────────────────
-const publicFiles = ['login.html', 'dashboard.html', 'admin.html', 'app.js', 'style.css', 'checkout.html', 'cashier.html', 'pos.html'];
+const publicFiles = ['login.html', 'dashboard.html', 'admin.html', 'app.js', 'style.css', 'checkout.html', 'cashier.html', 'pos.html', 'manifest.json', 'sw.js', 'icon-192.png', 'icon-512.png'];
 publicFiles.forEach(file => {
   app.get('/' + file, (req, res) => res.sendFile(path.join(__dirname, file)));
 });
+
+app.get('/login', (req, res) => res.sendFile(path.join(__dirname, 'login.html')));
+app.get('/app', (req, res) => res.sendFile(path.join(__dirname, 'merchant-app.html')));
+app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'admin.html')));
 
 // ── Smart Checkout Link Route ─────────────────────────────────────────────────
 app.get('/pay/:enterpriseId', (req, res) => {

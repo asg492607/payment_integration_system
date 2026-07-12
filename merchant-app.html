@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#0ea5e9">
+  <title>ASG Business</title>
+  
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/icon-192.png">
+  <link rel="stylesheet" href="/style.css">
+  
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+  
+  <style>
+    /* Mobile App Overrides */
+    body {
+      background: var(--bg);
+      padding-bottom: 70px; /* Space for bottom nav */
+      overscroll-behavior-y: none;
+    }
+    
+    .app-header {
+      background: var(--bg2);
+      padding: 16px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      border-bottom: 1px solid var(--border);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+    }
+    
+    .app-title {
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: var(--indigo);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .bottom-nav {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: var(--bg2);
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-around;
+      padding: 12px 0 20px 0; /* Extra padding for iOS home bar */
+      z-index: 100;
+      box-shadow: 0 -4px 16px rgba(0,0,0,0.05);
+    }
+    
+    .nav-btn {
+      background: none;
+      border: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      color: var(--text-3);
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+    
+    .nav-btn.active {
+      color: var(--indigo);
+    }
+    
+    .nav-btn i {
+      font-size: 1.4rem;
+      font-style: normal;
+    }
+    
+    .page { display: none; padding: 20px; animation: fadeIn 0.2s ease; }
+    .page.active { display: block; }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .hero-card {
+      background: linear-gradient(135deg, var(--indigo), var(--indigo-dk));
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      color: white;
+      text-align: center;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow);
+    }
+    
+    .amount-display {
+      font-size: 2.5rem;
+      font-weight: 800;
+      margin: 12px 0;
+    }
+    
+    .recent-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    
+    .tx-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .tx-amount {
+      font-weight: 800;
+      color: var(--emerald);
+      font-size: 1.1rem;
+    }
+    
+    .soundbox-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 100px;
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--emerald);
+      font-size: 0.8rem;
+      font-weight: 700;
+      margin-top: 12px;
+    }
+    
+    .dot {
+      width: 8px; height: 8px;
+      background: var(--emerald);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--emerald);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+    
+    /* Login Screen */
+    #login-screen {
+      position: fixed; inset: 0;
+      background: var(--bg);
+      z-index: 200;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 30px;
+    }
+    .input-group { margin-bottom: 16px; }
+    .input-group input {
+      width: 100%; padding: 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--bg2);
+      color: var(--text-1);
+      font-size: 1rem;
+      outline: none;
+    }
+    .input-group input:focus { border-color: var(--indigo); }
+    .btn-primary {
+      width: 100%; padding: 14px;
+      background: var(--indigo);
+      color: white; border: none;
+      border-radius: var(--radius-sm);
+      font-size: 1rem; font-weight: 700;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Login Screen -->
+  <div id="login-screen">
+    <div style="text-align: center; margin-bottom: 40px;">
+      <div style="font-size: 3rem; margin-bottom: 16px;">⚡</div>
+      <h1 style="font-size: 1.8rem; font-weight: 800; color: var(--indigo);">ASG Business</h1>
+      <p style="color: var(--text-2); margin-top: 8px;">Enter your Enterprise ID to connect your phone as a Virtual Soundbox.</p>
+    </div>
+    
+    <div class="input-group">
+      <input type="text" id="ent-id" placeholder="Enter Enterprise ID (e.g. asg123)">
+    </div>
+    <button class="btn-primary" onclick="connectApp()">Connect App</button>
+  </div>
+
+  <!-- Main App -->
+  <div id="app-screen" style="display:none;">
+    <header class="app-header">
+      <div class="app-title">⚡ ASG Business</div>
+      <div style="font-size: 0.8rem; color: var(--text-3); font-weight: 600;" id="app-ent-label">ID: ---</div>
+    </header>
+
+    <div class="page active" id="page-home">
+      <div class="hero-card">
+        <div style="font-size: 0.9rem; opacity: 0.9;">Today's Revenue</div>
+        <div class="amount-display" id="today-rev">₹0.00</div>
+        <button class="btn-primary" style="background: rgba(255,255,255,0.2); backdrop-filter: blur(10px);" onclick="initSoundbox()">
+          Enable Virtual Soundbox 🔊
+        </button>
+        <br>
+        <div class="soundbox-status" id="sb-status" style="display:none;">
+          <div class="dot"></div> Listening for Payments
+        </div>
+      </div>
+
+      <h3 style="font-size: 1rem; margin-bottom: 12px; color: var(--text-2);">Recent Transactions</h3>
+      <div class="recent-list" id="tx-list">
+        <div style="text-align:center; padding: 30px; color: var(--text-3); font-size: 0.9rem;">Waiting for transactions...</div>
+      </div>
+    </div>
+    
+    <div class="page" id="page-qr">
+      <div style="text-align:center; padding: 20px 0;">
+        <h2 style="font-size: 1.4rem; font-weight: 800; margin-bottom: 8px;">Smart Checkout</h2>
+        <p style="color: var(--text-2); font-size: 0.9rem; margin-bottom: 24px;">Show this QR to walk-in customers.</p>
+        
+        <div style="background: white; padding: 24px; border-radius: var(--radius-lg); display: inline-block; box-shadow: var(--shadow);">
+          <img id="store-qr" src="" alt="QR Code" style="width: 200px; height: 200px; display: none;">
+          <div id="qr-loading" style="width: 200px; height: 200px; display: flex; align-items: center; justify-content: center; background: #f8fafc; color: #94a3b8;">
+            Loading...
+          </div>
+        </div>
+        
+        <div style="margin-top: 24px;">
+          <a id="store-link" href="#" target="_blank" style="color: var(--indigo); font-weight: 700; text-decoration: none;">Open Store Link ↗</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+      <button class="nav-btn active" onclick="nav('home', this)">
+        <i>🏠</i> Home
+      </button>
+      <button class="nav-btn" onclick="nav('qr', this)">
+        <i>📱</i> QR Code
+      </button>
+    </nav>
+  </div>
+  
+  <div style="text-align:center; padding: 20px; font-size: 0.8rem; color: #94a3b8; width: 100%; position: relative; z-index: 100;">Developed by ASG</div>
+
+  <script>
+    // 1. PWA Registration
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(err => console.error('SW Failed', err));
+      });
+    }
+
+    // 2. Navigation
+    function nav(pageId, btn) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById('page-' + pageId).classList.add('active');
+      btn.classList.add('active');
+    }
+
+    // 3. State & Firebase
+    let db;
+    let entId = localStorage.getItem('asg_merchant_id');
+    let soundboxActive = false;
+    let initializedTimestamp = Date.now();
+
+    if (entId) {
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('app-screen').style.display = 'block';
+      setupFirebase(entId);
+    }
+
+    function connectApp() {
+      const id = document.getElementById('ent-id').value.trim();
+      if (!id) return alert('Enter Enterprise ID');
+      localStorage.setItem('asg_merchant_id', id);
+      entId = id;
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('app-screen').style.display = 'block';
+      setupFirebase(id);
+    }
+
+    async function setupFirebase(id) {
+      document.getElementById('app-ent-label').textContent = 'ID: ' + id;
+      
+      // Load QR Code dynamically via our QR API
+      const storeUrl = window.location.origin + '/pay/' + id;
+      document.getElementById('store-link').href = storeUrl;
+      const qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=' + encodeURIComponent(storeUrl);
+      const img = document.getElementById('store-qr');
+      img.onload = () => {
+        img.style.display = 'block';
+        document.getElementById('qr-loading').style.display = 'none';
+      };
+      img.src = qrUrl;
+
+      // Fetch Firebase Config via API
+      try {
+        const res = await fetch(`/api/client/fb-config?eId=${id}`);
+        const fbConfig = await res.json();
+        
+        if (!firebase.apps.length) {
+          firebase.initializeApp(fbConfig);
+        }
+        db = firebase.database();
+        listenToOrders();
+      } catch (err) {
+        console.error("Failed to load DB config", err);
+        alert("Failed to connect to backend. Check Enterprise ID.");
+      }
+    }
+
+    // 4. Virtual Soundbox & Listeners
+    function initSoundbox() {
+      if (!('speechSynthesis' in window)) return alert('Text-to-speech not supported on this device.');
+      
+      // Request audio permission by playing silent utterance
+      const utterance = new SpeechSynthesisUtterance("Soundbox activated.");
+      utterance.volume = 0.5;
+      window.speechSynthesis.speak(utterance);
+      
+      soundboxActive = true;
+      document.getElementById('sb-status').style.display = 'inline-flex';
+      event.target.style.display = 'none'; // Hide enable button
+    }
+
+    function listenToOrders() {
+      const ordersRef = db.ref('orders');
+      let initialLoad = true;
+      
+      // Load last 20 transactions for history
+      ordersRef.orderByChild('status').equalTo('paid').limitToLast(20).on('value', snap => {
+        if (!snap.exists()) return;
+        const orders = [];
+        let total = 0;
+        
+        snap.forEach(child => {
+          const o = child.val();
+          orders.push(o);
+          
+          // Add to today's revenue if created today
+          const d = new Date(o.created_at);
+          const today = new Date();
+          if (d.getDate() === today.getDate() && d.getMonth() === today.getMonth()) {
+            total += parseFloat(o.amount);
+          }
+        });
+        
+        document.getElementById('today-rev').textContent = '₹' + total.toFixed(2);
+        
+        // Reverse array for newest first
+        orders.reverse();
+        
+        const list = document.getElementById('tx-list');
+        list.innerHTML = orders.map(o => `
+          <div class="tx-card">
+            <div>
+              <div style="font-weight: 700; color: var(--text-1); font-size: 0.95rem;">Order #${o.id}</div>
+              <div style="font-size: 0.8rem; color: var(--text-2); margin-top: 2px;">
+                ${new Date(o.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+              </div>
+            </div>
+            <div class="tx-amount">₹${o.amount}</div>
+          </div>
+        `).join('');
+      });
+
+      // Listen for NEW paid orders for soundbox
+      ordersRef.on('child_changed', snap => {
+        const o = snap.val();
+        if (o.status === 'paid' && soundboxActive) {
+          // Only alert if payment was completed RECENTLY (prevent duplicate rings on old data changes)
+          const now = Date.now();
+          if (now - initializedTimestamp > 2000) { 
+            playAudioAlert(o.amount);
+          }
+        }
+      });
+    }
+
+    function playAudioAlert(amount) {
+      const text = `Payment received of ${amount} rupees on ASG.`;
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'en-IN';
+      utterance.rate = 1.0;
+      utterance.pitch = 1.1;
+      window.speechSynthesis.speak(utterance);
+    }
+  </script>
+</body>
+</html>
