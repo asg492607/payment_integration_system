@@ -365,7 +365,7 @@ document.addEventListener('keydown', e => {
   const currentTheme = localStorage.getItem('theme') || 'dark';
   if (currentTheme === 'light') {
     document.documentElement.setAttribute('data-theme', 'light');
-    if (toggleBtn) toggleBtn.textContent = '??';
+    if (toggleBtn) toggleBtn.textContent = '🌙';
   }
   if (toggleBtn) {
     toggleBtn.addEventListener('click', () => {
@@ -373,7 +373,7 @@ document.addEventListener('keydown', e => {
       const nextTheme = isLight ? 'dark' : 'light';
       document.documentElement.setAttribute('data-theme', nextTheme);
       localStorage.setItem('theme', nextTheme);
-      toggleBtn.textContent = isLight ? '??' : '??';
+      toggleBtn.textContent = isLight ? '☀️' : '🌙';
     });
   }
 </script>
