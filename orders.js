@@ -63,7 +63,7 @@ async function reserveAmount(baseAmount, enterpriseId) {
 // ── POST /api/orders/create ───────────────────────────────────────────────────
 router.post('/create', async (req, res) => {
   try {
-    let { email, name, phone, plan, enterprise_id } = req.body;
+    let { email, name, phone, plan, enterprise_id, amount } = req.body;
     if (!email || !name || !plan || !enterprise_id) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
@@ -85,6 +85,7 @@ router.post('/create', async (req, res) => {
     let planMeta = allPlans.find(p => p.plan_code === plan);
     if (!planMeta) {
       if (plan === 'pro') planMeta = { label: 'Pro', amount: 499 };
+      else if (plan === 'custom' && amount) planMeta = { label: 'Custom', amount: parseFloat(amount) };
       else return res.status(400).json({ error: 'Invalid plan selected' });
     }
 
