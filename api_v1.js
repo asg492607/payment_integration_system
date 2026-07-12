@@ -42,7 +42,7 @@ router.post('/payments/create', requireApiKey, async (req, res) => {
     const upiLink = upiEngine.buildUpiLinkForEnterprise({
       orderId,
       amount: payableAmount,
-      note: `${enterprise.company || 'PayForge'} - ${orderId}`,
+      note: `${enterprise.company || 'ASG Payment Gateway'} - ${orderId}`,
       vpa: enterprise.upi_vpa,
       payeeName: enterprise.upi_payee_name
     });

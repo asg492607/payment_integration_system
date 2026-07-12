@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>PayForge — Enterprise Dashboard</title>
+  <title>ASG Payment Gateway — Enterprise Dashboard</title>
   <meta name="description" content="Manage your UPI payment engine, configure SMS auto-verification, and track revenue in real-time."/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
@@ -379,7 +379,7 @@
   <a class="sidebar-logo" href="/">
     <div class="logo-icon">⚡</div>
     <div>
-      <div class="logo-text">PayForge</div>
+      <div class="logo-text">ASG Payment Gateway</div>
       <div class="logo-badge">ENTERPRISE</div>
     </div>
   </a>
@@ -451,6 +451,8 @@
         style="display:none;background:none;border:none;cursor:pointer;color:var(--text-1);font-size:1.3rem" id="menu-btn">☰</button>
       <div class="topbar-title" id="topbar-title">Dashboard</div>
     </div>
+    <div style="display:flex;align-items:center;gap:16px;margin-left:auto">
+      <button id="btn-theme-toggle" onclick="toggleTheme()" title="Toggle Theme" style="background:none; border:none; cursor:pointer; font-size:1.2rem; transition:0.2s; color:var(--text-1);">🌞</button>
       <button id="btn-soundbox" onclick="toggleSoundbox()" title="Virtual Soundbox: Audio Alerts" style="background:none; border:none; cursor:pointer; font-size:1.2rem; opacity:0.5; transition:0.2s">🔇</button>
       <div class="live-indicator" id="live-indicator" title="Firebase real-time connection">
         <div class="live-dot"></div> Live
@@ -859,9 +861,9 @@
       </div>
 
       <!-- App Recommendations -->
-      <!-- PayForge Official App -->
+      <!-- ASG Payment Gateway Official App -->
       <div class="card" style="margin-bottom:24px">
-        <div class="card-header"><h3>📱 Official PayForge SMS Forwarder</h3></div>
+        <div class="card-header"><h3>📱 Official ASG Payment Gateway SMS Forwarder</h3></div>
         <div class="card-body">
           <div style="background: linear-gradient(135deg, rgba(99,102,241,0.1), rgba(16,185,129,0.1)); border: 1px solid rgba(99,102,241,0.3); border-radius: var(--radius); padding: 24px; margin-bottom: 24px;">
             <div style="text-align: center; margin-bottom: 20px;">
@@ -875,7 +877,7 @@
                 <p style="margin-top:4px; font-size:0.85rem; opacity:0.9;">Download our official, white-labeled SMS Forwarder App directly to your Android phone. It is pre-configured to automatically route bank alerts to your server.</p>
               </div>
               <div style="display:flex; gap:12px; flex-wrap:wrap;">
-                <a href="/PayForge-App.apk" download class="btn btn-success" style="text-decoration:none; white-space:nowrap; padding: 12px 24px; font-size: 1rem;">🌟 Download Official App</a>
+                <a href="/ASG Payment Gateway-App.apk" download class="btn btn-success" style="text-decoration:none; white-space:nowrap; padding: 12px 24px; font-size: 1rem;">🌟 Download Official App</a>
               </div>
             </div>
           </div>
@@ -1011,7 +1013,7 @@ Content-Type: application/json
 
           <div id="integ-embed" style="display:none">
             <p style="color:var(--text-2);font-size:0.85rem;margin-bottom:12px">
-              Include PayForge directly in your HTML — your branded checkout:
+              Include ASG Payment Gateway directly in your HTML — your branded checkout:
             </p>
             <div class="code-block">
 <button class="copy-btn" onclick="copyCodeBlock(this)">Copy</button>&lt;!-- Include in your HTML --&gt;
@@ -1023,7 +1025,7 @@ Content-Type: application/json
 &lt;script src="https://your-server.onrender.com/sdk.js"&gt;&lt;/script&gt;
 
 &lt;!-- Trigger payment --&gt;
-&lt;button onclick="PayForge.pay({ plan:'pro', email:'user@x.com', name:'User' })"&gt;
+&lt;button onclick="ASG Payment Gateway.pay({ plan:'pro', email:'user@x.com', name:'User' })"&gt;
   Buy Pro Plan
 &lt;/button&gt;</div>
           </div>
@@ -1082,7 +1084,7 @@ onChildAdded(evt, (snapshot) => {
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
         <div>
           <h2 style="font-size:1.3rem;font-weight:800;letter-spacing:-0.5px">🔌 Device Status Monitor</h2>
-          <p style="color:var(--text-2);font-size:0.85rem;margin-top:4px">Live status of all Android phones forwarding bank SMS to PayForge.</p>
+          <p style="color:var(--text-2);font-size:0.85rem;margin-top:4px">Live status of all Android phones forwarding bank SMS to ASG Payment Gateway.</p>
         </div>
         <button class="btn btn-ghost btn-sm" onclick="loadDeviceStatus()">↻ Refresh</button>
       </div>
@@ -1199,7 +1201,7 @@ onChildAdded(evt, (snapshot) => {
               </div>
             </div>
 
-            <h4 style="font-size:0.85rem;font-weight:700;margin-bottom:16px;color:var(--text-2);text-transform:uppercase;letter-spacing:0.5px">Configure Secret in PayForge</h4>
+            <h4 style="font-size:0.85rem;font-weight:700;margin-bottom:16px;color:var(--text-2);text-transform:uppercase;letter-spacing:0.5px">Configure Secret in ASG Payment Gateway</h4>
             <div class="form-grid">
               <div class="form-group form-full">
                 <label>Razorpay Webhook Secret</label>
@@ -1257,7 +1259,7 @@ onChildAdded(evt, (snapshot) => {
               </div>
             </div>
 
-            <h4 style="font-size:0.85rem;font-weight:700;margin-bottom:16px;color:var(--text-2);text-transform:uppercase;letter-spacing:0.5px">Configure Secret in PayForge</h4>
+            <h4 style="font-size:0.85rem;font-weight:700;margin-bottom:16px;color:var(--text-2);text-transform:uppercase;letter-spacing:0.5px">Configure Secret in ASG Payment Gateway</h4>
             <div class="form-grid">
               <div class="form-group form-full">
                 <label>Cashfree Webhook Secret</label>
@@ -1275,7 +1277,7 @@ onChildAdded(evt, (snapshot) => {
           <div class="card-header"><h3>📧 Bank Email Alert Polling</h3></div>
           <div class="card-body">
             <div class="alert alert-success" style="margin-bottom:20px">
-              ✅ Most Indian banks (HDFC, SBI, ICICI, Axis, Kotak) send a <strong>transaction email</strong> for every credit. PayForge polls this inbox every 2 minutes and verifies payments automatically — no phone needed.
+              ✅ Most Indian banks (HDFC, SBI, ICICI, Axis, Kotak) send a <strong>transaction email</strong> for every credit. ASG Payment Gateway polls this inbox every 2 minutes and verifies payments automatically — no phone needed.
             </div>
 
             <div class="alert alert-warn" style="margin-bottom:20px;font-size:0.82rem">
@@ -1332,7 +1334,7 @@ onChildAdded(evt, (snapshot) => {
           <div class="card-header"><h3>✈️ Telegram Bot Fallback</h3></div>
           <div class="card-body">
             <div class="alert alert-info" style="margin-bottom:20px">
-              📲 When your phone gets a bank SMS but the PayForge app fails, you can <strong>copy the SMS text and send it to the PayForge Telegram bot</strong>. The bot verifies the payment instantly.
+              📲 When your phone gets a bank SMS but the ASG Payment Gateway app fails, you can <strong>copy the SMS text and send it to the ASG Payment Gateway Telegram bot</strong>. The bot verifies the payment instantly.
             </div>
 
             <h4 style="font-size:0.85rem;font-weight:700;margin-bottom:14px;color:var(--text-2);text-transform:uppercase;letter-spacing:0.5px">Setup (one-time — done by platform owner)</h4>
@@ -1370,7 +1372,7 @@ onChildAdded(evt, (snapshot) => {
             <h4 style="font-size:0.85rem;font-weight:700;margin-bottom:14px;color:var(--text-2);text-transform:uppercase;letter-spacing:0.5px">How to use when phone fails</h4>
             <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:16px;font-size:0.82rem;color:var(--text-2);line-height:1.8">
               1. Open your bank SMS (copy it manually)<br>
-              2. Open the PayForge Telegram bot<br>
+              2. Open the ASG Payment Gateway Telegram bot<br>
               3. <strong>Paste or forward the bank SMS text</strong><br>
               4. Bot replies: <strong style="color:var(--emerald-lt)">✅ Payment Verified!</strong>
             </div>
@@ -1600,7 +1602,7 @@ app.post('/webhook', (req, res) => {
                   <button class="mini-copy" onclick="copyText('telegram-link-cmd','Telegram Command')">📋</button>
                 </div>
                 <div style="font-size:0.75rem;color:var(--text-3);margin-top:4px">
-                  Copy this and send it to the PayForge Telegram Bot to link your account.
+                  Copy this and send it to the ASG Payment Gateway Telegram Bot to link your account.
                 </div>
               </span>
             </div>
@@ -1903,7 +1905,7 @@ function setupFirebaseListener() {
         
         // Virtual Soundbox
         if (soundboxEnabled) {
-          playTTS(`Payment of rupees ${evt.amount} received on PayForge.`);
+          playTTS(`Payment of rupees ${evt.amount} received on ASG Payment Gateway.`);
         }
 
         // Refresh stats
@@ -2664,7 +2666,7 @@ function exportTransactionsCSV() {
   const a = document.createElement('a');
   a.setAttribute('hidden', '');
   a.setAttribute('href', url);
-  a.setAttribute('download', `PayForge_Transactions_${new Date().toISOString().split('T')[0]}.csv`);
+  a.setAttribute('download', `ASG Payment Gateway_Transactions_${new Date().toISOString().split('T')[0]}.csv`);
   document.body.appendChild(a);
   document.body.removeChild(a);
 }
@@ -2683,7 +2685,7 @@ function exportOrdersCSV() {
   const a = document.createElement('a');
   a.setAttribute('hidden', '');
   a.setAttribute('href', url);
-  a.setAttribute('download', `PayForge_Orders_${new Date().toISOString().split('T')[0]}.csv`);
+  a.setAttribute('download', `ASG Payment Gateway_Orders_${new Date().toISOString().split('T')[0]}.csv`);
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -2780,7 +2782,7 @@ async function loadDeviceStatus() {
     const data = await r.json();
     if (!data.devices || data.devices.length === 0) {
       wrap.innerHTML = `<div class="alert alert-warn">
-        ⚠️ No devices registered yet. Install the PayForge Android App and configure your Enterprise ID + Webhook Secret.
+        ⚠️ No devices registered yet. Install the ASG Payment Gateway Android App and configure your Enterprise ID + Webhook Secret.
         <br><br><button class="btn btn-ghost btn-sm" onclick="showPage('sms')">Go to SMS Forwarder →</button>
       </div>`;
       document.getElementById('layer1-status').className = 'badge badge-inactive';
@@ -3025,22 +3027,23 @@ function playTTS(text) {
 document.addEventListener('DOMContentLoaded', initApp);
 </script>
 <script>
-  const toggleBtn = document.getElementById('theme-toggle');
-  const currentTheme = localStorage.getItem('theme') || 'dark';
-  if (currentTheme === 'light') {
-    document.documentElement.setAttribute('data-theme', 'light');
-    if (toggleBtn) toggleBtn.textContent = '??';
+  function toggleTheme() {
+    const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+    const nextTheme = isLight ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', nextTheme);
+    localStorage.setItem('theme', nextTheme);
+    
+    const btn = document.getElementById('btn-theme-toggle');
+    if (btn) btn.textContent = nextTheme === 'light' ? '🌙' : '🌞';
   }
-  if (toggleBtn) {
-    toggleBtn.addEventListener('click', () => {
-      const isLight = document.documentElement.getAttribute('data-theme') === 'light';
-      const nextTheme = isLight ? 'dark' : 'light';
-      document.documentElement.setAttribute('data-theme', nextTheme);
-      localStorage.setItem('theme', nextTheme);
-      toggleBtn.textContent = isLight ? '??' : '??';
-    });
-  }
+
+  // Init theme
+  const currentTheme = localStorage.getItem('theme') || 'light'; // Default to light per user request
+  document.documentElement.setAttribute('data-theme', currentTheme);
+  const btn = document.getElementById('btn-theme-toggle');
+  if (btn) btn.textContent = currentTheme === 'light' ? '🌙' : '🌞';
 </script>
+<div style="text-align:center; padding: 20px; font-size: 0.8rem; color: #94a3b8; width: 100%; position: relative; z-index: 100;">Developed by ASG</div>
 </body>
 </html>
 

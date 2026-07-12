@@ -1,5 +1,5 @@
 /**
- * PayForge — SMS Queue + Retry System for Firebase RTDB
+ * ASG Payment Gateway — SMS Queue + Retry System for Firebase RTDB
  */
 require('dotenv').config();
 const https = require('https');

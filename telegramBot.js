@@ -1,9 +1,9 @@
 /**
- * PayForge — Telegram Bot Fallback Engine
+ * ASG Payment Gateway — Telegram Bot Fallback Engine
  * ─────────────────────────────────────────────────────────────────────────────
  * Merchants forward their bank credit SMS to a Telegram bot.
  * The bot parses the SMS and triggers payment verification — completely
- * independent of the Android PayForge app.
+ * independent of the Android ASG Payment Gateway app.
  *
  * This is the FASTEST fallback: merchant just copies the bank SMS and
  * sends it to the Telegram bot. Verified in < 2 seconds.
@@ -15,7 +15,7 @@
  *
  * Usage by merchant:
  *   - Phone receives bank SMS: "Rs.499.01 credited... UPI Ref 412345678901"
- *   - Merchant copies SMS text, sends to the PayForge bot on Telegram
+ *   - Merchant copies SMS text, sends to the ASG Payment Gateway bot on Telegram
  *   - Bot verifies payment and replies: "✅ Payment Verified! Order XYZ activated."
  *
  * Commands:
@@ -63,10 +63,10 @@ function setupHandlers() {
 
     if (!eId) {
       return bot.sendMessage(chatId,
-        `👋 *Welcome to PayForge Payment Bot!*\n\n` +
+        `👋 *Welcome to ASG Payment Gateway Payment Bot!*\n\n` +
         `To link this chat to your merchant account, use:\n` +
         `/start YOUR_ENTERPRISE_ID\n\n` +
-        `Find your Enterprise ID in your PayForge Dashboard → Integration tab.`,
+        `Find your Enterprise ID in your ASG Payment Gateway Dashboard → Integration tab.`,
         { parse_mode: 'Markdown' }
       );
     }
@@ -123,7 +123,7 @@ function setupHandlers() {
       const upiLink = upiEngine.buildUpiLinkForEnterprise({
         orderId,
         amount: amount.toFixed(2),
-        note: `${user.company || 'PayForge'} - ${orderId}`,
+        note: `${user.company || 'ASG Payment Gateway'} - ${orderId}`,
         vpa: user.upi_vpa,
         payeeName: user.upi_payee_name
       });

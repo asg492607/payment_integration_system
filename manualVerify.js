@@ -1,5 +1,5 @@
 /**
- * PayForge — Manual UTR Verification API
+ * ASG Payment Gateway — Manual UTR Verification API
  * ─────────────────────────────────────────────────────────────────────────────
  * Merchants can manually verify a payment directly from the dashboard
  * by entering the UTR (UPI Reference Number) they see in their bank app.
@@ -12,7 +12,7 @@
  * The merchant simply:
  *   1. Opens their bank app or net banking
  *   2. Sees the credit: "₹499.01 from Customer — UPI Ref: 412345678901"
- *   3. Opens PayForge Dashboard → Orders → Click "Verify by UTR"
+ *   3. Opens ASG Payment Gateway Dashboard → Orders → Click "Verify by UTR"
  *   4. Types 412345678901 → clicks Verify
  *   5. Payment is instantly verified
  *

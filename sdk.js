@@ -1,5 +1,5 @@
 /**
- * PayForge Embeddable Payment SDK v2.0
+ * ASG Payment Gateway Embeddable Payment SDK v2.0
  * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
  * Drop this on any website to accept UPI payments.
  *
@@ -261,7 +261,7 @@
         <div class="pf-header">
           <div class="pf-brand">
             <div class="pf-brand-icon">⚡</div>
-            <span>PayForge</span>
+            <span>ASG Payment Gateway</span>
           </div>
           <button class="pf-close" id="pf-close-btn" aria-label="Close">✕</button>
         </div>
@@ -369,7 +369,7 @@
         </div>
 
         <div class="pf-powered">
-          Secured by <a href="${SERVER}" target="_blank">PayForge</a> · UPI Payment Engine
+          Secured by <a href="${SERVER}" target="_blank">ASG Payment Gateway</a> · UPI Payment Engine
         </div>
       </div>
     `;
@@ -587,7 +587,7 @@
     pay(opts = {}) {
       if (!ENT_ID) {
         console.error('[PayForge] window.PAYFORGE_ENTERPRISE_ID is not set!');
-        if (opts.onError) opts.onError('PayForge Enterprise ID not configured.');
+        if (opts.onError) opts.onError('ASG Payment Gateway Enterprise ID not configured.');
         return;
       }
       resetState();

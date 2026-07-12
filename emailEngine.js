@@ -1,5 +1,5 @@
 /**
- * PayForge — Email Alert Fallback Engine
+ * ASG Payment Gateway — Email Alert Fallback Engine
  * ─────────────────────────────────────────────────────────────────────────────
  * Polls a merchant's dedicated Gmail/Outlook inbox for bank transaction emails
  * and feeds them into the verification engine — exactly like the Android app does

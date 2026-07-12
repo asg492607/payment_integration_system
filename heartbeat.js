@@ -1,5 +1,5 @@
 /**
- * PayForge — Device Heartbeat Monitor
+ * ASG Payment Gateway — Device Heartbeat Monitor
  * ─────────────────────────────────────────────────────────────────────────────
  * Tracks "last seen" timestamps for every registered Android forwarder device.
  * The Android app POSTs a heartbeat ping every 5 minutes.

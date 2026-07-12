@@ -23,9 +23,9 @@ function generateOrderId() {
  */
 function buildUpiLinkForEnterprise({ orderId, amount, note, vpa, payeeName }) {
   const pa = encodeURIComponent(vpa     || process.env.UPI_VPA      || 'demo@upi');
-  const pn = encodeURIComponent(payeeName || process.env.UPI_PAYEE_NAME || 'PayForge');
+  const pn = encodeURIComponent(payeeName || process.env.UPI_PAYEE_NAME || 'ASG Payment Gateway');
   const am = encodeURIComponent(String(amount));
-  const tn = encodeURIComponent(note || `PayForge - ${orderId}`);
+  const tn = encodeURIComponent(note || `ASG Payment Gateway - ${orderId}`);
   const mc = '0000';
   const cu = 'INR';
   const tr = encodeURIComponent(orderId);

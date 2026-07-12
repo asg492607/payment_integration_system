@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>PayForge POS Display</title>
+  <title>ASG Payment Gateway POS Display</title>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700;800&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <style>
@@ -54,13 +54,13 @@
 
   <!-- Screen 1: Idle -->
   <div class="screen active" id="screen-idle">
-    <div class="brand-name" id="idle-brand">PayForge</div>
+    <div class="brand-name" id="idle-brand">ASG Payment Gateway</div>
     <div class="subtitle">Ready for next customer</div>
   </div>
 
   <!-- Screen 2: QR Waiting (Split) -->
   <div class="screen" id="screen-qr">
-    <div class="brand-name" id="qr-brand" style="font-size:2rem; margin-bottom:20px;">PayForge</div>
+    <div class="brand-name" id="qr-brand" style="font-size:2rem; margin-bottom:20px;">ASG Payment Gateway</div>
     <div class="qr-container">
       <!-- Itemized Receipt -->
       <div class="receipt-card" id="receipt-card">
@@ -230,5 +230,6 @@
       }
     }, { once: true });
   </script>
+<div style="text-align:center; padding: 20px; font-size: 0.8rem; color: #94a3b8; width: 100%; position: relative; z-index: 100;">Developed by ASG</div>
 </body>
 </html>

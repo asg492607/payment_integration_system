@@ -1,5 +1,5 @@
 /**
- * PayForge Enterprise — Main Server (Firebase RTDB Edition)
+ * ASG Payment Gateway Enterprise — Main Server (Firebase RTDB Edition)
  * Express + Node-Cron + Firebase Realtime DB
  * Render-ready: PORT=10000
  */
@@ -102,7 +102,7 @@ app.get('/pay/:enterpriseId', (req, res) => {
 });
 
 // Enforce strict APK download headers for Android phones
-const apkFiles = ['PayForge-Forwarder.apk', 'PayForge-App.apk'];
+const apkFiles = ['ASG Payment Gateway-Forwarder.apk', 'ASG Payment Gateway-App.apk'];
 apkFiles.forEach(apk => {
   app.get('/' + apk, (req, res) => {
     res.download(path.join(__dirname, apk), apk, (err) => {
@@ -202,7 +202,7 @@ cron.schedule('*/5 * * * *', async () => {
 
 // ── Start ─────────────────────────────────────────────────────────────────────
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`\n⚡ PayForge Enterprise v2.0 (Firebase RTDB)`);
+  console.log(`\n⚡ ASG Payment Gateway Enterprise v2.0 (Firebase RTDB)`);
   console.log(`🌐 Running on port ${PORT} | ${process.env.NODE_ENV || 'development'}`);
   console.log(`📊 Dashboard:  /dashboard.html`);
   console.log(`🔐 Login:      /login.html`);

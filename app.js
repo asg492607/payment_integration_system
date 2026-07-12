@@ -1,5 +1,5 @@
 /**
- * PayForge — Frontend App Logic v2.0
+ * ASG Payment Gateway — Frontend App Logic v2.0
  * Firebase real-time payment detection + UPI flow
  */
 
