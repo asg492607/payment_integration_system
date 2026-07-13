@@ -20,6 +20,19 @@
       --font:'Outfit',sans-serif; --mono:'JetBrains Mono',monospace;
       --shadow:0 8px 32px rgba(0,0,0,0.4); --shadow-lg:0 20px 60px rgba(0,0,0,0.6);
       --sidebar-w:260px;
+      --bg-glass: rgba(5,8,16,0.95);
+    }
+
+    [data-theme="light"] {
+      --bg: #f8fafc; --bg2: #f1f5f9; --bg3: #e2e8f0;
+      --surface: #ffffff; --surface2: #f1f5f9;
+      --border: #e2e8f0; --border-glow: rgba(99,102,241,0.2);
+      --indigo: #4f46e5; --indigo-lt: #6366f1; --indigo-dk: #4338ca;
+      --emerald: #059669; --emerald-lt: #10b981;
+      --amber: #d97706; --rose: #e11d48; --violet: #7c3aed;
+      --text-1: #0f172a; --text-2: #334155; --text-3: #64748b;
+      --shadow: 0 4px 16px rgba(0,0,0,0.05); --shadow-lg: 0 10px 30px rgba(0,0,0,0.1);
+      --bg-glass: rgba(255, 255, 255, 0.95);
     }
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     html{scroll-behavior:smooth}
@@ -36,7 +49,7 @@
     /* ── Sidebar ── */
     .sidebar{
       width:var(--sidebar-w);min-height:100vh;
-      background:rgba(5,8,16,0.95);border-right:1px solid var(--border);
+      background:var(--bg-glass);border-right:1px solid var(--border);
       display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:50;
       backdrop-filter:blur(20px);
     }
@@ -90,7 +103,7 @@
     .main{margin-left:var(--sidebar-w);flex:1;min-height:100vh;position:relative;z-index:1}
     .topbar{
       position:sticky;top:0;z-index:40;
-      background:rgba(5,8,16,0.9);border-bottom:1px solid var(--border);
+      background:var(--bg-glass);border-bottom:1px solid var(--border);
       backdrop-filter:blur(20px);padding:0 32px;height:64px;
       display:flex;align-items:center;justify-content:space-between;
     }
@@ -167,7 +180,7 @@
     thead th{
       padding:11px 16px;text-align:left;font-size:0.7rem;font-weight:700;
       color:var(--text-3);text-transform:uppercase;letter-spacing:0.5px;
-      border-bottom:1px solid var(--border);background:rgba(0,0,0,0.2);
+      border-bottom:1px solid var(--border);background:var(--surface2);
     }
     tbody tr{border-bottom:1px solid var(--border);transition:background 0.15s}
     tbody tr:last-child{border-bottom:none}
