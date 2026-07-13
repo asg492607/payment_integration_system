@@ -1327,7 +1327,7 @@ onChildAdded(evt, (snapshot) => {
                 </div>
                 <div class="form-group">
                   <label>Gmail App Password (16 chars)</label>
-                  <input type="password" id="inp-imap-pass" placeholder="abcd efgh ijkl mnop"/>
+                  <input type="password" id="inp-imap-pass" placeholder="abcd efgh ijkl mnop" autocomplete="current-password"/>
                   <div class="hint">NOT your Gmail password — the App Password you generated above</div>
                 </div>
                 <div class="form-group">
@@ -1640,11 +1640,11 @@ app.post('/webhook', (req, res) => {
           <form onsubmit="event.preventDefault(); changePassword();">
             <div class="form-group" style="max-width:400px">
               <label>Current Password</label>
-              <input type="password" id="set-curr-pass" placeholder="••••••••"/>
+              <input type="password" id="set-curr-pass" placeholder="••••••••" autocomplete="current-password"/>
             </div>
             <div class="form-group" style="max-width:400px">
               <label>New Password</label>
-              <input type="password" id="set-new-pass" placeholder="Min 8 characters"/>
+              <input type="password" id="set-new-pass" placeholder="Min 8 characters" autocomplete="new-password"/>
             </div>
             <button type="submit" class="btn btn-primary">Update Password</button>
           </form>
@@ -2370,7 +2370,7 @@ async function pushToPOS() {
   } catch(e) { toast('Error pushing to POS', 'error'); }
 }
 
-async function clearPOS() {
+window.clearPOS = async function clearPOS() {
   try {
     await apiFetch('/api/admin/pos/clear', { method: 'POST' });
     toast('POS Screen reset to idle', 'success');
@@ -2511,7 +2511,7 @@ function renderCart() {
   totalEl.textContent = `₹${total.toFixed(2)}`;
 }
 
-async function pushCartToPOS() {
+window.pushCartToPOS = async function pushCartToPOS() {
   if (!currentCart.length) return toast('Cart is empty', 'error');
   const total = currentCart.reduce((sum, item) => sum + (item.qty * parseFloat(item.price)), 0);
   
@@ -2832,7 +2832,7 @@ function populateFallbackPage() {
   }
   // Update layer 2 (email) status in devices page
   const l2 = document.getElementById('layer2-status');
-  if (l2) { const hasEmail = _state.user?.email_imap_user; l2.className = hasEmail ? 'badge badge-active' : 'badge badge-inactive'; l2.textContent = hasEmail ? 'Configured' : 'Not Set'; }
+  if (l2) { const hasEmail = currentUser?.email_imap_user; l2.className = hasEmail ? 'badge badge-active' : 'badge badge-inactive'; l2.textContent = hasEmail ? 'Configured' : 'Not Set'; }
   const l3 = document.getElementById('layer3-status');
   if (l3) { l3.className = 'badge badge-pending'; l3.textContent = 'Set TELEGRAM_BOT_TOKEN'; }
 }
