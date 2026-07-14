@@ -391,7 +391,25 @@
     }
 
     code{font-family:var(--mono);font-size:0.8rem;color:var(--indigo-lt)}
-  </style>
+  
+    /* Premium UI Overrides */
+    .card { background: rgba(255,255,255,0.02); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); box-shadow: 0 8px 32px rgba(0,0,0,0.2); transition: transform 0.3s ease, box-shadow 0.3s ease; }
+    .card:hover { transform: translateY(-3px); box-shadow: 0 12px 40px rgba(99,102,241,0.15); border-color: rgba(99,102,241,0.3); }
+    .stat-card { background: linear-gradient(145deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01)); backdrop-filter: blur(10px); }
+    .btn-setup, .btn-primary { background: linear-gradient(135deg, var(--indigo-lt), var(--indigo-dk)); box-shadow: 0 4px 15px rgba(99,102,241,0.4); transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); }
+    .btn-setup:hover, .btn-primary:hover { box-shadow: 0 8px 25px rgba(99,102,241,0.6); filter: brightness(1.1); transform: translateY(-2px); }
+    .nav-item { transition: all 0.3s ease; position: relative; overflow: hidden; }
+    .nav-item::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--indigo-lt); transform: scaleY(0); transition: transform 0.3s ease; }
+    .nav-item:hover::before, .nav-item.active::before { transform: scaleY(1); }
+    .nav-item:hover { padding-left: 16px; background: rgba(99,102,241,0.05); }
+    tbody tr { transition: all 0.2s ease; }
+    tbody tr:hover { background: rgba(255,255,255,0.03); transform: scale(1.005); box-shadow: inset 2px 0 0 var(--indigo-lt); }
+    
+    [data-theme="light"] .card { background: rgba(255,255,255,0.8); backdrop-filter: blur(16px); border-color: rgba(0,0,0,0.05); box-shadow: 0 8px 30px rgba(0,0,0,0.04); }
+    [data-theme="light"] .card:hover { border-color: rgba(99,102,241,0.2); box-shadow: 0 12px 40px rgba(99,102,241,0.1); }
+    [data-theme="light"] .stat-card { background: linear-gradient(145deg, rgba(255,255,255,0.9), rgba(255,255,255,0.6)); }
+    [data-theme="light"] tbody tr:hover { background: rgba(99,102,241,0.03); }
+  \n  </style>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
@@ -1174,8 +1192,8 @@ onChildAdded(evt, (snapshot) => {
 
       <!-- TABS -->
       <div class="tabs">
-        <button class="tab-btn active" onclick="switchFallbackTab('razorpay',this)">⚡ Razorpay</button>
-        <button class="tab-btn" onclick="switchFallbackTab('cashfree',this)">💸 Cashfree</button>
+        <button class="tab-btn active" onclick="switchFallbackTab('razorpay',this)">⚡ Primary Node</button>
+        <button class="tab-btn" onclick="switchFallbackTab('cashfree',this)">💸 Secondary Node</button>
         <button class="tab-btn" onclick="switchFallbackTab('email',this)">📧 Email</button>
         <button class="tab-btn" onclick="switchFallbackTab('telegram',this)">✈️ Telegram Bot</button>
         <button class="tab-btn" onclick="switchFallbackTab('utr',this)">🔧 Manual UTR</button>
@@ -1184,10 +1202,10 @@ onChildAdded(evt, (snapshot) => {
       <!-- RAZORPAY TAB -->
       <div id="fallback-razorpay">
         <div class="card" style="margin-bottom:20px">
-          <div class="card-header"><h3>⚡ Razorpay Webhooks (Official Integration)</h3></div>
+          <div class="card-header"><h3>⚡ Primary Node Webhooks (Official Integration)</h3></div>
           <div class="card-body">
             <div class="alert alert-success" style="margin-bottom:20px">
-              ✅ <strong>Recommended for high-volume merchants.</strong> Get instant, guaranteed verification directly from Razorpay, bypassing the need for SMS or Email parsing entirely.
+              ✅ <strong>Recommended for high-volume merchants.</strong> Get instant, guaranteed verification directly from Primary Node, bypassing the need for SMS or Email parsing entirely.
             </div>
 
             <h4 style="font-size:0.85rem;font-weight:700;margin-bottom:14px;color:var(--text-2);text-transform:uppercase;letter-spacing:0.5px">Setup Instructions</h4>
@@ -1200,13 +1218,13 @@ onChildAdded(evt, (snapshot) => {
               </div>
               <div class="guide-step">
                 <div class="guide-step-content">
-                  <div class="guide-step-title">2. Add Webhook in Razorpay</div>
-                  <div class="guide-step-desc">Go to Razorpay Dashboard → Settings → Webhooks. Click <strong>Add New Webhook</strong>.</div>
+                  <div class="guide-step-title">2. Add Webhook in Primary Node</div>
+                  <div class="guide-step-desc">Go to Primary Provider Dashboard → Settings → Webhooks. Click <strong>Add New Webhook</strong>.</div>
                 </div>
               </div>
               <div class="guide-step">
                 <div class="guide-step-content">
-                  <div class="guide-step-title">3. Configure Razorpay</div>
+                  <div class="guide-step-title">3. Configure Primary Node</div>
                   <div class="guide-step-desc">
                     Paste the Webhook URL below.<br>
                     Paste the Secret you created in step 1.<br>
@@ -1230,12 +1248,12 @@ onChildAdded(evt, (snapshot) => {
             <h4 style="font-size:0.85rem;font-weight:700;margin-bottom:16px;color:var(--text-2);text-transform:uppercase;letter-spacing:0.5px">Configure Secret in ASG Payment Gateway</h4>
             <div class="form-grid">
               <div class="form-group form-full">
-                <label>Razorpay Webhook Secret</label>
+                <label>Primary Node Secret</label>
                 <input type="text" id="inp-razorpay-secret" placeholder="Enter a random secure string (e.g., MySecureSecret123)"/>
                 <div class="hint">This must match the 'Secret' field in your Razorpay Webhook settings.</div>
               </div>
             </div>
-            <button class="btn btn-primary" onclick="saveRazorpaySecret()">💾 Save Razorpay Secret</button>
+            <button class="btn btn-primary" onclick="saveRazorpaySecret()">💾 Save Primary Secret</button>
           </div>
         </div>
       </div>
@@ -1243,10 +1261,10 @@ onChildAdded(evt, (snapshot) => {
       <!-- CASHFREE TAB -->
       <div id="fallback-cashfree" style="display:none">
         <div class="card" style="margin-bottom:20px">
-          <div class="card-header"><h3>💸 Cashfree Webhooks (Official Integration)</h3></div>
+          <div class="card-header"><h3>💸 Secondary Node Webhooks (Official Integration)</h3></div>
           <div class="card-body">
             <div class="alert alert-success" style="margin-bottom:20px">
-              ✅ <strong>Recommended for high-volume merchants.</strong> Get instant, guaranteed verification directly from Cashfree, bypassing the need for SMS or Email parsing entirely.
+              ✅ <strong>Recommended for high-volume merchants.</strong> Get instant, guaranteed verification directly from Secondary Node, bypassing the need for SMS or Email parsing entirely.
             </div>
 
             <h4 style="font-size:0.85rem;font-weight:700;margin-bottom:14px;color:var(--text-2);text-transform:uppercase;letter-spacing:0.5px">Setup Instructions</h4>
@@ -1259,13 +1277,13 @@ onChildAdded(evt, (snapshot) => {
               </div>
               <div class="guide-step">
                 <div class="guide-step-content">
-                  <div class="guide-step-title">2. Add Webhook in Cashfree</div>
-                  <div class="guide-step-desc">Go to Cashfree Dashboard → Developers → Webhooks. Click <strong>Add Webhook URL</strong>.</div>
+                  <div class="guide-step-title">2. Add Webhook in Secondary Node</div>
+                  <div class="guide-step-desc">Go to Secondary Provider Dashboard → Developers → Webhooks. Click <strong>Add Webhook URL</strong>.</div>
                 </div>
               </div>
               <div class="guide-step">
                 <div class="guide-step-content">
-                  <div class="guide-step-title">3. Configure Cashfree</div>
+                  <div class="guide-step-title">3. Configure Secondary Node</div>
                   <div class="guide-step-desc">
                     Paste the Webhook URL below.<br>
                     Select the <strong>PAYMENT_SUCCESS_WEBHOOK</strong> event.<br>
@@ -1288,11 +1306,11 @@ onChildAdded(evt, (snapshot) => {
             <h4 style="font-size:0.85rem;font-weight:700;margin-bottom:16px;color:var(--text-2);text-transform:uppercase;letter-spacing:0.5px">Configure Secret in ASG Payment Gateway</h4>
             <div class="form-grid">
               <div class="form-group form-full">
-                <label>Cashfree Webhook Secret</label>
+                <label>Secondary Node Secret</label>
                 <input type="text" id="inp-cashfree-secret" placeholder="Enter a random secure string"/>
               </div>
             </div>
-            <button class="btn btn-primary" onclick="saveCashfreeSecret()">💾 Save Cashfree Secret</button>
+            <button class="btn btn-primary" onclick="saveCashfreeSecret()">💾 Save Secondary Secret</button>
           </div>
         </div>
       </div>
@@ -2645,8 +2663,8 @@ function exportTransactionsCSV() {
   if (!allTransactions || allTransactions.length === 0) return toast('No transactions to export', 'error');
   let csv = 'Transaction ID,Order ID,Amount,Currency,Plan,Status,Verified By,Timestamp\n';
   allTransactions.forEach(t => {
-    const verifiedBy = (t.upi_ref && t.upi_ref.startsWith('RZR')) ? 'Razorpay' :
-                       (t.upi_ref && t.upi_ref.startsWith('CSH')) ? 'Cashfree' :
+    const verifiedBy = (t.upi_ref && t.upi_ref.startsWith('RZR')) ? 'Primary Node' :
+                       (t.upi_ref && t.upi_ref.startsWith('CSH')) ? 'Secondary Node' :
                        (t.upi_ref && t.upi_ref.startsWith('M-')) ? 'Manual' :
                        (t.upi_ref && t.upi_ref.startsWith('BOT')) ? 'Telegram' : 'SMS/Engine';
     csv += `${t.id},${t.order_id},${t.amount},INR,${t.plan||''},${t.status},${verifiedBy},${t.created_at}\n`;
@@ -2872,10 +2890,10 @@ async function saveRazorpaySecret() {
       razorpay_webhook_secret: secret
     })});
     const d = await r.json();
-    if (d.success || d.user) { showToast('✅ Razorpay Webhook Secret saved!', 'success'); if (d.user) _state.user = d.user; }
+    if (d.success || d.user) { showToast('✅ Primary Node Secret saved!', 'success'); if (d.user) _state.user = d.user; }
     else showToast(d.error || 'Failed to save', 'error');
   } catch(e) { showToast('Network error', 'error'); }
-  finally { btn.classList.remove('btn-loading'); btn.textContent = '💾 Save Razorpay Secret'; }
+  finally { btn.classList.remove('btn-loading'); btn.textContent = '💾 Save Primary Secret'; }
 }
 
 // ── Save Cashfree Webhook ─────────────────────────────────────────────────
@@ -2889,10 +2907,10 @@ async function saveCashfreeSecret() {
       cashfree_webhook_secret: secret
     })});
     const d = await r.json();
-    if (d.success || d.user) { showToast('✅ Cashfree Webhook Secret saved!', 'success'); if (d.user) _state.user = d.user; }
+    if (d.success || d.user) { showToast('✅ Secondary Node Secret saved!', 'success'); if (d.user) _state.user = d.user; }
     else showToast(d.error || 'Failed to save', 'error');
   } catch(e) { showToast('Network error', 'error'); }
-  finally { btn.classList.remove('btn-loading'); btn.textContent = '💾 Save Cashfree Secret'; }
+  finally { btn.classList.remove('btn-loading'); btn.textContent = '💾 Save Secondary Secret'; }
 }
 
 // ── Save Email Fallback ───────────────────────────────────────────────────
