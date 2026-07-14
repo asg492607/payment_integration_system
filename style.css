@@ -521,7 +521,7 @@ code { font-family: var(--mono); font-size: 0.8rem; color: var(--indigo-lt); }
 
 /* Navbar Glassmorphism */
 .navbar {
-  background: rgba(5,8,16,0.65) !important;
+  background: rgba(5,8,16,0.65);
   backdrop-filter: blur(16px);
   border-bottom: 1px solid rgba(255,255,255,0.05);
 }
@@ -603,3 +603,10 @@ code { font-family: var(--mono); font-size: 0.8rem; color: var(--indigo-lt); }
   border-color: var(--indigo-lt);
   box-shadow: 0 0 0 3px rgba(99,102,241,0.2);
 }
+
+[data-theme="light"] .navbar { 
+  background: rgba(255,255,255,0.85) !important; 
+  border-bottom: 1px solid rgba(0,0,0,0.1);
+}
+[data-theme="light"] .nav-links a { color: var(--text-2); }
+[data-theme="light"] .nav-links a:hover { color: var(--text-1); }
