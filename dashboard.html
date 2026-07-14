@@ -409,7 +409,90 @@
     [data-theme="light"] .card:hover { border-color: rgba(99,102,241,0.2); box-shadow: 0 12px 40px rgba(99,102,241,0.1); }
     [data-theme="light"] .stat-card { background: linear-gradient(145deg, rgba(255,255,255,0.9), rgba(255,255,255,0.6)); }
     [data-theme="light"] tbody tr:hover { background: rgba(99,102,241,0.03); }
-  \n  </style>
+  \n  
+    /* =========================================
+       ULTRA-PREMIUM UI ENHANCEMENTS (V2)
+       ========================================= */
+       
+    /* 1. Dynamic Aurora Background */
+    @keyframes aurora {
+      0% { transform: rotate(0deg) scale(1); filter: hue-rotate(0deg); }
+      50% { transform: rotate(180deg) scale(1.2); filter: hue-rotate(30deg); }
+      100% { transform: rotate(360deg) scale(1); filter: hue-rotate(0deg); }
+    }
+    .orb-1 { animation: aurora 20s linear infinite; opacity: 0.15; }
+    .orb-2 { animation: aurora 25s linear infinite reverse; opacity: 0.15; }
+    
+    /* 2. Shimmer Effect on Primary Buttons */
+    .btn-primary, .btn-setup {
+      position: relative; overflow: hidden; border: 1px solid rgba(255,255,255,0.1);
+    }
+    .btn-primary::after, .btn-setup::after {
+      content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+      background: linear-gradient(to right, transparent, rgba(255,255,255,0.15), transparent);
+      transform: rotate(30deg) translateX(-100%); transition: transform 0.6s ease;
+    }
+    .btn-primary:hover::after, .btn-setup:hover::after {
+      transform: rotate(30deg) translateX(100%);
+    }
+
+    /* 3. Stat Cards Floating Effect */
+    @keyframes floatY {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-4px); }
+    }
+    .stat-card {
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+    .stat-card:hover {
+      animation: floatY 3s ease-in-out infinite;
+      box-shadow: 0 15px 40px rgba(99,102,241,0.25);
+      border-color: rgba(99,102,241,0.5);
+    }
+
+    /* 4. Table Polish */
+    .table-wrap {
+      border-radius: var(--radius-lg); overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.05);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+    }
+    thead th {
+      background: rgba(255,255,255,0.03); backdrop-filter: blur(10px);
+      letter-spacing: 1px; color: var(--indigo-lt);
+    }
+    [data-theme="light"] thead th {
+      background: rgba(99,102,241,0.05); color: var(--indigo-dk);
+    }
+
+    /* 5. Staggered Entrance Animation for Page Content */
+    @keyframes slideUpFade {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .page.active .card, .page.active .stats-grid > div {
+      animation: slideUpFade 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      opacity: 0;
+    }
+    .page.active .stats-grid > div:nth-child(1) { animation-delay: 0.05s; }
+    .page.active .stats-grid > div:nth-child(2) { animation-delay: 0.1s; }
+    .page.active .stats-grid > div:nth-child(3) { animation-delay: 0.15s; }
+    .page.active .stats-grid > div:nth-child(4) { animation-delay: 0.2s; }
+    .page.active .card:nth-of-type(1) { animation-delay: 0.1s; }
+    .page.active .card:nth-of-type(2) { animation-delay: 0.2s; }
+
+    /* 6. Form Inputs Focus Glow */
+    input[type="text"], input[type="password"], input[type="number"], select {
+      transition: all 0.3s ease; border: 1px solid rgba(255,255,255,0.1);
+    }
+    input:focus, select:focus {
+      outline: none; border-color: var(--indigo-lt);
+      box-shadow: 0 0 0 3px rgba(99,102,241,0.2), inset 0 2px 4px rgba(0,0,0,0.2);
+      transform: translateY(-1px);
+    }
+    [data-theme="light"] input:focus, [data-theme="light"] select:focus {
+      box-shadow: 0 0 0 3px rgba(99,102,241,0.2);
+    }
+\n  </style>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
