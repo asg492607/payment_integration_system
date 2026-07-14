@@ -610,3 +610,78 @@ code { font-family: var(--mono); font-size: 0.8rem; color: var(--indigo-lt); }
 }
 [data-theme="light"] .nav-links a { color: var(--text-2); }
 [data-theme="light"] .nav-links a:hover { color: var(--text-1); }
+\n
+/* ── Premium Flow Diagram ────────────────────────────────────────────────── */
+.flow-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px 0;
+}
+.flow-line {
+  position: absolute;
+  top: 0; bottom: 0; left: 40px;
+  width: 2px;
+  background: linear-gradient(to bottom, var(--indigo-lt), var(--emerald-lt));
+  opacity: 0.3;
+  z-index: 0;
+}
+.flow-step-new {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+  position: relative;
+  z-index: 1;
+}
+.flow-number {
+  width: 80px; height: 80px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(5,8,16,0.8);
+  border: 2px solid rgba(255,255,255,0.1);
+  border-radius: 50%;
+  font-family: var(--mono);
+  font-size: 1.5rem; font-weight: 800;
+  color: var(--text-1);
+  box-shadow: 0 0 20px rgba(99,102,241,0.2);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+.flow-step-new:hover .flow-number {
+  border-color: var(--indigo-lt);
+  color: var(--indigo-lt);
+  box-shadow: 0 0 30px rgba(99,102,241,0.5);
+  transform: scale(1.1);
+}
+.flow-content {
+  background: rgba(255,255,255,0.02);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.05);
+  padding: 24px 32px;
+  border-radius: var(--radius-lg);
+  flex-grow: 1;
+  transition: all 0.3s ease;
+}
+.flow-step-new:hover .flow-content {
+  background: rgba(255,255,255,0.04);
+  border-color: rgba(99,102,241,0.3);
+  transform: translateX(10px);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+.flow-content h3 {
+  font-size: 1.25rem; font-weight: 700;
+  margin-bottom: 8px; color: var(--text-1);
+}
+.flow-content p {
+  font-size: 0.95rem; color: var(--text-2);
+  line-height: 1.6;
+}
+
+@media (max-width: 768px) {
+  .flow-line { left: 30px; }
+  .flow-number { width: 60px; height: 60px; font-size: 1.2rem; }
+  .flow-content { padding: 16px 20px; }
+  .flow-step-new { gap: 20px; }
+}
