@@ -504,3 +504,102 @@ code { font-family: var(--mono); font-size: 0.8rem; color: var(--indigo-lt); }
   .features-grid { grid-template-columns: 1fr; }
   .nav-links a:not(.nav-admin-btn) { display: none; }
 }
+\n
+/* =========================================
+   ULTRA-PREMIUM LANDING PAGE ENHANCEMENTS
+   ========================================= */
+
+/* Aurora Background Animation */
+@keyframes aurora {
+  0% { transform: rotate(0deg) scale(1); filter: hue-rotate(0deg); }
+  50% { transform: rotate(180deg) scale(1.3); filter: hue-rotate(45deg); }
+  100% { transform: rotate(360deg) scale(1); filter: hue-rotate(0deg); }
+}
+.orb-1 { animation: aurora 25s linear infinite; opacity: 0.2; }
+.orb-2 { animation: aurora 30s linear infinite reverse; opacity: 0.2; background: var(--violet); }
+.orb-3 { animation: aurora 35s linear infinite; opacity: 0.15; }
+
+/* Navbar Glassmorphism */
+.navbar {
+  background: rgba(5,8,16,0.65) !important;
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+/* Scroll Reveal Animations */
+.reveal-hidden {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: all 0.8s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+.reveal-active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Feature & Plan Cards Premium Hover */
+.feature-card, .plan-card {
+  background: rgba(255,255,255,0.02);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.05);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.feature-card:hover, .plan-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  background: rgba(255,255,255,0.04);
+  border-color: rgba(99,102,241,0.4);
+  box-shadow: 0 20px 40px rgba(99,102,241,0.2);
+}
+
+/* Shimmer Buttons */
+.btn-hero-primary, .plan-btn-primary, .nav-admin-btn {
+  position: relative; overflow: hidden;
+  background: linear-gradient(135deg, var(--indigo-lt), var(--indigo-dk));
+  border: 1px solid rgba(255,255,255,0.1);
+  box-shadow: 0 4px 15px rgba(99,102,241,0.4);
+  transition: all 0.3s ease;
+}
+.btn-hero-primary::after, .plan-btn-primary::after, .nav-admin-btn::after {
+  content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+  background: linear-gradient(to right, transparent, rgba(255,255,255,0.2), transparent);
+  transform: rotate(30deg) translateX(-100%); transition: transform 0.6s ease;
+}
+.btn-hero-primary:hover::after, .plan-btn-primary:hover::after, .nav-admin-btn:hover::after {
+  transform: rotate(30deg) translateX(100%);
+}
+.btn-hero-primary:hover, .plan-btn-primary:hover, .nav-admin-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(99,102,241,0.6);
+}
+
+/* Gradient Text Enhancements */
+.gradient-text {
+  background: linear-gradient(to right, var(--indigo-lt), var(--emerald-lt));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: hueRotate 10s linear infinite;
+}
+@keyframes hueRotate {
+  0% { filter: hue-rotate(0deg); }
+  100% { filter: hue-rotate(360deg); }
+}
+
+/* Modal Glassmorphism */
+.modal-overlay {
+  backdrop-filter: blur(10px);
+}
+.modal-card {
+  background: rgba(12, 18, 34, 0.85) !important;
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.1);
+  box-shadow: 0 25px 60px rgba(0,0,0,0.5), 0 0 40px rgba(99,102,241,0.15);
+}
+.modal-card input {
+  background: rgba(0,0,0,0.2);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: #fff;
+}
+.modal-card input:focus {
+  border-color: var(--indigo-lt);
+  box-shadow: 0 0 0 3px rgba(99,102,241,0.2);
+}

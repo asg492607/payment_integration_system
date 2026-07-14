@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -320,6 +320,23 @@
       toggleBtn.textContent = isLight ? '☀️' : '🌙';
     });
   }
+</script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('reveal-active');
+        }
+      });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.feature-card, .plan-card, .flow-step').forEach((el) => {
+      el.classList.add('reveal-hidden');
+      observer.observe(el);
+    });
+  });
 </script>
 </body>
 </html>
