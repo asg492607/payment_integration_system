@@ -16,7 +16,7 @@ const verificationEngine = require('./verificationEngine');
 router.post('/:enterpriseId', async (req, res) => {
   const eId = req.params.enterpriseId;
   const signature = req.headers['x-webhook-signature'];
-  const payloadStr = JSON.stringify(req.body);
+  const payloadStr = req.rawBody || JSON.stringify(req.body);
 
   if (!eId || !signature) {
     return res.status(400).json({ error: 'Missing enterprise ID or signature' });

@@ -5,6 +5,7 @@ require('dotenv').config();
 const crypto = require('crypto');
 const db = require('./database');
 const { emitPaymentEvent, updateEnterpriseStats } = require('./firebase');
+const processingLocks = new Set();
 
 function setDb() {} // No longer needed
 
@@ -38,6 +39,19 @@ function parseSmsAlert(text) {
 }
 
 async function verifyPayment(signal) {
+  const { orderId } = signal;
+  if (processingLocks.has(orderId)) {
+    return { success: false, code: 'CONCURRENT_PROCESSING', message: 'Order is currently being processed.' };
+  }
+  processingLocks.add(orderId);
+  try {
+    return await _verifyPayment(signal);
+  } finally {
+    processingLocks.delete(orderId);
+  }
+}
+
+async function _verifyPayment(signal) {
   const { orderId, upiRef, amount, source = 'unknown', rawText = '', enterpriseId } = signal;
   const eId = enterpriseId || 'global';
   const numericAmount = (amount === null || amount === undefined) ? null : Number(amount);
@@ -130,7 +144,8 @@ async function verifyPayment(signal) {
         };
         // Compute simple signature using their API key
         const crypto = require('crypto');
-        const signature = crypto.createHmac('sha256', enterprise.api_key || 'secret').update(JSON.stringify(payload)).digest('hex');
+        if (!enterprise.api_key) return; // FIX: Only send webhook if secure API key is configured
+        const signature = crypto.createHmac('sha256', enterprise.api_key).update(JSON.stringify(payload)).digest('hex');
         
         fetch(enterprise.merchant_webhook_url, {
           method: 'POST',
@@ -155,9 +170,13 @@ async function verifyPayment(signal) {
 async function expireStaleOrders() {
   const pendingOrders = await db.find('orders', o => o.status === 'pending' && new Date(o.expires_at) < new Date());
   for (const o of pendingOrders) {
-    await db.patch(`orders/${o.id}`, { status: 'expired' });
-    const amtKey = o.amount.toString().replace('.','_');
-    await db.remove(`active_amounts/${o.enterprise_id}_${amtKey}`);
+    try {
+      await db.patch(`orders/${o.id}`, { status: 'expired' });
+      const amtKey = o.amount.toString().replace('.','_');
+      await db.remove(`active_amounts/${o.enterprise_id}_${amtKey}`);
+    } catch (err) {
+      console.error('[Cron] Error expiring order:', o.id, err.message);
+    }
   }
   if (pendingOrders.length > 0) console.log(`[Cron] ⌛ Expired ${pendingOrders.length} order(s)`);
 }

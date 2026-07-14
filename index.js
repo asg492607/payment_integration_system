@@ -75,7 +75,7 @@ app.use('/api/auth/signup', rateLimit({ windowMs: 60*60*1000, max: 10, message: 
 app.use('/api/orders/create', rateLimit({ windowMs: 60*1000,  max: 5, message: { error: 'Too many order requests.' } }));
 app.use('/api/orders/sms',    rateLimit({ windowMs: 60*1000,  max: 60, message: { error: 'SMS webhook rate limit exceeded.' } }));
 
-app.use(express.json({ limit: '512kb' }));
+app.use(express.json({ limit: '512kb', verify: (req, res, buf) => { req.rawBody = buf; } }));
 app.use(express.urlencoded({ extended: true }));
 
 // ── SDK — Serve with CORS headers so ANY website can load it ─────────────────
