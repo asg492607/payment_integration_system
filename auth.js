@@ -39,7 +39,7 @@ async function requireAuth(req, res, next) {
     if (!token) return res.status(401).json({ error: 'Authentication required', code: 'AUTH_REQUIRED' });
 
     const tokenHash = hashToken(token);
-    const session = await db.findOne('enterprise_sessions', s => s.token_hash === tokenHash);
+    const session = (await db.query('enterprise_sessions', 'token_hash', tokenHash))[0] || null;
 
     if (!session || new Date(session.expires_at) < new Date()) {
       return res.status(401).json({ error: 'Session expired or invalid', code: 'SESSION_INVALID' });
@@ -72,7 +72,7 @@ router.post('/signup', async (req, res) => {
     if (company) company = String(company).slice(0, 100);
     password = String(password).slice(0, 100);
 
-    const existing = await db.findOne('enterprise_users', u => u.email === email.toLowerCase());
+    const existing = (await db.query('enterprise_users', 'email', email.toLowerCase()))[0] || null;
     if (existing) return res.status(409).json({ error: 'An account with this email already exists' });
 
     const id = uuidv4();
@@ -114,7 +114,7 @@ router.post('/login', async (req, res) => {
     const { email, password } = req.body;
     if (!email || !password) return res.status(400).json({ error: 'email and password are required' });
 
-    const user = await db.findOne('enterprise_users', u => u.email === email.toLowerCase());
+    const user = (await db.query('enterprise_users', 'email', email.toLowerCase()))[0] || null;
     if (!user) return res.status(401).json({ error: 'Invalid email or password' });
     if (!user.is_active) return res.status(403).json({ error: 'Account is suspended. Contact support.' });
 
@@ -149,7 +149,7 @@ router.post('/logout', requireAuth, async (req, res) => {
     const token = authHeader.replace(/^Bearer\s+/i, '').trim();
     if (token) {
       const tokenHash = hashToken(token);
-      const session = await db.findOne('enterprise_sessions', s => s.token_hash === tokenHash);
+      const session = (await db.query('enterprise_sessions', 'token_hash', tokenHash))[0] || null;
       if (session) await db.remove(`enterprise_sessions/${session.id}`);
     }
     res.json({ success: true, message: 'Logged out successfully' });

@@ -12,7 +12,7 @@ async function requireApiKey(req, res, next) {
   const apiKey = req.headers['x-api-key'];
   if (!apiKey) return res.status(401).json({ error: 'x-api-key header is missing' });
   
-  const user = await db.findOne('enterprise_users', u => u.api_key === apiKey);
+  const user = (await db.query('enterprise_users', 'api_key', apiKey))[0] || null;
   if (!user) return res.status(401).json({ error: 'Invalid API Key' });
   if (!user.is_active) return res.status(403).json({ error: 'Account suspended' });
   

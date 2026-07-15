@@ -76,7 +76,7 @@ router.post('/', async (req, res) => {
 router.get('/status', requireAuth, async (req, res) => {
   try {
     const eId = req.enterpriseUserId;
-    const allDevices = await db.find('devices', d => d.enterprise_id === eId);
+    const allDevices = await db.query('devices', 'enterprise_id', eId);
     const now = Date.now();
 
     const devices = allDevices.map(d => ({

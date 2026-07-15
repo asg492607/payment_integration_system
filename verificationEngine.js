@@ -104,8 +104,8 @@ async function _verifyPayment(signal) {
 
   if (eId !== 'global') {
     try {
-      const orders = await db.find('orders', o => o.enterprise_id === eId);
-      const users = await db.find('users', u => u.enterprise_id === eId);
+      const orders = await db.query('orders', 'enterprise_id', eId);
+      const users = await db.query('users', 'enterprise_id', eId);
       let totalRev = 0, paid = 0, pending = 0, active = 0;
       
       orders.forEach(o => {
@@ -168,7 +168,7 @@ async function _verifyPayment(signal) {
 }
 
 async function expireStaleOrders() {
-  const pendingOrders = await db.find('orders', o => o.status === 'pending' && new Date(o.expires_at) < new Date());
+  const pendingOrders = (await db.query('orders', 'status', 'pending')).filter(o => new Date(o.expires_at) < new Date());
   for (const o of pendingOrders) {
     try {
       await db.patch(`orders/${o.id}`, { status: 'expired' });
@@ -182,7 +182,7 @@ async function expireStaleOrders() {
 }
 
 async function pollPendingOrders() {
-  return await db.find('orders', o => o.status === 'pending');
+  return await db.query('orders', 'status', 'pending');
 }
 
 module.exports = { setDb, verifyPayment, parseSmsAlert, expireStaleOrders, pollPendingOrders };

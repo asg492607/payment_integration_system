@@ -17,7 +17,7 @@ function setDb() {} // No longer needed
 router.get('/plans/:enterpriseId', async (req, res) => {
   try {
     const eId = req.params.enterpriseId;
-    const allPlans = await db.find('enterprise_plans', p => p.enterprise_id === eId);
+    const allPlans = await db.query('enterprise_plans', 'enterprise_id', eId);
     
     if (allPlans.length === 0) {
       // Fallback
@@ -81,7 +81,7 @@ router.post('/create', async (req, res) => {
       if (!enterprise.setup_complete) return res.status(400).json({ error: 'Enterprise UPI not configured' });
     }
 
-    const allPlans = await db.find('enterprise_plans', p => p.enterprise_id === eId);
+    const allPlans = await db.query('enterprise_plans', 'enterprise_id', eId);
     let planMeta = allPlans.find(p => p.plan_code === plan);
     if (!planMeta) {
       if (plan === 'pro') planMeta = { label: 'Pro', amount: 499 };
@@ -90,7 +90,7 @@ router.post('/create', async (req, res) => {
     }
 
     const payableAmount = await reserveAmount(planMeta.amount, eId);
-    let user = await db.findOne('users', u => u.email === email.toLowerCase() && u.enterprise_id === eId);
+    let user = (await db.query('users', 'enterprise_id', eId)).find(u => u.email === email.toLowerCase()) || null;
     
     if (!user) {
       user = {
@@ -142,7 +142,7 @@ router.get('/:id', async (req, res) => {
     const order = await db.get(`orders/${req.params.id}`);
     if (!order) return res.status(404).json({ error: 'Order not found' });
 
-    const txn = await db.findOne('transactions', t => t.order_id === req.params.id && t.status === 'verified');
+    const txn = (await db.query('transactions', 'order_id', req.params.id)).find(t => t.status === 'verified') || null;
     
     let safeUser = null;
     if (order.status === 'paid') {

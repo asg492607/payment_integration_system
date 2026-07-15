@@ -59,7 +59,7 @@ router.get('/orders', async (req, res) => {
 
 router.get('/customers', async (req, res) => {
   try {
-    const users = await db.find('users', u => u.enterprise_id === req.enterpriseUserId);
+    const users = await db.query('users', 'enterprise_id', req.enterpriseUserId);
     const orders = await db.query('orders', 'enterprise_id', req.enterpriseUserId);
 
     const customersWithLtv = users.map(u => {
@@ -81,7 +81,7 @@ router.get('/customers', async (req, res) => {
 
 router.get('/sms_queue', async (req, res) => {
   try {
-    const queue = await db.find('sms_queue', s => s.enterprise_id === req.enterpriseUserId);
+    const queue = await db.query('sms_queue', 'enterprise_id', req.enterpriseUserId);
     res.json(queue);
   } catch (e) {
     res.status(500).json({ error: 'Server error' });
@@ -90,7 +90,7 @@ router.get('/sms_queue', async (req, res) => {
 
 router.get('/plans', async (req, res) => {
   try {
-    const plans = await db.find('enterprise_plans', p => p.enterprise_id === req.enterpriseUserId);
+    const plans = await db.query('enterprise_plans', 'enterprise_id', req.enterpriseUserId);
     res.json(plans.sort((a,b) => new Date(b.created_at) - new Date(a.created_at)));
   } catch (e) {
     res.status(500).json({ error: 'Server error' });
@@ -102,7 +102,7 @@ router.post('/plans', async (req, res) => {
     const { plan_code, label, amount, duration } = req.body;
     if (!plan_code || !label || !amount) return res.status(400).json({ error: 'Missing fields' });
 
-    const existing = await db.findOne('enterprise_plans', p => p.enterprise_id === req.enterpriseUserId && p.plan_code === plan_code);
+    const __p = await db.query('enterprise_plans', 'enterprise_id', req.enterpriseUserId); const existing = __p.find(p => p.plan_code === plan_code) || null;
     if (existing) return res.status(409).json({ error: 'Plan code already exists' });
 
     const id = uuidv4();
