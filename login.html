@@ -1,42 +1,65 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>ASG Payment Gateway — Enterprise Login</title>
   <meta name="description" content="Sign in to your ASG Payment Gateway enterprise account and manage UPI payments for your startup." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
   <style>
-    body { min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+    body {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg);
+      padding: 20px 16px;
+    }
 
     .auth-container {
-      width: 100%; max-width: 460px;
-      padding: 20px;
-      position: relative; z-index: 1;
+      width: 100%;
+      max-width: 440px;
+      position: relative;
+      z-index: 1;
+      margin: auto 0;
     }
 
     .auth-logo {
-      display: flex; align-items: center; gap: 12px;
-      justify-content: center; margin-bottom: 36px;
-      text-decoration: none; color: var(--text-1);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      justify-content: center;
+      margin-bottom: 28px;
+      text-decoration: none;
+      color: var(--text-1);
     }
     .auth-logo .logo-icon {
-      width: 44px; height: 44px; border-radius: 12px;
-      background: linear-gradient(135deg, var(--indigo), var(--violet));
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1.3rem; box-shadow: 0 4px 16px rgba(99,102,241,0.4);
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--indigo), var(--indigo-dk));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      box-shadow: 0 4px 16px rgba(37, 99, 235, 0.35);
+      color: #fff;
     }
-    .auth-logo span { font-size: 1.5rem; font-weight: 900; letter-spacing: -0.5px; }
+    .auth-logo span {
+      font-size: 1.45rem;
+      font-weight: 900;
+      letter-spacing: -0.5px;
+    }
 
     .auth-card {
-      background: var(--surface);
+      background: #ffffff;
       border: 1px solid var(--border);
       border-radius: var(--radius-xl);
-      padding: 40px 36px;
-      backdrop-filter: blur(20px);
-      box-shadow: 0 20px 60px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.04);
+      padding: 36px 28px;
+      box-shadow: 0 16px 40px rgba(37, 99, 235, 0.08), 0 2px 10px rgba(15, 23, 42, 0.04);
       animation: slideUp 0.4s ease;
     }
 
@@ -46,59 +69,120 @@
     }
 
     .auth-tabs {
-      display: flex; gap: 0; margin-bottom: 32px;
-      background: var(--bg2); border-radius: var(--radius);
-      padding: 4px; border: 1px solid var(--border);
+      display: flex;
+      gap: 0;
+      margin-bottom: 28px;
+      background: var(--surface2);
+      border-radius: var(--radius);
+      padding: 4px;
+      border: 1px solid var(--border);
     }
     .auth-tab {
-      flex: 1; padding: 10px; border-radius: calc(var(--radius) - 4px);
-      border: none; background: transparent;
-      color: var(--text-2); font-family: var(--font); font-size: 0.9rem; font-weight: 600;
-      cursor: pointer; transition: all 0.2s;
+      flex: 1;
+      padding: 11px;
+      border-radius: calc(var(--radius) - 4px);
+      border: none;
+      background: transparent;
+      color: var(--text-2);
+      font-family: var(--font);
+      font-size: 0.92rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
     }
     .auth-tab.active {
-      background: var(--indigo); color: #fff;
-      box-shadow: 0 2px 10px rgba(99,102,241,0.4);
+      background: #ffffff;
+      color: var(--indigo);
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
     }
 
-    .auth-title { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 6px; }
-    .auth-sub { color: var(--text-2); font-size: 0.875rem; margin-bottom: 28px; line-height: 1.5; }
+    .auth-title {
+      font-size: 1.45rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 6px;
+      color: var(--text-1);
+    }
+    .auth-sub {
+      color: var(--text-2);
+      font-size: 0.9rem;
+      margin-bottom: 24px;
+      line-height: 1.5;
+    }
 
     .form-group { margin-bottom: 18px; }
     .form-group label {
-      display: block; font-size: 0.8rem; font-weight: 600;
-      color: var(--text-2); margin-bottom: 7px; letter-spacing: 0.3px;
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text-2);
+      margin-bottom: 6px;
+      letter-spacing: 0.3px;
     }
     .form-group input {
-      width: 100%; padding: 13px 16px;
-      background: var(--bg2); border: 1px solid var(--border);
-      border-radius: var(--radius); color: var(--text-1);
-      font-family: var(--font); font-size: 0.9rem;
-      transition: all 0.2s; outline: none;
+      width: 100%;
+      padding: 13px 16px;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text-1);
+      font-family: var(--font);
+      font-size: 1rem;
+      transition: all 0.2s;
+      outline: none;
       box-sizing: border-box;
+      min-height: 48px;
     }
-    .form-group input:focus { border-color: var(--indigo); box-shadow: 0 0 0 3px rgba(99,102,241,0.15); }
-    .form-group input.error { border-color: var(--rose); }
+    .form-group input:focus {
+      border-color: var(--indigo);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+    .form-group input.error {
+      border-color: var(--rose);
+    }
 
-    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    @media (max-width: 480px) {
+      .form-row { grid-template-columns: 1fr; gap: 0; }
+      .auth-card { padding: 28px 20px; }
+    }
 
     .auth-btn {
-      width: 100%; padding: 14px;
-      background: linear-gradient(135deg, var(--indigo), var(--violet));
-      border: none; border-radius: var(--radius);
-      color: #fff; font-family: var(--font); font-size: 0.95rem; font-weight: 700;
-      cursor: pointer; transition: all 0.2s;
-      position: relative; overflow: hidden;
-      box-shadow: 0 4px 16px rgba(99,102,241,0.4);
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, var(--indigo), var(--indigo-dk));
+      border: none;
+      border-radius: var(--radius);
+      color: #fff;
+      font-family: var(--font);
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 4px 16px rgba(37, 99, 235, 0.35);
       margin-top: 8px;
+      min-height: 48px;
     }
-    .auth-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(99,102,241,0.5); }
+    .auth-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 22px rgba(37, 99, 235, 0.45);
+    }
     .auth-btn:active { transform: translateY(0); }
     .auth-btn:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
     .auth-btn .btn-spinner {
-      display: none; width: 18px; height: 18px;
-      border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff;
-      border-radius: 50%; animation: spin 0.6s linear infinite;
+      display: none;
+      width: 20px;
+      height: 20px;
+      border: 2px solid rgba(255,255,255,0.4);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
       margin: 0 auto;
     }
     .auth-btn.loading .btn-text { display: none; }
@@ -106,28 +190,37 @@
     @keyframes spin { to { transform: rotate(360deg); } }
 
     .form-error {
-      padding: 12px 14px; border-radius: var(--radius-sm);
-      background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3);
-      color: #f87171; font-size: 0.85rem; margin-bottom: 18px;
+      padding: 12px 14px;
+      border-radius: var(--radius-sm);
+      background: rgba(225, 29, 72, 0.08);
+      border: 1px solid rgba(225, 29, 72, 0.25);
+      color: var(--rose);
+      font-size: 0.88rem;
+      font-weight: 600;
+      margin-bottom: 18px;
       display: none;
     }
     .form-error.visible { display: block; animation: fadeIn 0.2s ease; }
 
-    .divider { display: flex; align-items: center; gap: 12px; margin: 20px 0; }
-    .divider::before, .divider::after {
-      content: ''; flex: 1; height: 1px; background: var(--border);
-    }
-    .divider span { color: var(--text-3); font-size: 0.75rem; }
-
     .features-strip {
-      display: flex; gap: 16px; justify-content: center;
-      margin-top: 28px; flex-wrap: wrap;
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-top: 24px;
+      flex-wrap: wrap;
     }
     .feature-pill {
-      display: flex; align-items: center; gap: 6px;
-      background: rgba(99,102,241,0.07); border: 1px solid rgba(99,102,241,0.15);
-      border-radius: 100px; padding: 6px 12px;
-      font-size: 0.75rem; color: var(--text-2);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      padding: 6px 14px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-2);
+      box-shadow: var(--shadow-sm);
     }
 
     .auth-form { display: none; }
@@ -136,16 +229,26 @@
     .password-wrap { position: relative; }
     .password-wrap input { padding-right: 48px; }
     .toggle-pass {
-      position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
-      background: none; border: none; cursor: pointer; color: var(--text-3);
-      font-size: 1rem; padding: 4px;
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text-3);
+      font-size: 1.1rem;
+      padding: 6px;
       transition: color 0.2s;
     }
     .toggle-pass:hover { color: var(--text-1); }
 
     .terms-note {
-      font-size: 0.75rem; color: var(--text-3); text-align: center;
-      margin-top: 14px; line-height: 1.5;
+      font-size: 0.78rem;
+      color: var(--text-3);
+      text-align: center;
+      margin-top: 16px;
+      line-height: 1.5;
     }
   </style>
 </head>
@@ -153,7 +256,6 @@
 <div class="bg-grid"></div>
 <div class="bg-orb orb-1"></div>
 <div class="bg-orb orb-2"></div>
-<div class="bg-orb orb-3"></div>
 
 <div class="auth-container">
   <a href="/" class="auth-logo">
@@ -183,7 +285,7 @@
         <label for="login-password">Password</label>
         <div class="password-wrap">
           <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password" required />
-          <button type="button" class="toggle-pass" onclick="togglePassword('login-password', this)">👁</button>
+          <button type="button" class="toggle-pass" onclick="togglePassword('login-password', this)" aria-label="Toggle Password Visibility">👁</button>
         </div>
       </div>
 
@@ -218,7 +320,7 @@
         <label for="signup-password">Password</label>
         <div class="password-wrap">
           <input type="password" id="signup-password" placeholder="Min 8 characters" autocomplete="new-password" required minlength="8" />
-          <button type="button" class="toggle-pass" onclick="togglePassword('signup-password', this)">👁</button>
+          <button type="button" class="toggle-pass" onclick="togglePassword('signup-password', this)" aria-label="Toggle Password Visibility">👁</button>
         </div>
       </div>
 
@@ -302,7 +404,7 @@ async function handleLogin(e) {
     localStorage.setItem('pf_token', data.token);
     localStorage.setItem('pf_user', JSON.stringify(data.user));
     toast('Welcome back! Redirecting...', 'success');
-    setTimeout(() => window.location.href = '/dashboard.html', 800);
+    setTimeout(() => window.location.href = '/dashboard.html', 600);
   } catch (err) {
     showError('Connection error. Is the server running?');
   } finally {
@@ -334,7 +436,7 @@ async function handleSignup(e) {
     localStorage.setItem('pf_token', data.token);
     localStorage.setItem('pf_user', JSON.stringify(data.user));
     toast('Account created! Setting up dashboard...', 'success');
-    setTimeout(() => window.location.href = '/dashboard.html', 800);
+    setTimeout(() => window.location.href = '/dashboard.html', 600);
   } catch (err) {
     showError('Connection error. Is the server running?');
   } finally {
@@ -352,7 +454,6 @@ function toast(message, type = 'info') {
   setTimeout(() => { el.style.opacity = '0'; setTimeout(() => el.remove(), 400); }, 3500);
 }
 
-// Keyboard shortcut
 document.addEventListener('keydown', e => {
   if (e.key === 'Enter') {
     const activeForm = document.querySelector('.auth-form.active');
@@ -360,24 +461,8 @@ document.addEventListener('keydown', e => {
   }
 });
 </script>
-<script>
-  const toggleBtn = document.getElementById('theme-toggle');
-  const currentTheme = localStorage.getItem('theme') || 'dark';
-  if (currentTheme === 'light') {
-    document.documentElement.setAttribute('data-theme', 'light');
-    if (toggleBtn) toggleBtn.textContent = '🌙';
-  }
-  if (toggleBtn) {
-    toggleBtn.addEventListener('click', () => {
-      const isLight = document.documentElement.getAttribute('data-theme') === 'light';
-      const nextTheme = isLight ? 'dark' : 'light';
-      document.documentElement.setAttribute('data-theme', nextTheme);
-      localStorage.setItem('theme', nextTheme);
-      toggleBtn.textContent = isLight ? '☀️' : '🌙';
-    });
-  }
-</script>
-<div style="text-align:center; padding: 20px; font-size: 0.8rem; color: #94a3b8; width: 100%; position: relative; z-index: 100;">Developed by ASG</div>
+<footer style="text-align:center; padding: 24px 0 12px; font-size: 0.85rem; color: var(--text-3); width: 100%; position: relative; z-index: 10;">
+  Developed by ASG
+</footer>
 </body>
 </html>
-
