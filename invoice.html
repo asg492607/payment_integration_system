@@ -4,43 +4,61 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Payment Receipt</title>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #f9fafb; --surface: #ffffff;
-      --text-1: #111827; --text-2: #4b5563; --text-3: #9ca3af;
-      --border: #e5e7eb; --primary: #4f46e5;
+      --bg: #f8faff;
+      --surface: #ffffff;
+      --text-1: #0f172a;
+      --text-2: #334155;
+      --text-3: #64748b;
+      --border: #e2e8f0;
+      --primary: #2563eb;
+      --primary-dk: #1d4ed8;
+      --success: #10b981;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Outfit', sans-serif; }
-    body { background: var(--bg); color: var(--text-1); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+    body { background: var(--bg); color: var(--text-1); min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px 16px; }
     
-    .invoice-card { background: var(--surface); border: 1px solid var(--border); max-width: 500px; width: 100%; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); overflow: hidden; }
+    .invoice-card {
+      background: var(--surface); border: 1px solid var(--border); max-width: 500px; width: 100%;
+      border-radius: 20px; box-shadow: 0 16px 40px rgba(37, 99, 235, 0.08); overflow: hidden;
+    }
     
-    .header { background: var(--primary); padding: 40px 30px; text-align: center; color: white; }
-    .header h1 { font-size: 2rem; font-weight: 700; margin-bottom: 8px; }
-    .header p { opacity: 0.8; font-size: 0.9rem; }
+    .header { background: linear-gradient(135deg, var(--primary), var(--primary-dk)); padding: 36px 28px; text-align: center; color: white; }
+    .header h1 { font-size: 1.8rem; font-weight: 800; margin-bottom: 6px; letter-spacing: -0.5px; }
+    .header p { opacity: 0.9; font-size: 0.92rem; font-weight: 500; }
     
-    .status-badge { display: inline-block; background: #10b981; color: white; font-weight: 600; font-size: 0.8rem; padding: 6px 12px; border-radius: 20px; margin-top: 16px; text-transform: uppercase; letter-spacing: 1px; }
+    .status-badge {
+      display: inline-block; background: #10b981; color: white; font-weight: 700;
+      font-size: 0.78rem; padding: 6px 14px; border-radius: 20px; margin-top: 14px;
+      text-transform: uppercase; letter-spacing: 0.8px; box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
     
-    .body { padding: 30px; }
-    .detail-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 0.95rem; }
+    .body { padding: 28px; }
+    .detail-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 0.92rem; }
     .detail-row:last-child { border-bottom: none; }
-    .detail-label { color: var(--text-2); }
-    .detail-value { font-weight: 600; text-align: right; word-break: break-all; max-width: 60%; }
+    .detail-label { color: var(--text-3); font-weight: 500; }
+    .detail-value { font-weight: 700; text-align: right; word-break: break-all; max-width: 60%; color: var(--text-1); font-family: var(--mono); font-size: 0.88rem; }
     
-    .items-section { margin-top: 30px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
-    .items-header { background: #f3f4f6; padding: 10px 15px; font-weight: 600; font-size: 0.85rem; color: var(--text-2); display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); }
-    .item-row { display: flex; justify-content: space-between; padding: 12px 15px; font-size: 0.95rem; border-bottom: 1px solid var(--border); }
+    .items-section { margin-top: 24px; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+    .items-header { background: #eff6ff; padding: 10px 16px; font-weight: 700; font-size: 0.82rem; color: var(--primary); display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); }
+    .item-row { display: flex; justify-content: space-between; padding: 12px 16px; font-size: 0.92rem; border-bottom: 1px solid var(--border); }
     .item-row:last-child { border-bottom: none; }
     
-    .total-section { margin-top: 20px; padding-top: 20px; border-top: 2px dashed var(--border); display: flex; justify-content: space-between; align-items: center; }
-    .total-label { font-size: 1.2rem; font-weight: 600; color: var(--text-2); }
-    .total-amount { font-size: 2rem; font-weight: 800; color: var(--primary); }
+    .total-section { margin-top: 20px; padding-top: 18px; border-top: 2px dashed var(--border); display: flex; justify-content: space-between; align-items: center; }
+    .total-label { font-size: 1.15rem; font-weight: 700; color: var(--text-2); }
+    .total-amount { font-size: 2rem; font-weight: 900; color: var(--primary); letter-spacing: -1px; }
     
-    .footer { padding: 20px 30px; text-align: center; background: #f3f4f6; color: var(--text-3); font-size: 0.8rem; border-top: 1px solid var(--border); }
+    .footer { padding: 18px 24px; text-align: center; background: #f8faff; color: var(--text-3); font-size: 0.82rem; border-top: 1px solid var(--border); }
     
-    .btn-print { display: block; width: 100%; padding: 14px; background: var(--text-1); color: white; text-align: center; text-decoration: none; font-weight: 600; border: none; cursor: pointer; transition: 0.2s; }
-    .btn-print:hover { background: #374151; }
+    .btn-print {
+      display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 15px;
+      background: var(--text-1); color: white; text-align: center; text-decoration: none; font-weight: 700;
+      border: none; cursor: pointer; transition: 0.2s; font-size: 0.95rem; min-height: 48px;
+    }
+    .btn-print:hover { background: #1e293b; }
     
     @media print {
       body { background: white; padding: 0; }
@@ -52,7 +70,7 @@
 <body>
 
   <div class="invoice-card" id="invoice">
-    <div style="padding: 40px; text-align: center;">Loading receipt...</div>
+    <div style="padding: 40px; text-align: center; color: var(--text-3);">Loading receipt...</div>
   </div>
 
   <script>
@@ -63,13 +81,13 @@
         const data = await res.json();
         
         if (!data.success) {
-          document.getElementById('invoice').innerHTML = `<div style="padding:40px;text-align:center;color:red;">Invoice not found or expired.</div>`;
+          document.getElementById('invoice').innerHTML = `<div style="padding:40px;text-align:center;color:var(--rose);">Invoice not found or expired.</div>`;
           return;
         }
         
         const order = data.order;
         const brandName = data.merchant.name || 'Merchant';
-        const brandColor = data.merchant.color || '#4f46e5';
+        const brandColor = data.merchant.color || '#2563eb';
         document.documentElement.style.setProperty('--primary', brandColor);
         document.title = `Receipt - ${order.id}`;
 
@@ -95,7 +113,7 @@
         document.getElementById('invoice').innerHTML = `
           <div class="header">
             <h1>${brandName}</h1>
-            <p>Digital Receipt</p>
+            <p>Digital Payment Receipt</p>
             ${statusBadge}
           </div>
           <div class="body">
@@ -126,16 +144,15 @@
           <button class="btn-print" onclick="window.print()">🖨️ Print / Save as PDF</button>
           <div class="footer">
             Powered by <strong>ASG Payment Gateway</strong><br>
-            Automated Payment Infrastructure
+            Self-Verifying UPI Infrastructure
           </div>
         `;
       } catch (err) {
-        document.getElementById('invoice').innerHTML = `<div style="padding:40px;text-align:center;">Failed to load receipt.</div>`;
+        document.getElementById('invoice').innerHTML = `<div style="padding:40px;text-align:center;color:var(--text-3);">Failed to load receipt.</div>`;
       }
     }
     
     loadInvoice();
   </script>
-<div style="text-align:center; padding: 20px; font-size: 0.8rem; color: #94a3b8; width: 100%; position: relative; z-index: 100;">Developed by ASG</div>
 </body>
 </html>
