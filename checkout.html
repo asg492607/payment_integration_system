@@ -3,89 +3,98 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ASG Payment Gateway Secure Checkout</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <title>ASG Payment Gateway — Secure UPI Checkout</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <style>
     :root {
-      --bg: #09090b;
-      --bg-2: #18181b;
-      --surface: rgba(24, 24, 27, 0.6);
-      --border: rgba(255, 255, 255, 0.1);
-      --text: #ffffff;
-      --text-muted: #a1a1aa;
-      --primary: #4f46e5;
-      --primary-hover: #4338ca;
+      --bg: #f8faff;
+      --bg-2: #eff6ff;
+      --surface: #ffffff;
+      --border: #e2e8f0;
+      --border-glow: rgba(37, 99, 235, 0.25);
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
       --success: #10b981;
-      --radius: 16px;
+      --emerald-lt: #059669;
+      --radius: 20px;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif; -webkit-tap-highlight-color: transparent; }
 
     body {
       background-color: var(--bg);
       color: var(--text);
       min-height: 100vh;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 20px;
+      padding: 20px 16px;
       position: relative;
-      overflow: hidden;
+      overflow-x: hidden;
     }
 
-    /* Ambient Background Glow */
+    /* Ambient Background Orbs */
     .glow-1 {
-      position: absolute; top: -10%; left: -10%; width: 50vw; height: 50vw;
-      background: radial-gradient(circle, rgba(79,70,229,0.15) 0%, rgba(9,9,11,0) 70%);
-      z-index: 0; pointer-events: none;
+      position: absolute; top: -150px; left: -150px; width: 450px; height: 450px;
+      background: radial-gradient(circle, rgba(37, 99, 235, 0.15) 0%, rgba(248, 250, 255, 0) 70%);
+      border-radius: 50%; z-index: 0; pointer-events: none;
     }
     .glow-2 {
-      position: absolute; bottom: -10%; right: -10%; width: 50vw; height: 50vw;
-      background: radial-gradient(circle, rgba(16,185,129,0.1) 0%, rgba(9,9,11,0) 70%);
-      z-index: 0; pointer-events: none;
+      position: absolute; bottom: -100px; right: -100px; width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(16, 185, 129, 0.12) 0%, rgba(248, 250, 255, 0) 70%);
+      border-radius: 50%; z-index: 0; pointer-events: none;
     }
 
     .checkout-card {
       background: var(--surface);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
       border: 1px solid var(--border);
       border-radius: var(--radius);
       width: 100%;
-      max-width: 420px;
-      padding: 32px;
+      max-width: 440px;
+      padding: 36px 28px;
       z-index: 10;
-      box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+      box-shadow: 0 20px 50px rgba(37, 99, 235, 0.08), 0 2px 12px rgba(15, 23, 42, 0.04);
       position: relative;
       overflow: hidden;
-      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .header { text-align: center; margin-bottom: 24px; }
-    .header h2 { font-size: 1.2rem; font-weight: 600; color: var(--text-muted); }
-    .header .amount { font-size: 2.8rem; font-weight: 800; margin: 8px 0; letter-spacing: -1px; }
-    .header .merchant { font-size: 0.9rem; color: var(--text-muted); display: flex; align-items: center; justify-content: center; gap: 6px; }
-    .header .merchant span { background: rgba(255,255,255,0.1); padding: 4px 10px; border-radius: 20px; font-weight: 500; font-size: 0.8rem; }
+    .header h2 { font-size: 1.15rem; font-weight: 700; color: var(--text-muted); }
+    .header .amount { font-size: 2.8rem; font-weight: 900; margin: 6px 0 10px; letter-spacing: -1.5px; color: var(--primary); }
+    .header .merchant {
+      font-size: 0.9rem; color: var(--text-muted); display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .header .merchant span {
+      background: var(--bg-2); border: 1px solid rgba(37, 99, 235, 0.2);
+      color: var(--primary); padding: 5px 14px; border-radius: 100px; font-weight: 700; font-size: 0.85rem;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
 
     .qr-container {
       background: #ffffff;
       padding: 16px;
-      border-radius: 12px;
+      border-radius: 16px;
       display: flex;
       justify-content: center;
       align-items: center;
-      margin: 0 auto 24px auto;
+      margin: 0 auto 20px auto;
       width: fit-content;
-      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3);
+      border: 1px solid var(--border);
+      box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06);
       position: relative;
     }
 
     .qr-overlay {
       position: absolute;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(255,255,255,0.9);
-      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.94);
+      border-radius: 16px;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -97,80 +106,105 @@
     .qr-overlay.active { opacity: 1; pointer-events: auto; }
 
     .spinner {
-      width: 30px; height: 30px;
-      border: 3px solid rgba(79,70,229,0.2);
+      width: 34px; height: 34px;
+      border: 3px solid rgba(37, 99, 235, 0.2);
       border-top-color: var(--primary);
       border-radius: 50%;
-      animation: spin 1s linear infinite;
-      margin-bottom: 8px;
+      animation: spin 0.9s linear infinite;
+      margin-bottom: 10px;
     }
     @keyframes spin { 100% { transform: rotate(360deg); } }
 
     .btn {
       width: 100%;
-      padding: 14px;
+      padding: 14px 20px;
       border: none;
-      border-radius: 8px;
+      border-radius: 12px;
       font-size: 1rem;
-      font-weight: 600;
+      font-weight: 700;
       cursor: pointer;
       transition: all 0.2s;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 8px;
+      min-height: 48px;
     }
-    .btn-primary { background: var(--primary); color: white; }
-    .btn-primary:hover { background: var(--primary-hover); transform: translateY(-1px); }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+      color: white;
+      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
+    }
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(37, 99, 235, 0.45);
+    }
+    .btn-primary:active { transform: translateY(0); }
 
     .footer-logos {
       display: flex;
       justify-content: center;
       gap: 12px;
       margin-top: 24px;
-      opacity: 0.5;
+      flex-wrap: wrap;
     }
-    .footer-logos img { height: 20px; }
+    .footer-pill {
+      font-size: 0.78rem;
+      font-weight: 700;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      padding: 4px 12px;
+      border-radius: 100px;
+      color: var(--text-muted);
+    }
 
-    .input-group { margin-bottom: 20px; }
-    .input-group label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px; font-weight: 500; }
-    .input-group input {
-      width: 100%; padding: 14px; border-radius: 8px; border: 1px solid var(--border);
-      background: rgba(0,0,0,0.2); color: white; font-size: 1rem; outline: none; transition: border 0.2s;
+    .input-group { margin-bottom: 18px; text-align: left; }
+    .input-group label {
+      display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 6px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px;
     }
-    .input-group input:focus { border-color: var(--primary); }
+    .input-group input {
+      width: 100%; padding: 13px 16px; border-radius: 10px; border: 1px solid var(--border);
+      background: #ffffff; color: var(--text); font-size: 1rem; outline: none; transition: all 0.2s; min-height: 48px;
+    }
+    .input-group input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
 
     /* Success State */
     .success-state {
       position: absolute;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: var(--surface);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
+      background: #ffffff;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       opacity: 0; pointer-events: none;
-      transition: opacity 0.5s;
+      transition: opacity 0.4s;
       z-index: 20;
+      padding: 30px;
     }
     .success-state.active { opacity: 1; pointer-events: auto; }
     
     .checkmark {
       width: 80px; height: 80px; border-radius: 50%;
-      background: rgba(16, 185, 129, 0.1);
+      background: rgba(16, 185, 129, 0.12);
       display: flex; align-items: center; justify-content: center;
       margin-bottom: 20px;
       animation: scaleIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
       transform: scale(0);
     }
-    .checkmark svg { width: 40px; height: 40px; color: var(--success); }
+    .checkmark svg { width: 44px; height: 44px; color: var(--success); }
     @keyframes scaleIn { to { transform: scale(1); } }
 
-    .success-text { font-size: 1.5rem; font-weight: 700; margin-bottom: 8px; }
-    .success-sub { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 24px; }
+    .success-text { font-size: 1.6rem; font-weight: 800; margin-bottom: 6px; color: var(--text); }
+    .success-sub { color: var(--text-muted); font-size: 0.95rem; margin-bottom: 24px; text-align: center; }
 
+    @media (max-width: 480px) {
+      .checkout-card { padding: 28px 20px; }
+      .header .amount { font-size: 2.4rem; }
+    }
   </style>
 </head>
 <body>
@@ -183,49 +217,55 @@
     <!-- Stage 1: Enter Details -->
     <div id="stage-init">
       <div class="header">
-        <h2>Complete your payment</h2>
+        <h2>Secure UPI Payment</h2>
         <div class="amount" id="display-amount">₹0.00</div>
-        <div class="merchant" id="display-merchant">Loading...</div>
+        <div class="merchant" id="display-merchant">
+          <span>⚡ ASG Payment Gateway</span>
+        </div>
       </div>
       
       <div class="input-group">
-        <label>Your Name</label>
-        <input type="text" id="inp-name" placeholder="John Doe" required/>
+        <label for="inp-name">Your Name</label>
+        <input type="text" id="inp-name" placeholder="Atharva Sharma" autocomplete="name" required/>
       </div>
       <div class="input-group">
-        <label>Your Email</label>
-        <input type="email" id="inp-email" placeholder="john@example.com" required/>
+        <label for="inp-email">Your Email</label>
+        <input type="email" id="inp-email" placeholder="you@example.com" autocomplete="email" required/>
       </div>
       
-      <button class="btn btn-primary" onclick="createOrder()" id="btn-pay">Pay Now</button>
+      <button class="btn btn-primary" onclick="createOrder()" id="btn-pay">Pay with UPI →</button>
     </div>
 
     <!-- Stage 2: QR Code & Polling -->
     <div id="stage-qr" style="display: none;">
       <div class="header">
-        <h2>Scan with any UPI App</h2>
+        <h2>Scan with Any UPI App</h2>
         <div class="amount" id="qr-amount">₹0.00</div>
-        <div class="merchant"><span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg> Secure Connection</span></div>
+        <div class="merchant">
+          <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg> Instant Auto-Verification</span>
+        </div>
       </div>
 
       <div class="qr-container" id="qr-wrapper">
         <div id="qrcode"></div>
         <div class="qr-overlay" id="qr-overlay">
           <div class="spinner"></div>
-          <div style="color:var(--primary);font-weight:600;font-size:0.9rem">Waiting for payment...</div>
+          <div style="color:var(--primary);font-weight:700;font-size:0.92rem">Waiting for bank confirmation...</div>
         </div>
       </div>
 
-      <button class="btn btn-primary" id="btn-upi-app" style="display:none;margin-bottom:12px" onclick="openUpiApp()">Pay via UPI App</button>
-      <div style="text-align:center;color:var(--text-muted);font-size:0.8rem">Keep this page open. It will auto-confirm.</div>
+      <button class="btn btn-primary" id="btn-upi-app" style="display:none;margin-bottom:12px" onclick="openUpiApp()">📱 Tap to Pay in UPI App</button>
+      <div style="text-align:center;color:var(--text-muted);font-size:0.84rem;line-height:1.5;">
+        Keep this window open. Your payment will confirm automatically within seconds.
+      </div>
     </div>
 
     <div class="footer-logos">
-      <!-- Minimal textual representation -->
-      <span style="font-size:0.8rem;font-weight:700">GPay</span>
-      <span style="font-size:0.8rem;font-weight:700">PhonePe</span>
-      <span style="font-size:0.8rem;font-weight:700">Paytm</span>
-      <span style="font-size:0.8rem;font-weight:700">BHIM</span>
+      <span class="footer-pill">GPay</span>
+      <span class="footer-pill">PhonePe</span>
+      <span class="footer-pill">Paytm</span>
+      <span class="footer-pill">BHIM</span>
+      <span class="footer-pill">Cred</span>
     </div>
 
     <!-- Stage 3: Success Overlay -->
@@ -233,9 +273,9 @@
       <div class="checkmark">
         <svg fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
       </div>
-      <div class="success-text">Payment Successful!</div>
-      <div class="success-sub">Thank you for your purchase.</div>
-      <button class="btn" style="background:rgba(255,255,255,0.1);color:white;width:auto;padding:10px 24px" onclick="window.location.reload()">Done</button>
+      <div class="success-text">Payment Successful! 🎉</div>
+      <div class="success-sub">Your payment has been auto-verified. Thank you for your purchase.</div>
+      <button class="btn btn-primary" style="width:auto;padding:12px 28px" onclick="window.location.reload()">Done</button>
     </div>
   </div>
 
@@ -257,21 +297,19 @@
         const res = await fetch(`/api/auth/merchant/${eId}`);
         if (res.ok) {
           const data = await res.json();
-          if (data.success) {
-            document.getElementById('display-merchant').innerHTML = `<span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg> ${data.brand_name}</span>`;
+          if (data.success && data.brand_name) {
+            document.getElementById('display-merchant').innerHTML = `<span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg> ${data.brand_name}</span>`;
             
-            // Inject dynamic CSS
-            const style = document.createElement('style');
-            style.textContent = `
-              :root {
-                --primary: ${data.brand_color};
-                --primary-hover: ${data.brand_color}ee;
-              }
-              .glow-1 {
-                background: radial-gradient(circle, ${data.brand_color}40 0%, rgba(9,9,11,0) 70%);
-              }
-            `;
-            document.head.appendChild(style);
+            if (data.brand_color) {
+              const style = document.createElement('style');
+              style.textContent = `
+                :root {
+                  --primary: ${data.brand_color};
+                  --primary-hover: ${data.brand_color}ee;
+                }
+              `;
+              document.head.appendChild(style);
+            }
           }
         }
       } catch (e) {}
@@ -285,12 +323,12 @@
       const email = document.getElementById('inp-email').value.trim();
       
       if(!name || !email) {
-        alert("Please enter Name and Email");
+        alert("Please enter your Name and Email");
         return;
       }
 
       const btn = document.getElementById('btn-pay');
-      btn.textContent = 'Processing...';
+      btn.textContent = 'Generating UPI QR...';
       btn.disabled = true;
 
       try {
@@ -314,7 +352,7 @@
           // Generate QR
           new QRCode(document.getElementById("qrcode"), {
             text: upiLinkStr, width: 200, height: 200,
-            colorDark : "#000000", colorLight : "#ffffff",
+            colorDark : "#0f172a", colorLight : "#ffffff",
             correctLevel : QRCode.CorrectLevel.H
           });
 
@@ -330,12 +368,12 @@
           pollInterval = setInterval(pollPayment, 3000);
         } else {
           alert(data.error || 'Failed to create order');
-          btn.textContent = 'Pay Now';
+          btn.textContent = 'Pay with UPI →';
           btn.disabled = false;
         }
       } catch (err) {
-        alert("Network error");
-        btn.textContent = 'Pay Now';
+        alert("Network error. Please try again.");
+        btn.textContent = 'Pay with UPI →';
         btn.disabled = false;
       }
     }
@@ -356,6 +394,8 @@
       } catch(e){}
     }
   </script>
-<div style="text-align:center; padding: 20px; font-size: 0.8rem; color: #94a3b8; width: 100%; position: relative; z-index: 100;">Developed by ASG</div>
+  <div style="text-align:center; padding: 24px 0 12px; font-size: 0.85rem; color: var(--text-muted); width: 100%; position: relative; z-index: 10;">
+    Protected by ASG Payment Gateway Enterprise
+  </div>
 </body>
 </html>
