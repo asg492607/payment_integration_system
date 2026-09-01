@@ -4,48 +4,101 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>ASG Payment Gateway POS Display</title>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <style>
     :root {
-      --bg: #050810; --text: #ffffff;
-      --primary: #4f46e5;
+      --bg: #f8faff;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --primary: #2563eb;
+      --primary-dk: #1d4ed8;
+      --success: #10b981;
+      --card-bg: #ffffff;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Outfit', sans-serif; }
-    body { background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Outfit', sans-serif; -webkit-tap-highlight-color: transparent; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow-x: hidden;
+      position: relative;
+    }
     
-    .screen { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.5s ease, transform 0.5s ease; transform: scale(0.95); }
+    .screen {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none; transition: opacity 0.4s ease, transform 0.4s ease; transform: scale(0.96);
+      padding: 24px 16px; overflow-y: auto;
+    }
     .screen.active { opacity: 1; pointer-events: auto; transform: scale(1); }
     
-    .glow { position: absolute; width: 600px; height: 600px; background: radial-gradient(circle, var(--primary) 0%, transparent 60%); opacity: 0.15; z-index: -1; animation: pulse 4s infinite alternate; }
-    @keyframes pulse { 0% { transform: scale(0.8); opacity: 0.1; } 100% { transform: scale(1.2); opacity: 0.2; } }
+    .glow {
+      position: absolute; width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(37, 99, 235, 0.12) 0%, transparent 60%);
+      z-index: -1; pointer-events: none; animation: pulse 6s infinite alternate;
+    }
+    @keyframes pulse { 0% { transform: scale(0.9); opacity: 0.1; } 100% { transform: scale(1.2); opacity: 0.2; } }
 
-    .brand-name { font-size: 3rem; font-weight: 800; letter-spacing: -1px; margin-bottom: 20px; text-shadow: 0 4px 20px rgba(0,0,0,0.5); }
-    .subtitle { font-size: 1.5rem; color: rgba(255,255,255,0.6); }
+    .brand-name { font-size: clamp(2rem, 5vw, 3.2rem); font-weight: 900; letter-spacing: -1px; margin-bottom: 16px; color: var(--text); text-align: center; }
+    .subtitle { font-size: clamp(1.1rem, 3vw, 1.5rem); color: var(--text-muted); font-weight: 600; text-align: center; }
     
     /* Waiting Screen (Split layout) */
-    .qr-container { display: flex; max-width: 1000px; width: 90%; gap: 30px; }
-    .receipt-card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 30px; border-radius: 24px; backdrop-filter: blur(10px); flex: 1; display: flex; flex-direction: column; max-height: 80vh; overflow-y: auto;}
-    .receipt-title { font-size: 1.4rem; font-weight: 700; color: rgba(255,255,255,0.8); margin-bottom: 20px; text-transform: uppercase; letter-spacing: 2px; border-bottom: 1px dashed rgba(255,255,255,0.2); padding-bottom: 10px; }
+    .qr-container { display: flex; max-width: 1000px; width: 92%; gap: 24px; align-items: stretch; margin: 0 auto; }
+    .receipt-card {
+      background: var(--card-bg); border: 1px solid var(--border); padding: 32px; border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.05); flex: 1; display: flex; flex-direction: column; max-height: 80vh; overflow-y: auto;
+    }
+    .receipt-title {
+      font-size: 1.2rem; font-weight: 800; color: var(--text-muted); margin-bottom: 18px;
+      text-transform: uppercase; letter-spacing: 1.5px; border-bottom: 1px dashed var(--border); padding-bottom: 10px;
+    }
     .receipt-items { flex: 1; margin-bottom: 20px; }
-    .receipt-item { display: flex; justify-content: space-between; font-size: 1.2rem; margin-bottom: 12px; }
-    .receipt-item-name { font-weight: 500; }
-    .receipt-item-price { font-weight: 700; color: rgba(255,255,255,0.8); }
-    .receipt-total-row { display: flex; justify-content: space-between; font-size: 1.8rem; font-weight: 800; border-top: 1px dashed rgba(255,255,255,0.2); padding-top: 20px; color: var(--primary); }
+    .receipt-item { display: flex; justify-content: space-between; font-size: 1.1rem; margin-bottom: 12px; }
+    .receipt-item-name { font-weight: 600; color: var(--text); }
+    .receipt-item-price { font-weight: 800; color: var(--text); }
+    .receipt-total-row {
+      display: flex; justify-content: space-between; font-size: 1.6rem; font-weight: 900;
+      border-top: 1px dashed var(--border); padding-top: 18px; color: var(--primary);
+    }
     
-    .qr-card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 40px; border-radius: 24px; backdrop-filter: blur(10px); box-shadow: 0 20px 40px rgba(0,0,0,0.4); text-align: center; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-    .amount { font-size: 3.5rem; font-weight: 800; color: var(--primary); text-shadow: 0 0 20px rgba(79, 70, 229, 0.4); line-height: 1; margin-bottom: 24px; }
-    .qr-box { background: white; padding: 20px; border-radius: 16px; margin: 0 auto; display: inline-block; }
-    .instruction { margin-top: 24px; font-size: 1.2rem; color: rgba(255,255,255,0.7); }
+    .qr-card {
+      background: var(--card-bg); border: 1px solid var(--border); padding: 36px 30px; border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.05); text-align: center; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    }
+    .amount { font-size: clamp(2.4rem, 5vw, 3.5rem); font-weight: 900; color: var(--primary); line-height: 1; margin-bottom: 20px; letter-spacing: -1px; }
+    .qr-box {
+      background: white; padding: 16px; border-radius: 16px; margin: 0 auto; display: inline-block;
+      border: 1px solid var(--border); box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+    }
+    .instruction { margin-top: 20px; font-size: 1.05rem; font-weight: 600; color: var(--text-muted); }
     
     /* Success Screen */
-    .screen-success { background: #10b981; z-index: 100; }
-    .checkmark { width: 160px; height: 160px; border-radius: 50%; background: white; display: flex; align-items: center; justify-content: center; margin-bottom: 40px; animation: scaleIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; transform: scale(0); }
-    .checkmark svg { width: 80px; height: 80px; color: #10b981; }
-    .success-text { font-size: 4rem; font-weight: 800; color: white; margin-bottom: 10px; }
-    .success-sub { font-size: 1.8rem; color: rgba(255,255,255,0.9); }
+    .screen-success { background: #10b981; z-index: 100; color: white; }
+    .checkmark {
+      width: 140px; height: 140px; border-radius: 50%; background: white;
+      display: flex; align-items: center; justify-content: center; margin-bottom: 30px;
+      animation: scaleIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; transform: scale(0);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    }
+    .checkmark svg { width: 70px; height: 70px; color: #10b981; }
+    .success-text { font-size: clamp(2.2rem, 6vw, 3.8rem); font-weight: 900; color: white; margin-bottom: 8px; }
+    .success-sub { font-size: clamp(1.2rem, 3vw, 1.6rem); color: rgba(255,255,255,0.95); font-weight: 600; }
     
     @keyframes scaleIn { to { transform: scale(1); } }
+
+    @media (max-width: 768px) {
+      .qr-container { flex-direction: column; gap: 16px; width: 100%; }
+      .receipt-card { max-height: 40vh; padding: 20px; }
+      .qr-card { padding: 24px 16px; }
+      .amount { font-size: 2.5rem; }
+    }
   </style>
 </head>
 <body>
@@ -60,7 +113,7 @@
 
   <!-- Screen 2: QR Waiting (Split) -->
   <div class="screen" id="screen-qr">
-    <div class="brand-name" id="qr-brand" style="font-size:2rem; margin-bottom:20px;">ASG Payment Gateway</div>
+    <div class="brand-name" id="qr-brand" style="font-size: clamp(1.4rem, 4vw, 2.2rem); margin-bottom: 16px;">ASG Payment Gateway</div>
     <div class="qr-container">
       <!-- Itemized Receipt -->
       <div class="receipt-card" id="receipt-card">
@@ -89,10 +142,10 @@
       <svg fill="none" stroke="currentColor" stroke-width="4" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
     </div>
     <div class="success-text">Payment Successful!</div>
-    <div class="success-sub">Thank you</div>
-    <div style="margin-top: 40px; background: rgba(255,255,255,0.15); padding: 20px; border-radius: 16px; backdrop-filter: blur(5px); text-align: center;">
-      <div style="color: white; font-weight: bold; margin-bottom: 12px; font-size: 1.1rem;">Scan to Download Receipt</div>
-      <div id="receipt-qrcode" style="background: white; padding: 10px; border-radius: 8px; display: inline-block;"></div>
+    <div class="success-sub">Thank you for your payment</div>
+    <div style="margin-top: 30px; background: rgba(255,255,255,0.2); padding: 18px 24px; border-radius: 16px; backdrop-filter: blur(8px); text-align: center;">
+      <div style="color: white; font-weight: 700; margin-bottom: 12px; font-size: 1.05rem;">Scan for Digital Receipt</div>
+      <div id="receipt-qrcode" style="background: white; padding: 10px; border-radius: 10px; display: inline-block;"></div>
     </div>
   </div>
 
@@ -111,7 +164,7 @@
 
     const urlParams = new URLSearchParams(window.location.search);
     const eId = urlParams.get('eid');
-    let brandColor = '#4f46e5';
+    let brandColor = '#2563eb';
     let brandName = 'Verified Merchant';
 
     // UI Switching
@@ -136,7 +189,7 @@
       // 1. Fetch Branding
       fetch(`/api/auth/merchant/${eId}`).then(r => r.json()).then(data => {
         if(data.success) {
-          brandColor = data.brand_color || '#4f46e5';
+          brandColor = data.brand_color || '#2563eb';
           brandName = data.brand_name || 'Verified Merchant';
           document.documentElement.style.setProperty('--primary', brandColor);
           document.getElementById('idle-brand').textContent = brandName;
@@ -158,8 +211,8 @@
           document.getElementById('display-amount').textContent = `₹${parseFloat(state.amount).toFixed(2)}`;
           document.getElementById('qrcode').innerHTML = ''; // clear old
           new QRCode(document.getElementById("qrcode"), {
-            text: state.upiLink, width: 300, height: 300,
-            colorDark : "#000000", colorLight : "#ffffff",
+            text: state.upiLink, width: 260, height: 260,
+            colorDark : "#0f172a", colorLight : "#ffffff",
             correctLevel : QRCode.CorrectLevel.H
           });
           
@@ -179,7 +232,6 @@
             receiptItems.innerHTML = html;
             document.getElementById('receipt-total').textContent = `₹${parseFloat(state.amount).toFixed(2)}`;
           } else {
-            // Hide receipt side if simple amount push
             receiptCard.style.display = 'none';
           }
           
@@ -191,18 +243,14 @@
       const eventsRef = ref(rtdb, `events/${eId}`);
       onChildAdded(eventsRef, (snapshot) => {
         const evt = snapshot.val();
-        // Check if we are currently waiting for a payment
         const activeScreen = document.querySelector('.screen.active');
         if (evt && evt.type === 'PAYMENT_VERIFIED' && activeScreen.id === 'screen-qr') {
-          // If we receive ANY payment while waiting, assume it's this one (or we could match orderId)
-          
-          // Render receipt QR
           document.getElementById('receipt-qrcode').innerHTML = '';
           if (evt.orderId) {
             new QRCode(document.getElementById("receipt-qrcode"), {
               text: `${window.location.origin}/invoice/${evt.orderId}`,
-              width: 150, height: 150,
-              colorDark : "#000000", colorLight : "#ffffff",
+              width: 140, height: 140,
+              colorDark : "#0f172a", colorLight : "#ffffff",
               correctLevel : QRCode.CorrectLevel.M
             });
           }
@@ -210,12 +258,12 @@
           showScreen('screen-success');
           playAudioAlert(evt.amount);
           
-          // Auto-reset back to idle after 15 seconds so customer has time to scan
+          // Auto-reset back to idle after 15 seconds
           setTimeout(() => {
             fetch('/api/admin/pos/clear', {
               method: 'POST',
               headers: { 'Authorization': `Bearer ${localStorage.getItem('admin_token')}` }
-            }).catch(e=>{}); // best effort
+            }).catch(e=>{});
             showScreen('screen-idle');
           }, 15000);
         }
@@ -230,6 +278,5 @@
       }
     }, { once: true });
   </script>
-<div style="text-align:center; padding: 20px; font-size: 0.8rem; color: #94a3b8; width: 100%; position: relative; z-index: 100;">Developed by ASG</div>
 </body>
 </html>
