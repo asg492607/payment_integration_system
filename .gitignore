@@ -30,3 +30,7 @@ Thumbs.db
 # Build artifacts
 dist/
 build/
+.gradle/
+*.bin
+*.lock
+
