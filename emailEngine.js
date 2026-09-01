@@ -126,8 +126,7 @@ async function pollEmailForEnterprise(enterprise) {
           );
 
           if (!matchingOrders.length) {
-            console.log(`[EmailEngine] No matching order for ₹${alert.amount} (enterprise: ${enterprise.id})`);
-            await client.messageFlagsAdd(msg.uid, ['\\Seen'], { uid: true });
+            console.log(`[EmailEngine] No matching order for ₹${alert.amount} yet (enterprise: ${enterprise.id}) - will retry next poll`);
             continue;
           }
 

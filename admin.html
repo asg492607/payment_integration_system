@@ -234,7 +234,14 @@
 
 <script>
 const API = (window.location.hostname === 'localhost' && window.location.port === '3000') || window.location.hostname === 'payment-integration-system.onrender.com' ? '' : 'https://payment-integration-system.onrender.com';
-let adminToken = '';
+let adminToken = localStorage.getItem('pf_token') || '';
+
+document.addEventListener('DOMContentLoaded', () => {
+  if (adminToken) {
+    document.getElementById('admin-token-inp').value = adminToken;
+    unlockAdmin();
+  }
+});
 
 function toast(message, type = 'info') {
   const icons = { success: '✅', error: '❌', info: 'ℹ️' };
@@ -260,15 +267,16 @@ function escapeHtml(value) {
 }
 
 async function adminFetch(url) {
-  const res = await fetch(url, { headers: { 'x-admin-token': adminToken } });
-  if (res.status === 401) { toast('Unauthorized. Check your token.', 'error'); throw new Error('401'); }
+  const res = await fetch(url, { headers: { 'Authorization': `Bearer ${adminToken}`, 'x-admin-token': adminToken } });
+  if (res.status === 401) { toast('Unauthorized. Please login or check your token.', 'error'); throw new Error('401'); }
   return res.json();
 }
 
 async function unlockAdmin() {
   const token = document.getElementById('admin-token-inp').value.trim();
-  if (!token) { toast('Enter a token.', 'error'); return; }
+  if (!token) { toast('Enter your Session / Admin token.', 'error'); return; }
   adminToken = token;
+  localStorage.setItem('pf_token', token);
 
   try {
     const stats = await adminFetch(`${API}/api/admin/stats`);
@@ -278,7 +286,7 @@ async function unlockAdmin() {
     loadTransactions();
   } catch(e) {
     if (e.message !== '401') toast('Connection error.', 'error');
-    else { toast('Invalid token.', 'error'); adminToken = ''; }
+    else { toast('Invalid or expired token.', 'error'); adminToken = ''; }
   }
 }
 

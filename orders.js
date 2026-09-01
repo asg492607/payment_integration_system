@@ -13,6 +13,8 @@ const smsQueue = require('./smsQueue');
 
 function setDb() {} // No longer needed
 
+const { requireAuth } = require('./auth');
+
 // ── GET /api/orders/plans/:enterpriseId ───────────────────────────────────────
 router.get('/plans/:enterpriseId', async (req, res) => {
   try {
@@ -29,9 +31,10 @@ router.get('/plans/:enterpriseId', async (req, res) => {
   }
 });
 
-router.get('/debug-queue', async (req, res) => {
+// Protected debug queue - only for authenticated enterprise merchants
+router.get('/debug-queue', requireAuth, async (req, res) => {
   try {
-    const queue = await db.getAll('sms_queue');
+    const queue = await db.query('sms_queue', 'enterprise_id', req.enterpriseUserId);
     res.json(queue);
   } catch (e) {
     res.status(500).json({ error: e.message });
@@ -43,10 +46,11 @@ router.get('/debug-queue', async (req, res) => {
  */
 async function reserveAmount(baseAmount, enterpriseId) {
   const min = Math.floor(baseAmount);
+  const eId = enterpriseId || 'global';
   
   for (let paise = 1; paise <= 99; paise++) {
     const amt = parseFloat((min + (paise / 100)).toFixed(2));
-    const resKey = `active_amounts/${enterpriseId}_${amt.toString().replace('.','_')}`;
+    const resKey = `active_amounts/${eId}_${amt.toString().replace('.','_')}`;
     const existing = await db.get(resKey);
     
     if (!existing || new Date(existing.expires_at) < new Date()) {
@@ -64,8 +68,10 @@ async function reserveAmount(baseAmount, enterpriseId) {
 router.post('/create', async (req, res) => {
   try {
     let { email, name, phone, plan, enterprise_id, amount } = req.body;
-    if (!email || !name || !plan || !enterprise_id) {
-      return res.status(400).json({ error: 'Missing required fields' });
+    const eId = enterprise_id || 'global';
+
+    if (!email || !name || !plan) {
+      return res.status(400).json({ error: 'Missing required fields: email, name, plan' });
     }
 
     email = String(email).slice(0, 100);
@@ -73,7 +79,6 @@ router.post('/create', async (req, res) => {
     if (phone) phone = String(phone).slice(0, 20);
     plan = String(plan).slice(0, 50);
 
-    const eId = enterprise_id;
     let enterprise = null;
     if (eId !== 'global') {
       enterprise = await db.get(`enterprise_users/${eId}`);
@@ -211,4 +216,4 @@ router.post('/sms', express.json({ type: ['application/json', 'text/plain'] }), 
     res.status(500).json({ error: 'Internal server error' });
   }
 });
-module.exports = { router, setDb };
+module.exports = { router, setDb, reserveAmount };

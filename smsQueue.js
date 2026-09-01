@@ -40,7 +40,7 @@ async function addSmsToQueue(item) {
  */
 async function processQueue() {
   const allSms = await db.getAll('sms_queue');
-  const pending = allSms.filter(s => s.status === 'pending' && s.attempts < 5)
+  const pending = allSms.filter(s => s.status === 'pending' && s.attempts < 10)
                         .sort((a,b) => new Date(a.received_at) - new Date(b.received_at))
                         .slice(0, 20);
 
@@ -54,7 +54,7 @@ async function processQueue() {
       const ref = parsed.ref || null;
 
       if (!amount) {
-        await db.patch(`sms_queue/${item.id}`, { status: 'failed', result: 'Could not parse amount' });
+        await db.patch(`sms_queue/${item.id}`, { status: 'failed', result: parsed.isDebit ? 'Ignored: Debit/Non-credit SMS' : 'Could not parse amount' });
         continue;
       }
 
@@ -71,8 +71,8 @@ async function processQueue() {
         const attempts = item.attempts + 1;
         await db.patch(`sms_queue/${item.id}`, {
           attempts, last_attempt: new Date().toISOString(),
-          status: attempts >= 4 ? 'expired' : 'pending',
-          result: `No pending order for Rs.${amount}`
+          status: attempts >= 10 ? 'expired' : 'pending',
+          result: `Waiting for matching pending order of ₹${amount} (attempt ${attempts}/10)`
         });
         continue;
       }

@@ -47,8 +47,10 @@ async function patch(path, data) {
 
 async function remove(path) {
   const res = await fetch(getUrl(path), { method: 'DELETE' });
-  const json = await res.json();
-  if (!res.ok) throw new Error(json.error || 'Firebase DELETE failed');
+  const text = await res.text();
+  let json = null;
+  try { json = text ? JSON.parse(text) : null; } catch (e) {}
+  if (!res.ok) throw new Error(json?.error || 'Firebase DELETE failed');
   return json;
 }
 
@@ -62,16 +64,24 @@ async function getAll(path) {
 }
 
 /**
- * Query items efficiently via Firebase REST API
+ * Query items efficiently via Firebase REST API, with in-memory fallback if indexing is unconfigured
  */
 async function query(path, field, value) {
   // Ensure the value is JSON stringified for the URL (e.g., "ent_123" needs to be literally '"ent_123"')
   const queryParams = `orderBy="${field}"&equalTo=${encodeURIComponent(JSON.stringify(value))}`;
-  const res = await fetch(getUrl(path, queryParams));
-  if (!res.ok) return [];
-  const data = await res.json();
-  if (!data) return [];
-  return Object.values(data);
+  try {
+    const res = await fetch(getUrl(path, queryParams));
+    if (res.ok) {
+      const data = await res.json();
+      if (!data) return [];
+      return Object.values(data);
+    }
+    // If index is missing or request failed, fallback to in-memory find
+    return await find(path, item => item && item[field] === value);
+  } catch (err) {
+    console.warn(`[DB query fallback] ${path}.${field}:`, err.message);
+    return await find(path, item => item && item[field] === value);
+  }
 }
 
 /**

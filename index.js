@@ -101,13 +101,62 @@ app.get('/pay/:enterpriseId', (req, res) => {
 });
 
 // Enforce strict APK download headers for Android phones
-const apkFiles = ['ASG Payment Gateway-Forwarder.apk', 'ASG Payment Gateway-App.apk'];
-apkFiles.forEach(apk => {
-  app.get('/' + apk, (req, res) => {
-    res.download(path.join(__dirname, apk), apk, (err) => {
-      if (err) console.error(`Error serving ${apk}:`, err);
+const apkMap = {
+  'ASG Payment Gateway-Forwarder.apk': 'PayForge-Forwarder.apk',
+  'ASG Payment Gateway-App.apk': 'PayForge-App.apk',
+  'PayForge-Forwarder.apk': 'PayForge-Forwarder.apk',
+  'PayForge-App.apk': 'PayForge-App.apk'
+};
+
+Object.entries(apkMap).forEach(([routePath, actualFileName]) => {
+  app.get('/' + routePath, (req, res) => {
+    res.download(path.join(__dirname, actualFileName), routePath, (err) => {
+      if (err) console.error(`Error serving ${routePath}:`, err);
     });
   });
+});
+
+// ── Client Firebase Config ────────────────────────────────────────────────────
+app.get('/api/client/fb-config', (req, res) => {
+  res.json({
+    apiKey: process.env.FIREBASE_API_KEY || "AIzaSyCCoQaBHkp6XBIXATmn34-c89h8auPTe24",
+    databaseURL: process.env.FIREBASE_DB_URL || "https://payment-2e43c-default-rtdb.firebaseio.com",
+    projectId: process.env.FIREBASE_PROJECT_ID || "payment-2e43c",
+    storageBucket: "payment-2e43c.firebasestorage.app",
+    messagingSenderId: "1013570384920",
+    appId: "1:1013570384920:web:8c547ffe53cc9cc8d1ff6d"
+  });
+});
+
+// ── Public Digital Receipt Endpoint (Used by invoice.html) ────────────────────
+app.get('/api/public/order/:id', async (req, res) => {
+  try {
+    const order = await db.get(`orders/${req.params.id}`);
+    if (!order) return res.status(404).json({ success: false, error: 'Order not found' });
+    
+    const enterprise = await db.get(`enterprise_users/${order.enterprise_id}`);
+    
+    const safeOrder = {
+      id: order.id,
+      amount: order.amount,
+      status: order.status,
+      created_at: order.created_at,
+      upi_ref: order.upi_ref,
+      source: order.source,
+      cartItems: order.cartItems || []
+    };
+    
+    res.json({
+      success: true,
+      order: safeOrder,
+      merchant: {
+        name: enterprise?.brand_name || enterprise?.company || 'Verified Merchant',
+        color: enterprise?.brand_color || '#4f46e5'
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: 'Server error' });
+  }
 });
 
 // ── Health Check ──────────────────────────────────────────────────────────────

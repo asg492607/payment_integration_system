@@ -9,13 +9,15 @@ const processingLocks = new Set();
 
 function setDb() {} // No longer needed
 
-const SMS_PATTERNS = [
-  /(?:credited|received|paid|added).*?(?:INR|Rs\.?|₹)\s*([\d,]+\.?\d*)/i,
-  /(?:INR|Rs\.?|₹)\s*([\d,]+\.?\d*).*?(?:credited|received|paid|added)/i,
-  /(?:INR|Rs\.?|₹)\s*([\d,]+\.?\d*)/i,
+const CREDIT_PATTERNS = [
+  /(?:credited|received|paid|added|deposited).*?(?:INR|Rs\.?|₹)\s*([\d,]+\.?\d*)/i,
+  /(?:INR|Rs\.?|₹)\s*([\d,]+\.?\d*).*?(?:credited|received|paid|added|deposited)/i,
+];
+const DEBIT_PATTERNS = [
+  /\b(?:debited|withdrawn|sent|spent|transferred to|charged)\b/i
 ];
 const REF_PATTERNS = [
-  /(?:upi\s*)?(?:ref(?:erence)?|txn|transaction|utr|id)(?:\s*no\.?)?[\s#:;]*([A-Z0-9]{10,20})/i,
+  /(?:upi\s*)?(?:ref(?:erence)?|txn|transaction|utr|id)(?:\s*no\.?)?[\s#:;]*([A-Z0-9]{10,22})/i,
   /\b(\d{12})\b/,
   /UPI\/(\w+)/i,
 ];
@@ -23,7 +25,16 @@ const ORDER_PATTERNS = [/\b(ORD-[A-Z0-9]+-[A-Z0-9]+)\b/i];
 
 function parseSmsAlert(text) {
   let amount = null, ref = null, orderId = null;
-  for (const p of SMS_PATTERNS) {
+  if (!text || typeof text !== 'string') return { amount, ref, orderId };
+
+  // If SMS contains explicit debit/withdrawal indicator without credit, reject it
+  const isDebit = DEBIT_PATTERNS.some(p => p.test(text));
+  const isCredit = CREDIT_PATTERNS.some(p => p.test(text));
+  if (isDebit && !isCredit) {
+    return { amount: null, ref: null, orderId: null, isDebit: true };
+  }
+
+  for (const p of CREDIT_PATTERNS) {
     const m = text.match(p);
     if (m) { amount = parseFloat(m[1].replace(/,/g, '')); break; }
   }

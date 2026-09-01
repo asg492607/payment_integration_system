@@ -56,17 +56,19 @@ function init(verEng) {
 function setupHandlers() {
   if (!bot) return;
 
-  // ── /start <enterprise_id> — Link chat to enterprise ──────────────────────
+  // ── /start <enterprise_id> [webhook_secret] — Link chat to enterprise ──
   bot.onText(/\/start(.*)/, async (msg, match) => {
     const chatId = msg.chat.id;
-    const eId = (match[1] || '').trim();
+    const parts = (match[1] || '').trim().split(/\s+/);
+    const eId = parts[0];
+    const secret = parts[1];
 
     if (!eId) {
       return bot.sendMessage(chatId,
         `👋 *Welcome to ASG Payment Gateway Payment Bot!*\n\n` +
-        `To link this chat to your merchant account, use:\n` +
-        `/start YOUR_ENTERPRISE_ID\n\n` +
-        `Find your Enterprise ID in your ASG Payment Gateway Dashboard → Integration tab.`,
+        `To link this chat to your merchant account securely, use:\n` +
+        `/start YOUR_ENTERPRISE_ID YOUR_WEBHOOK_SECRET\n\n` +
+        `Find your Enterprise ID and Webhook Secret in your Dashboard → Settings / Integration tab.`,
         { parse_mode: 'Markdown' }
       );
     }
@@ -75,6 +77,11 @@ function setupHandlers() {
       const enterprise = await db.get(`enterprise_users/${eId}`);
       if (!enterprise) {
         return bot.sendMessage(chatId, '❌ Enterprise ID not found. Please check your Dashboard.');
+      }
+
+      // Verify webhook secret / API key for security
+      if (enterprise.sms_webhook_secret && secret !== enterprise.sms_webhook_secret && secret !== enterprise.api_key) {
+        return bot.sendMessage(chatId, '❌ Unauthorized: Invalid Webhook Secret / Key.\nUsage: `/start YOUR_ENTERPRISE_ID YOUR_SECRET`', { parse_mode: 'Markdown' });
       }
 
       // Save the telegram chat_id → enterprise mapping
@@ -90,7 +97,7 @@ function setupHandlers() {
         `Now just *forward or paste any bank credit SMS* here and I'll verify the payment automatically.\n\n` +
         `*Commands:*\n` +
         `/status — View pending orders\n` +
-        `/verify <UTR> — Manually verify by UTR number`,
+        `/verify <ORDER_ID> <UTR> — Manually verify an order by ID and UTR`,
         { parse_mode: 'Markdown' }
       );
     } catch (err) {
@@ -172,14 +179,25 @@ function setupHandlers() {
     }
   });
 
-  // ── /verify <UTR> — Manual UTR verification ───────────────────────────────
+  // ── /verify [order_id] <UTR> — Manual UTR verification ───────────────────
   bot.onText(/\/verify (.+)/, async (msg, match) => {
     const chatId = msg.chat.id;
-    const utr = match[1].trim().toUpperCase();
+    const input = match[1].trim();
+    const parts = input.split(/\s+/);
     const link = await db.get(`telegram_links/${chatId}`);
-    if (!link) return bot.sendMessage(chatId, '❗ Please link your account first: /start YOUR_ENTERPRISE_ID');
+    if (!link) return bot.sendMessage(chatId, '❗ Please link your account first: /start YOUR_ENTERPRISE_ID YOUR_SECRET');
 
-    await handleUtrVerification(chatId, link.enterprise_id, utr);
+    let orderId = null;
+    let utr = null;
+
+    if (parts.length >= 2) {
+      orderId = parts[0].toUpperCase();
+      utr = parts[1].toUpperCase();
+    } else {
+      utr = parts[0].toUpperCase();
+    }
+
+    await handleUtrVerification(chatId, link.enterprise_id, utr, orderId);
   });
 
   // ── Any text message — treat as a bank SMS ────────────────────────────────
@@ -191,7 +209,7 @@ function setupHandlers() {
 
     if (!link) {
       return bot.sendMessage(chatId,
-        '❗ Please link your merchant account first:\n/start YOUR_ENTERPRISE_ID'
+        '❗ Please link your merchant account first:\n/start YOUR_ENTERPRISE_ID YOUR_SECRET'
       );
     }
 
@@ -260,7 +278,7 @@ async function handleSmsText(chatId, enterpriseId, rawText) {
 }
 
 // ── Core: Verify by UTR number directly ──────────────────────────────────────
-async function handleUtrVerification(chatId, enterpriseId, utr) {
+async function handleUtrVerification(chatId, enterpriseId, utr, specificOrderId = null) {
   try {
     // Check if UTR already used
     const used = await db.get(`used_refs/${utr}`);
@@ -271,23 +289,43 @@ async function handleUtrVerification(chatId, enterpriseId, utr) {
       );
     }
 
-    // Find pending orders for this enterprise
-    const ordersData = await db.query('orders', 'enterprise_id', enterpriseId);
-    const pending = ordersData.filter(o =>
-      o.status === 'pending' && new Date(o.expires_at) > new Date()
-    ).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    let targetOrder = null;
+    if (specificOrderId) {
+      targetOrder = await db.get(`orders/${specificOrderId}`);
+      if (!targetOrder || targetOrder.enterprise_id !== enterpriseId) {
+        return bot.sendMessage(chatId, `❌ Order \`${specificOrderId}\` not found for your merchant account.`);
+      }
+      if (targetOrder.status !== 'pending') {
+        return bot.sendMessage(chatId, `⚠️ Order \`${specificOrderId}\` is already ${targetOrder.status}.`);
+      }
+    } else {
+      // Find pending orders for this enterprise
+      const ordersData = await db.query('orders', 'enterprise_id', enterpriseId);
+      const pending = ordersData.filter(o =>
+        o.status === 'pending' && new Date(o.expires_at) > new Date()
+      ).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
-    if (!pending.length) {
-      return bot.sendMessage(chatId, '⚠️ No pending orders found to match this UTR against.');
+      if (!pending.length) {
+        return bot.sendMessage(chatId, '⚠️ No pending orders found to match this UTR against.');
+      }
+      if (pending.length > 1) {
+        return bot.sendMessage(chatId,
+          `⚠️ Multiple pending orders exist. Please specify the Order ID:\n` +
+          `Usage: \`/verify ${pending[0].id} ${utr}\`\n\n` +
+          `Pending Orders:\n` +
+          pending.slice(0, 5).map(o => `• \`${o.id}\` — ₹${o.amount}`).join('\n'),
+          { parse_mode: 'Markdown' }
+        );
+      }
+      targetOrder = pending[0];
     }
 
-    // Use the most recent pending order (merchant knows which order they're verifying)
     const result = await verifyPayment({
-      orderId: pending[0].id,
+      orderId: targetOrder.id,
       upiRef: utr,
       amount: null, // Skip amount check when manually providing UTR
       source: 'telegram_manual_utr',
-      rawText: `Manual UTR verification: ${utr}`,
+      rawText: `Manual Telegram UTR verification: ${utr}`,
       enterpriseId,
     });
 

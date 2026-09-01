@@ -6,6 +6,7 @@ const express = require('express');
 const router = express.Router();
 const db = require('./database');
 const upiEngine = require('./upiEngine');
+const { reserveAmount } = require('./orders');
 
 // API Key Middleware
 async function requireApiKey(req, res, next) {
@@ -26,11 +27,11 @@ router.post('/payments/create', requireApiKey, async (req, res) => {
     const enterprise = req.enterpriseUser;
     const { amount, currency, reference_id, customer_email, customer_name, return_url } = req.body;
     
-    if (!amount || isNaN(amount) || amount <= 0) {
+    if (!amount || isNaN(amount) || parseFloat(amount) <= 0) {
       return res.status(400).json({ error: 'Valid amount is required' });
     }
     
-    const payableAmount = parseFloat(amount).toFixed(2);
+    const payableAmount = await reserveAmount(parseFloat(amount), enterprise.id);
     const orderId = upiEngine.generateOrderId();
     const expiryMins = 15;
     const expiresAt = new Date(Date.now() + expiryMins * 60000).toISOString();

@@ -61,7 +61,7 @@ async function proceedToPayment() {
     const res = await fetch(`${API}/api/orders/create`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, email, phone, plan: state.selectedPlan }),
+      body: JSON.stringify({ name, email, phone, plan: state.selectedPlan, enterprise_id: 'global' }),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Failed to create order');

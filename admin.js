@@ -275,10 +275,67 @@ router.post('/catalog', async (req, res) => {
 
 router.delete('/catalog/:id', async (req, res) => {
   try {
+    const product = await db.get(`products/${req.params.id}`);
+    if (!product || product.enterprise_id !== req.enterpriseUserId) {
+      return res.status(403).json({ error: 'Unauthorized: Product not found or does not belong to your account' });
+    }
     await db.remove(`products/${req.params.id}`);
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: 'Failed to delete product' });
+  }
+});
+
+// ── GET /api/admin/stats (Used by admin panel) ─────────────────────────────────
+router.get('/stats', async (req, res) => {
+  try {
+    const eId = req.enterpriseUserId;
+    const orders = await db.query('orders', 'enterprise_id', eId);
+    const users = await db.query('users', 'enterprise_id', eId);
+    
+    let totalRevenue = 0, paidOrders = 0, pendingOrders = 0;
+    orders.forEach(o => {
+      if (o.status === 'paid') {
+        paidOrders++;
+        totalRevenue += parseFloat(o.amount || 0);
+      } else if (o.status === 'pending') {
+        pendingOrders++;
+      }
+    });
+
+    const activeUsers = users.filter(u => u.is_active).length;
+
+    res.json({
+      totalRevenue,
+      paidOrders,
+      pendingOrders,
+      activeUsers,
+      totalOrders: orders.length
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch admin stats' });
+  }
+});
+
+// ── GET /api/admin/audit (Used by admin panel) ─────────────────────────────────
+router.get('/audit', async (req, res) => {
+  try {
+    const eId = req.enterpriseUserId;
+    const logs = await db.query('audit_log', 'enterprise_id', eId);
+    res.json(logs.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0)).slice(0, 50));
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch audit log' });
+  }
+});
+
+// ── GET /api/admin/users (Used by admin panel) ─────────────────────────────────
+router.get('/users', async (req, res) => {
+  try {
+    const eId = req.enterpriseUserId;
+    const users = await db.query('users', 'enterprise_id', eId);
+    res.json(users.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0)));
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch users' });
   }
 });
 
