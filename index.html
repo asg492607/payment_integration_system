@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -19,22 +19,33 @@
 <!-- ─── Navbar ─────────────────────────────────────────── -->
 <nav class="navbar">
   <div class="nav-inner">
-    <div class="nav-logo">
+    <a class="nav-logo" href="/">
       <div class="logo-icon">⚡</div>
       <span>ASG Payment Gateway</span>
-    </div>
+    </a>
     <div class="nav-links">
       <a href="#plans">Plans</a>
       <a href="#how">How It Works</a>
       <a href="#features">Features</a>
       <a href="/login.html" class="nav-admin-btn" id="nav-auth-btn">Sign In →</a>
     </div>
+    <button class="mobile-nav-toggle" id="mobile-nav-toggle" onclick="toggleMobileNav()" aria-label="Toggle Navigation Menu">
+      ☰
+    </button>
   </div>
 </nav>
 
+<!-- Mobile Navigation Drawer -->
+<div class="mobile-nav-drawer" id="mobile-nav-drawer">
+  <a href="#plans" onclick="toggleMobileNav()">Plans <span>→</span></a>
+  <a href="#how" onclick="toggleMobileNav()">How It Works <span>→</span></a>
+  <a href="#features" onclick="toggleMobileNav()">Features <span>→</span></a>
+  <a href="/login.html" id="mobile-auth-btn" class="nav-admin-btn" style="text-align:center; justify-content:center;">Sign In →</a>
+</div>
+
 <!-- ─── Hero ───────────────────────────────────────────── -->
 <section class="hero">
-  <div class="hero-badge">🇮🇳 Built for Indian Startups · No Payment Gateway Required</div>
+  <div class="hero-badge">🇮🇳 Built for Indian Startups · Zero Gateway Fees</div>
   <h1 class="hero-title">
     Collect UPI Payments.<br/>
     <span class="gradient-text">Auto-verify. Instantly activate.</span>
@@ -58,7 +69,7 @@
 <!-- ─── Plans ──────────────────────────────────────────── -->
 <section class="plans-section" id="plans">
   <h2 class="section-title">Transparent Pricing</h2>
-  <p class="section-sub" style="color: var(--emerald-lt); font-weight: 600; margin-bottom: 20px;">🚀 Currently in Beta: All tiers are 100% FREE while we scale!</p>
+  <p class="section-sub" style="color: var(--emerald-lt); font-weight: 700; margin-bottom: 16px;">🚀 Currently in Beta: All tiers are 100% FREE while we scale!</p>
   <p class="section-sub">Once we exit beta, here is our simple, zero-commission pricing model.</p>
   <div class="plans-grid">
     <div class="plan-card" id="plan-starter">
@@ -104,6 +115,7 @@
 <!-- ─── Features ──────────────────────────────────────── -->
 <section class="features-section" id="features">
   <h2 class="section-title">Why ASG Payment Gateway?</h2>
+  <p class="section-sub">Built from the ground up for high-conversion, zero-fee Indian UPI payments.</p>
   <div class="features-grid">
     <div class="feature-card">
       <div class="feature-icon">🤖</div>
@@ -141,29 +153,41 @@
 <!-- ─── How It Works ───────────────────────────────────── -->
 <section class="how-section" id="how">
   <h2 class="section-title">How The Engine Works</h2>
-  <div class="flow-diagram">
-    <div class="flow-step">
-      <div class="flow-icon">1️⃣</div>
-      <h3>Order Created</h3>
-      <p>Unique Order ID + paise-level amount generated. UPI link built for your VPA.</p>
+  <p class="section-sub">Simple 4-step instant activation flow without third-party gatekeepers.</p>
+  
+  <div class="flow-container">
+    <div class="flow-line"></div>
+    
+    <div class="flow-step-new">
+      <div class="flow-number">01</div>
+      <div class="flow-content">
+        <h3>Order Created</h3>
+        <p>Unique Order ID + paise-level amount generated. Instant dynamic UPI QR &amp; link built for your VPA.</p>
+      </div>
     </div>
-    <div class="flow-arrow">→</div>
-    <div class="flow-step">
-      <div class="flow-icon">2️⃣</div>
-      <h3>Customer Pays</h3>
-      <p>Customer taps UPI link → pays exact amount via PhonePe / GPay / Paytm.</p>
+    
+    <div class="flow-step-new">
+      <div class="flow-number">02</div>
+      <div class="flow-content">
+        <h3>Customer Pays</h3>
+        <p>Customer taps the UPI link or scans QR to pay the exact amount via PhonePe, GPay, Paytm, or Cred.</p>
+      </div>
     </div>
-    <div class="flow-arrow">→</div>
-    <div class="flow-step">
-      <div class="flow-icon">3️⃣</div>
-      <h3>SMS Forwarded</h3>
-      <p>Bank sends "credited" SMS to your phone. SMS Forwarder app POSTs it to our webhook.</p>
+    
+    <div class="flow-step-new">
+      <div class="flow-number">03</div>
+      <div class="flow-content">
+        <h3>SMS Forwarded</h3>
+        <p>Your bank sends a credit notification SMS to your Android device, which instantly forwards it to the webhook.</p>
+      </div>
     </div>
-    <div class="flow-arrow">→</div>
-    <div class="flow-step">
-      <div class="flow-icon">4️⃣</div>
-      <h3>Verified &amp; Activated</h3>
-      <p>Amount matched, replay checked, service unlocked. Firebase event fired instantly.</p>
+    
+    <div class="flow-step-new">
+      <div class="flow-number">04</div>
+      <div class="flow-content">
+        <h3>Verified &amp; Activated</h3>
+        <p>Amount and reference are verified, replay attack checks pass, and the customer is activated within 3 seconds.</p>
+      </div>
     </div>
   </div>
 </section>
@@ -223,7 +247,7 @@
       <div class="payment-info">
         <div class="payment-row"><span>Order ID</span><code id="display-order-id">—</code></div>
         <div class="payment-row"><span>UPI ID</span><code id="display-upi-vpa">—</code></div>
-        <div class="payment-row"><span>Amount</span><strong id="display-amount" style="color:var(--emerald-lt);font-size:1.1rem">₹—</strong></div>
+        <div class="payment-row"><span>Amount</span><strong id="display-amount" style="color:var(--emerald-lt);font-size:1.15rem">₹—</strong></div>
         <div class="payment-row"><span>Payment Note</span><code id="display-payment-note">—</code></div>
         <div class="payment-row"><span>Expires In</span><span id="display-expiry" class="expiry-timer">—</span></div>
       </div>
@@ -261,9 +285,9 @@
   </div>
 </div>
 
-<footer style="text-align:center; padding:40px 24px; border-top:1px solid var(--border); color:var(--text-3); font-size:0.85rem;">
-  <p style="font-weight: 600; color: var(--text-2); font-size: 1rem;">An initiative by Judiq AI, Solace, MySpace, Aixynz, Alok Setu, Toorant, Guptik, and VdioAI</p>
-  <p style="margin-top:8px; opacity:0.6;">Empowering Indian Startups with zero-fee payments.</p>
+<footer style="text-align:center; padding:48px 20px; border-top:1px solid var(--border); color:var(--text-3); font-size:0.9rem; background:#ffffff;">
+  <p style="font-weight: 700; color: var(--text-2); font-size: 1.05rem; margin-bottom: 8px;">An initiative by Judiq AI, Solace, MySpace, Aixynz, Alok Setu, Toorant, Guptik, and VdioAI</p>
+  <p style="color:var(--text-3);">Empowering Indian Startups with zero-fee, self-verifying UPI payments.</p>
 </footer>
 
 <div class="toast-container" id="toast-container"></div>
@@ -293,33 +317,35 @@
 <script src="app.js"></script>
 
 <script>
+  // Mobile Nav Drawer Toggle
+  function toggleMobileNav() {
+    const drawer = document.getElementById('mobile-nav-drawer');
+    const toggle = document.getElementById('mobile-nav-toggle');
+    if (drawer) {
+      drawer.classList.toggle('open');
+      if (toggle) {
+        toggle.textContent = drawer.classList.contains('open') ? '✕' : '☰';
+      }
+    }
+  }
+  window.toggleMobileNav = toggleMobileNav;
+
   // Update nav auth button based on login state
   document.addEventListener('DOMContentLoaded', () => {
     const token = localStorage.getItem('pf_token');
     const btn = document.getElementById('nav-auth-btn');
-    if (token && btn) {
-      btn.textContent = 'Dashboard →';
-      btn.href = '/dashboard.html';
+    const mBtn = document.getElementById('mobile-auth-btn');
+    if (token) {
+      if (btn) {
+        btn.textContent = 'Dashboard →';
+        btn.href = '/dashboard.html';
+      }
+      if (mBtn) {
+        mBtn.textContent = 'Dashboard →';
+        mBtn.href = '/dashboard.html';
+      }
     }
   });
-</script>
-
-<script>
-  const toggleBtn = document.getElementById('theme-toggle');
-  const currentTheme = localStorage.getItem('theme') || 'dark';
-  if (currentTheme === 'light') {
-    document.documentElement.setAttribute('data-theme', 'light');
-    if (toggleBtn) toggleBtn.textContent = '🌙';
-  }
-  if (toggleBtn) {
-    toggleBtn.addEventListener('click', () => {
-      const isLight = document.documentElement.getAttribute('data-theme') === 'light';
-      const nextTheme = isLight ? 'dark' : 'light';
-      document.documentElement.setAttribute('data-theme', nextTheme);
-      localStorage.setItem('theme', nextTheme);
-      toggleBtn.textContent = isLight ? '☀️' : '🌙';
-    });
-  }
 </script>
 
 <script>
@@ -332,7 +358,7 @@
       });
     }, { threshold: 0.1 });
 
-    document.querySelectorAll('.feature-card, .plan-card, .flow-step').forEach((el) => {
+    document.querySelectorAll('.feature-card, .plan-card, .flow-step-new').forEach((el) => {
       el.classList.add('reveal-hidden');
       observer.observe(el);
     });
@@ -340,5 +366,3 @@
 </script>
 </body>
 </html>
-
-
