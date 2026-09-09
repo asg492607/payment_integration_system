@@ -141,6 +141,16 @@
       .tabs { width: 100%; }
       .tab-btn { flex: 1; text-align: center; }
     }
+    .token-gate { position: relative; z-index: 1; }
+    .lock-icon { font-size: 2.2rem; margin-bottom: 14px; }
+    .back-link { color: var(--text-3); font-size: 0.85rem; font-weight: 600; text-decoration: none; }
+    #admin-dashboard { display: none; }
+    .admin-nav-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .admin-brand-link { color: var(--indigo); text-decoration: none; font-size: 0.9rem; font-weight: 700; }
+    .live-indicator { display: inline-flex; align-items: center; gap: 6px; background: rgba(16,185,129,0.1); padding: 4px 12px; border-radius: 100px; color: var(--emerald); font-weight: 700; font-size: 0.78rem; }
+    .pulse-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--emerald); }
+    .immutable-badge { font-size: 0.8rem; color: var(--text-3); font-weight: 400; }
+    .sms-actions { display: flex; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
   </style>
 </head>
 <body>
@@ -149,23 +159,23 @@
 <div class="bg-orb orb-2"></div>
 
 <!-- Token Gate -->
-<div id="token-gate-overlay" class="token-gate" style="position:relative;z-index:1">
-  <div style="font-size:2.2rem;margin-bottom:14px">🔐</div>
+<div id="token-gate-overlay" class="token-gate">
+  <div class="lock-icon">🔐</div>
   <h2>Admin Access</h2>
   <p>Enter your session or admin token to access the centralized transaction &amp; audit console.</p>
   <input type="password" id="admin-token-inp" placeholder="Paste token here" />
   <button class="btn-primary full-width" onclick="unlockAdmin()">Unlock Dashboard →</button>
   <br/><br/>
-  <a href="/" style="color:var(--text-3);font-size:0.85rem;font-weight:600;text-decoration:none">← Back to ASG Payment Gateway</a>
+  <a href="/" class="back-link">← Back to ASG Payment Gateway</a>
 </div>
 
 <!-- Dashboard (hidden until auth) -->
-<div id="admin-dashboard" class="admin-layout" style="display:none">
+<div id="admin-dashboard" class="admin-layout">
   <div class="admin-header">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-      <a href="/" style="color:var(--indigo);text-decoration:none;font-size:0.9rem;font-weight:700">← ASG Payment Gateway</a>
-      <span class="live-indicator" style="display:inline-flex;align-items:center;gap:6px;background:rgba(16,185,129,0.1);padding:4px 12px;border-radius:100px;color:var(--emerald);font-weight:700;font-size:0.78rem">
-        <span class="pulse-dot" style="width:8px;height:8px;border-radius:50%;background:var(--emerald)"></span> Real-time Connected
+    <div class="admin-nav-top">
+      <a href="/" class="admin-brand-link">← ASG Payment Gateway</a>
+      <span class="live-indicator">
+        <span class="pulse-dot"></span> Real-time Connected
       </span>
     </div>
     <h1>⚡ Super Admin Console</h1>
@@ -206,7 +216,7 @@
   <div class="tab-content" id="tab-content-audit">
     <div class="table-container">
       <div class="table-header">
-        <h3>Audit Log <span style="font-size:0.8rem;color:var(--text-3);font-weight:400">(immutable)</span></h3>
+        <h3>Audit Log <span class="immutable-badge">(immutable)</span></h3>
         <button class="refresh-btn" onclick="loadAudit()">↻ Refresh</button>
       </div>
       <div class="table-wrap" id="audit-table-wrap">
@@ -238,7 +248,7 @@
         <input type="text" id="sms-sender" placeholder="Trusted sender number" />
       </div>
       <textarea id="sms-raw-text" placeholder="Paste raw SMS here, e.g.:&#10;Your a/c XXXXXX is credited by Rs.499 on 16-05-26. Ref 421234567890. -HDFC Bank"></textarea>
-      <div style="display:flex;gap:12px;margin-bottom:12px;flex-wrap:wrap">
+      <div class="sms-actions">
         <button class="btn-primary" onclick="testSms()">Parse &amp; Verify →</button>
         <button class="btn-secondary" onclick="fillSampleSms()">Fill Sample</button>
       </div>
