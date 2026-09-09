@@ -99,6 +99,13 @@
       .qr-card { padding: 24px 16px; }
       .amount { font-size: 2.5rem; }
     }
+    .qr-brand-title { font-size: clamp(1.4rem, 4vw, 2.2rem); margin-bottom: 16px; }
+    .receipt-qr-card {
+      margin-top: 30px; background: rgba(255,255,255,0.2); padding: 18px 24px;
+      border-radius: 16px; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); text-align: center;
+    }
+    .receipt-qr-card-title { color: white; font-weight: 700; margin-bottom: 12px; font-size: 1.05rem; }
+    .receipt-qr-box { background: white; padding: 10px; border-radius: 10px; display: inline-block; }
   </style>
 </head>
 <body>
@@ -113,7 +120,7 @@
 
   <!-- Screen 2: QR Waiting (Split) -->
   <div class="screen" id="screen-qr">
-    <div class="brand-name" id="qr-brand" style="font-size: clamp(1.4rem, 4vw, 2.2rem); margin-bottom: 16px;">ASG Payment Gateway</div>
+    <div class="brand-name qr-brand-title" id="qr-brand">ASG Payment Gateway</div>
     <div class="qr-container">
       <!-- Itemized Receipt -->
       <div class="receipt-card" id="receipt-card">
@@ -143,9 +150,9 @@
     </div>
     <div class="success-text">Payment Successful!</div>
     <div class="success-sub">Thank you for your payment</div>
-    <div style="margin-top: 30px; background: rgba(255,255,255,0.2); padding: 18px 24px; border-radius: 16px; backdrop-filter: blur(8px); text-align: center;">
-      <div style="color: white; font-weight: 700; margin-bottom: 12px; font-size: 1.05rem;">Scan for Digital Receipt</div>
-      <div id="receipt-qrcode" style="background: white; padding: 10px; border-radius: 10px; display: inline-block;"></div>
+    <div class="receipt-qr-card">
+      <div class="receipt-qr-card-title">Scan for Digital Receipt</div>
+      <div id="receipt-qrcode" class="receipt-qr-box"></div>
     </div>
   </div>
 
