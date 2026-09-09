@@ -564,7 +564,8 @@
     .d-u111 { color:#ef4444; }
     .d-u112 { display:grid;gap:12px; }
     .d-u113 { display:flex;align-items:center;gap:16px;padding:18px;border-radius:var(--radius);
-            background:var(--surface);border:1px solid ${d.is_online ? 'rgba(16,185,129,0.3)' : 'rgba(244,63,94,0.3)'}; }
+            background:var(--surface);border:1px solid rgba(244,63,94,0.3); }
+    .device-online { border-color: rgba(16,185,129,0.3) !important; }
     .d-u114 { font-size:2rem; }
     .d-u115 { font-size:0.95rem;font-weight:700; }
     .d-u116 { font-size:0.78rem;color:var(--text-2);margin-top:2px; }
@@ -2956,7 +2957,7 @@ async function loadDeviceStatus() {
     wrap.innerHTML = `
       <div class="d-u112">
         ${data.devices.map(d => `
-          <div class="d-u113">
+          <div class="d-u113 ${d.is_online ? 'device-online' : ''}">
             <div class="d-u114">${d.is_online ? '🟢' : '🔴'}</div>
             <div class="d-u17">
               <div class="d-u115">${d.label || d.id}</div>
