@@ -684,3 +684,11 @@ code { font-family: var(--mono); font-size: 0.85rem; color: var(--indigo); backg
   .stat-pill { font-size: 0.78rem; padding: 6px 12px; }
   .plan-price { font-size: 2.3rem; }
 }
+
+/* Landing Page Utilities */
+.mobile-auth-btn { text-align: center; justify-content: center; }
+.beta-sub { color: var(--emerald-lt); font-weight: 700; margin-bottom: 16px; }
+.display-amount-highlight { color: var(--emerald-lt); font-size: 1.15rem; }
+.landing-footer { text-align: center; padding: 48px 20px; border-top: 1px solid var(--border); color: var(--text-3); font-size: 0.9rem; background: #ffffff; }
+.landing-footer-brand { font-weight: 700; color: var(--text-2); font-size: 1.05rem; margin-bottom: 8px; }
+.landing-footer-desc { color: var(--text-3); }

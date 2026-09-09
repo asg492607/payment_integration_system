@@ -40,7 +40,7 @@
   <a href="#plans" onclick="toggleMobileNav()">Plans <span>→</span></a>
   <a href="#how" onclick="toggleMobileNav()">How It Works <span>→</span></a>
   <a href="#features" onclick="toggleMobileNav()">Features <span>→</span></a>
-  <a href="/login.html" id="mobile-auth-btn" class="nav-admin-btn" style="text-align:center; justify-content:center;">Sign In →</a>
+  <a href="/login.html" id="mobile-auth-btn" class="nav-admin-btn mobile-auth-btn">Sign In →</a>
 </div>
 
 <!-- ─── Hero ───────────────────────────────────────────── -->
@@ -69,7 +69,7 @@
 <!-- ─── Plans ──────────────────────────────────────────── -->
 <section class="plans-section" id="plans">
   <h2 class="section-title">Transparent Pricing</h2>
-  <p class="section-sub" style="color: var(--emerald-lt); font-weight: 700; margin-bottom: 16px;">🚀 Currently in Beta: All tiers are 100% FREE while we scale!</p>
+  <p class="section-sub beta-sub">🚀 Currently in Beta: All tiers are 100% FREE while we scale!</p>
   <p class="section-sub">Once we exit beta, here is our simple, zero-commission pricing model.</p>
   <div class="plans-grid">
     <div class="plan-card" id="plan-starter">
@@ -247,7 +247,7 @@
       <div class="payment-info">
         <div class="payment-row"><span>Order ID</span><code id="display-order-id">—</code></div>
         <div class="payment-row"><span>UPI ID</span><code id="display-upi-vpa">—</code></div>
-        <div class="payment-row"><span>Amount</span><strong id="display-amount" style="color:var(--emerald-lt);font-size:1.15rem">₹—</strong></div>
+        <div class="payment-row"><span>Amount</span><strong id="display-amount" class="display-amount-highlight">₹—</strong></div>
         <div class="payment-row"><span>Payment Note</span><code id="display-payment-note">—</code></div>
         <div class="payment-row"><span>Expires In</span><span id="display-expiry" class="expiry-timer">—</span></div>
       </div>
@@ -285,9 +285,9 @@
   </div>
 </div>
 
-<footer style="text-align:center; padding:48px 20px; border-top:1px solid var(--border); color:var(--text-3); font-size:0.9rem; background:#ffffff;">
-  <p style="font-weight: 700; color: var(--text-2); font-size: 1.05rem; margin-bottom: 8px;">An initiative by Judiq AI, Solace, MySpace, Aixynz, Alok Setu, Toorant, Guptik, and VdioAI</p>
-  <p style="color:var(--text-3);">Empowering Indian Startups with zero-fee, self-verifying UPI payments.</p>
+<footer class="landing-footer">
+  <p class="landing-footer-brand">An initiative by Judiq AI, Solace, MySpace, Aixynz, Alok Setu, Toorant, Guptik, and VdioAI</p>
+  <p class="landing-footer-desc">Empowering Indian Startups with zero-fee, self-verifying UPI payments.</p>
 </footer>
 
 <div class="toast-container" id="toast-container"></div>
