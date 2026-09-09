@@ -237,16 +237,45 @@
       font-weight: 700;
       cursor: pointer;
     }
+    .login-header { text-align: center; margin-bottom: 40px; }
+    .login-logo { font-size: 3rem; margin-bottom: 16px; }
+    .login-title { font-size: 1.8rem; font-weight: 800; color: var(--indigo); }
+    .login-sub { color: var(--text-2); margin-top: 8px; }
+    #app-screen { display: none; }
+    .app-ent-label { font-size: 0.8rem; color: var(--text-3); font-weight: 600; }
+    .hero-rev-label { font-size: 0.9rem; opacity: 0.9; }
+    .btn-soundbox-enable { background: rgba(255,255,255,0.2); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+    #sb-status { display: none; }
+    .recent-title { font-size: 1rem; margin-bottom: 12px; color: var(--text-2); }
+    .tx-waiting { text-align: center; padding: 30px; color: var(--text-3); font-size: 0.9rem; }
+    .page-pad { padding: 10px; }
+    .qr-heading { font-size: 1.2rem; font-weight: 800; margin-bottom: 16px; text-align: center; }
+    .qr-generic-wrap { text-align: center; margin-top: 16px; }
+    .qr-generic-link { color: var(--text-3); font-size: 0.9rem; font-weight: 600; text-decoration: underline; }
+    #qr-display-view { display: none; text-align: center; margin-top: 20px; }
+    .qr-card-white { background: white; padding: 24px; border-radius: var(--radius-lg); display: inline-block; box-shadow: var(--shadow); }
+    #store-qr { width: 220px; height: 220px; display: none; margin: 0 auto; }
+    #qr-loading { width: 220px; height: 220px; display: flex; align-items: center; justify-content: center; background: #f8fafc; color: #94a3b8; margin: 0 auto; }
+    .mt-24 { margin-top: 24px; }
+    .btn-w200 { width: 200px; }
+    .mt-16 { margin-top: 16px; }
+    .store-link { color: var(--indigo); font-weight: 700; text-decoration: none; }
+    .settings-title { font-size: 1.4rem; font-weight: 800; margin-bottom: 24px; }
+    .setting-name { font-weight: 700; font-size: 1rem; }
+    .setting-desc { font-size: 0.8rem; color: var(--text-2); }
+    .btn-sound-test { background: rgba(14, 165, 233, 0.1); color: var(--indigo); }
+    .btn-logout { background: rgba(244, 63, 94, 0.1); color: var(--rose); }
+    .app-dev-footer { text-align: center; padding: 20px; font-size: 0.8rem; color: #94a3b8; width: 100%; position: relative; z-index: 100; }
   </style>
 </head>
 <body>
 
   <!-- Login Screen -->
   <div id="login-screen">
-    <div style="text-align: center; margin-bottom: 40px;">
-      <div style="font-size: 3rem; margin-bottom: 16px;">⚡</div>
-      <h1 style="font-size: 1.8rem; font-weight: 800; color: var(--indigo);">ASG Business</h1>
-      <p style="color: var(--text-2); margin-top: 8px;">Enter your Enterprise ID to connect your phone as a Virtual Soundbox.</p>
+    <div class="login-header">
+      <div class="login-logo">⚡</div>
+      <h1 class="login-title">ASG Business</h1>
+      <p class="login-sub">Enter your Enterprise ID to connect your phone as a Virtual Soundbox.</p>
     </div>
     
     <div class="input-group">
@@ -256,34 +285,34 @@
   </div>
 
   <!-- Main App -->
-  <div id="app-screen" style="display:none;">
+  <div id="app-screen">
     <header class="app-header">
       <div class="app-title">⚡ ASG Business</div>
-      <div style="font-size: 0.8rem; color: var(--text-3); font-weight: 600;" id="app-ent-label">ID: ---</div>
+      <div class="app-ent-label" id="app-ent-label">ID: ---</div>
     </header>
 
     <div class="page active" id="page-home">
       <div class="hero-card">
-        <div style="font-size: 0.9rem; opacity: 0.9;">Today's Revenue</div>
+        <div class="hero-rev-label">Today's Revenue</div>
         <div class="amount-display" id="today-rev">₹0.00</div>
-        <button class="btn-primary" style="background: rgba(255,255,255,0.2); backdrop-filter: blur(10px);" onclick="initSoundbox()">
+        <button class="btn-primary btn-soundbox-enable" onclick="initSoundbox()">
           Enable Virtual Soundbox 🔊
         </button>
         <br>
-        <div class="soundbox-status" id="sb-status" style="display:none;">
+        <div class="soundbox-status" id="sb-status">
           <div class="dot"></div> Listening for Payments
         </div>
       </div>
 
-      <h3 style="font-size: 1rem; margin-bottom: 12px; color: var(--text-2);">Recent Transactions</h3>
+      <h3 class="recent-title">Recent Transactions</h3>
       <div class="recent-list" id="tx-list">
-        <div style="text-align:center; padding: 30px; color: var(--text-3); font-size: 0.9rem;">Waiting for transactions...</div>
+        <div class="tx-waiting">Waiting for transactions...</div>
       </div>
     </div>
     
     <div class="page" id="page-qr">
-      <div style="padding: 10px;">
-        <h2 style="font-size: 1.2rem; font-weight: 800; margin-bottom: 16px; text-align: center;">Dynamic POS QR</h2>
+      <div class="page-pad">
+        <h2 class="qr-heading">Dynamic POS QR</h2>
         
         <div id="qr-input-view">
           <div class="pos-display" id="pos-amount">₹0</div>
@@ -302,48 +331,48 @@
             <button class="key-btn key-action" onclick="pressKey('X')">⌫</button>
           </div>
           <button class="btn-primary" onclick="generateDynamicQR()">Generate Custom QR</button>
-          <div style="text-align: center; margin-top: 16px;">
-            <a href="#" onclick="generateGenericQR()" style="color: var(--text-3); font-size: 0.9rem; font-weight: 600; text-decoration: underline;">Show Generic Store QR</a>
+          <div class="qr-generic-wrap">
+            <a href="#" onclick="generateGenericQR()" class="qr-generic-link">Show Generic Store QR</a>
           </div>
         </div>
         
-        <div id="qr-display-view" style="display: none; text-align: center; margin-top: 20px;">
-          <div style="background: white; padding: 24px; border-radius: var(--radius-lg); display: inline-block; box-shadow: var(--shadow);">
+        <div id="qr-display-view">
+          <div class="qr-card-white">
             <div id="pos-pushed-msg"></div>
-            <img id="store-qr" src="" alt="QR Code" style="width: 220px; height: 220px; display: none; margin: 0 auto;">
-            <div id="qr-loading" style="width: 220px; height: 220px; display: flex; align-items: center; justify-content: center; background: #f8fafc; color: #94a3b8; margin: 0 auto;">
+            <img id="store-qr" src="" alt="QR Code">
+            <div id="qr-loading">
               Generating...
             </div>
           </div>
-          <div style="margin-top: 24px;">
-            <button class="btn-primary" style="width: 200px;" onclick="resetQRView()">← Back to Keypad</button>
+          <div class="mt-24">
+            <button class="btn-primary btn-w200" onclick="resetQRView()">← Back to Keypad</button>
           </div>
-          <div style="margin-top: 16px;">
-            <a id="store-link" href="#" target="_blank" style="color: var(--indigo); font-weight: 700; text-decoration: none;">Open Link ↗</a>
+          <div class="mt-16">
+            <a id="store-link" href="#" target="_blank" rel="noopener noreferrer" class="store-link">Open Link ↗</a>
           </div>
         </div>
       </div>
     </div>
     
     <div class="page" id="page-settings">
-      <div style="padding: 10px;">
-        <h2 style="font-size: 1.4rem; font-weight: 800; margin-bottom: 24px;">Settings</h2>
+      <div class="page-pad">
+        <h2 class="settings-title">Settings</h2>
         
         <div class="settings-list">
           <div class="setting-item">
             <div>
-              <div style="font-weight: 700; font-size: 1rem;">Virtual Soundbox</div>
-              <div style="font-size: 0.8rem; color: var(--text-2);">Test your audio alerts</div>
+              <div class="setting-name">Virtual Soundbox</div>
+              <div class="setting-desc">Test your audio alerts</div>
             </div>
-            <button style="background: rgba(14, 165, 233, 0.1); color: var(--indigo);" onclick="playAudioAlert(500)">Test 🔊</button>
+            <button class="btn-sound-test" onclick="playAudioAlert(500)">Test 🔊</button>
           </div>
           
           <div class="setting-item">
             <div>
-              <div style="font-weight: 700; font-size: 1rem;">Enterprise Account</div>
-              <div style="font-size: 0.8rem; color: var(--text-2);" id="set-ent-id">ID: ---</div>
+              <div class="setting-name">Enterprise Account</div>
+              <div class="setting-desc" id="set-ent-id">ID: ---</div>
             </div>
-            <button style="background: rgba(244, 63, 94, 0.1); color: var(--rose);" onclick="logoutApp()">Logout</button>
+            <button class="btn-logout" onclick="logoutApp()">Logout</button>
           </div>
         </div>
       </div>
@@ -363,7 +392,7 @@
     </nav>
   </div>
   
-  <div style="text-align:center; padding: 20px; font-size: 0.8rem; color: #94a3b8; width: 100%; position: relative; z-index: 100;">Developed by ASG</div>
+  <div class="app-dev-footer">Developed by ASG</div>
 
   <script>
     // 1. PWA Registration
